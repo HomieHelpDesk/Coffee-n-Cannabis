@@ -1,4 +1,4 @@
-<h1 align="center">UNIT3D Community Edition</h1>
+<h1 align="center">Coffee-n-Cannabis</h1>
 
 <p align="center">
     <a href="http://laravel.com"><img src="https://img.shields.io/badge/Laravel-11-f4645f.svg" /></a>
