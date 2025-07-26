@@ -27,7 +27,7 @@ test('edit returns an ok response', function (): void {
     $response = $this->actingAs($authUser)->get(route('users.notification_settings.edit', [$user]));
 
     $response->assertOk();
-    $response->assertViewIs('user.notification_setting.edit');
+    $response->assertViewIs('user.notification-setting.edit');
     $response->assertViewHas('user', $user);
     $response->assertViewHas('groups', $groups);
 

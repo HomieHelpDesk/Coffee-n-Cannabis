@@ -56,10 +56,10 @@
                 @forelse ($watchedUsers as $watching)
                     <tr>
                         <td>
-                            <x-user_tag :anon="false" :user="$watching->user" />
+                            <x-user-tag :anon="false" :user="$watching->user" />
                         </td>
                         <td>
-                            <x-user_tag :anon="false" :user="$watching->author" />
+                            <x-user-tag :anon="false" :user="$watching->author" />
                         </td>
                         <td>{{ $watching->message }}</td>
                         <td>

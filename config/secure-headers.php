@@ -487,8 +487,8 @@ return [
             'self' => true,
 
             'allow' => [
-                'https://'.parse_url(env('APP_URL'), PHP_URL_HOST).':8443/socket.io/',
-                'wss://'.parse_url(env('APP_URL'), PHP_URL_HOST).':8443/socket.io/',
+                'https://'.parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_HOST).(parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_PORT) === null ? '' : ':'.parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_PORT)).'/socket.io/',
+                'wss://'.parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_HOST).(parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_PORT) === null ? '' : ':'.parse_url(env('VITE_ECHO_ADDRESS'), PHP_URL_PORT)).'/socket.io/',
                 'https://api.themoviedb.org/',
             ],
         ],
@@ -503,12 +503,11 @@ return [
             'self' => true,
 
             'schemes' => [
-                'data:',
-                'https:'
+                // 'data:',
+                // 'https:'
             ],
 
             'allow' => [
-                'fonts.gstatic.com',
             ],
         ],
 
@@ -536,8 +535,6 @@ return [
             ],
 
             'allow' => [
-                'image.tmdb.org',
-                'via.placeholder.com/400x600',
             ],
         ],
 
@@ -550,8 +547,8 @@ return [
             'self' => true,
 
             'schemes' => [
-                'data:',
-                'https:',
+                // 'data:',
+                // 'https:',
             ],
 
             'allow' => [
@@ -673,14 +670,13 @@ return [
             'unsafe-inline' => true,
 
             'schemes' => [
-                'https:',
+                // 'https:',
             ],
 
             'allow' => [
                 'gitcdn.xyz',
                 'github.io',
                 "*.github.io",
-                'raw.githubusercontent.com',
                 'github.com'
             ],
         ],

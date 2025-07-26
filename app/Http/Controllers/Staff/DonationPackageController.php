@@ -29,7 +29,7 @@ class DonationPackageController extends Controller
      */
     public function index(): \Illuminate\Contracts\View\View|\Illuminate\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\Foundation\Application
     {
-        return view('Staff.donation_package.index', ['packages' => DonationPackage::orderBy('position')->paginate(25)]);
+        return view('Staff.donation-package.index', ['packages' => DonationPackage::orderBy('position')->paginate(25)]);
     }
 
     /**
@@ -37,7 +37,7 @@ class DonationPackageController extends Controller
      */
     public function create(): \Illuminate\Contracts\View\View|\Illuminate\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\Foundation\Application
     {
-        return view('Staff.donation_package.create');
+        return view('Staff.donation-package.create');
     }
 
     /**
@@ -48,7 +48,7 @@ class DonationPackageController extends Controller
         DonationPackage::create($request->validated());
 
         return redirect()->route('staff.packages.index')
-            ->withSuccess('Donation Package Added Successfully!');
+            ->with('success', 'Donation Package Added Successfully!');
     }
 
     /**
@@ -56,7 +56,7 @@ class DonationPackageController extends Controller
      */
     public function edit(DonationPackage $package): \Illuminate\Contracts\View\View|\Illuminate\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\Foundation\Application
     {
-        return view('Staff.donation_package.edit', ['package' => $package]);
+        return view('Staff.donation-package.edit', ['package' => $package]);
     }
 
     /**
@@ -67,7 +67,7 @@ class DonationPackageController extends Controller
         $package->update($request->validated());
 
         return redirect()->route('staff.packages.index')
-            ->withSuccess('Donation Package Edited Successfully!');
+            ->with('success', 'Donation Package Edited Successfully!');
     }
 
     /**
@@ -78,6 +78,6 @@ class DonationPackageController extends Controller
         $package->delete();
 
         return redirect()->route('staff.packages.index')
-            ->withSuccess('Donation Package Deleted Successfully!');
+            ->with('success', 'Donation Package Deleted Successfully!');
     }
 }

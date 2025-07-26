@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main-and-sidebar')
 
 @section('breadcrumbs')
     <li class="breadcrumbV2">
@@ -14,7 +14,7 @@
     </li>
 @endsection
 
-@section('page', 'page__conversations--index')
+@section('page', 'page__user-conversation--index')
 
 @section('main')
     @livewire('conversation-search')

@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>
@@ -21,8 +21,8 @@
     @include('user.buttons.user')
 @endsection
 
-@section('page', 'page__user-resurrections--index')
+@section('page', 'page__user-resurrection--index')
 
-@section('content')
+@section('main')
     @livewire('user-resurrections', ['userId' => $user->id])
 @endsection

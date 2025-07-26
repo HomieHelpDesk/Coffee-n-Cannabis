@@ -71,9 +71,17 @@
     --chatbox-tab-delete-fg: #c22222;
     --chatbox-tab-delete-bg: #444;
 
+    --compact-search-bg: #2a292e;
+    --compact-search-box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14),
+        0 1px 8px 0 rgba(0, 0, 0, 0.12), 0 3px 3px -2px rgba(0, 0, 0, 0.4);
+    --compact-search-border-radius: 27px;
+    --compact-search-fg: #bbb;
+    --compact-search-padding: 5px;
+
     --comparison-divider-fg: #000;
     --comparison-button-fg: #000;
 
+    --data-table-border-radius: 22px;
     --data-table-fg: #c0c0c0;
     --data-table-th-bg: #2a292e;
     --data-table-thead-border: 1px solid #3c3c3c;
@@ -125,6 +133,7 @@
     --input-text-padding-active: 11px;
     --input-text-padding-hover: 11px;
 
+    --key-value-border-radius: 0;
     --key-value-even-bg: transparent;
     --key-value-fg: inherit;
     --key-value-odd-bg: transparent;
@@ -149,7 +158,7 @@
     --mediahub-card-box-shadow: 0px 3px 3px -2px rgba(0, 0, 0, 0.2),
         0px 3px 4px 0px rgba(0, 0, 0, 0.14), 0px 1px 8px 0px rgba(0, 0, 0, 0.12);
 
-    --meta-backdrop-filter: brightness(30%);
+    --meta-backdrop-filter: brightness(30%) blur(100px);
     --meta-dropdown-backdrop-filter: brightness(2) blur(10px);
     --meta-dropdown-bg: #4449;
     --meta-dropdown-backdrop-filter-hover: brightness(2) blur(10px);
@@ -183,6 +192,7 @@
     --paginate-bg: #2a292e;
     --paginate-bg-hover: #3a393e;
     --paginate-bg-current: #312f35;
+    --paginate-border-radius: 22px;
     --paginate-fg: #ddd;
     --paginate-fg-disabled: #999;
     --paginate-divider: #888;
@@ -191,11 +201,13 @@
     --panel-border: none;
     --panel-bg: #2a292e;
     --panel-fg: #bbb;
+    --panel-body-border-radius: 22px;
     --panel-box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14),
         0 1px 8px 0 rgba(0, 0, 0, 0.12), 0 3px 3px -2px rgba(0, 0, 0, 0.4);
     --panel-border-radius: 22px;
     --panel-head-bg: #2a292e;
     --panel-head-fg: #d8d7dc;
+    --panel-head-border-radius: 22px;
 
     --playlist-card-bg: #343338;
     --playlist-card-border: none;
@@ -253,6 +265,7 @@
     --scrollbar-color: #0004;
 
     --secondary-nav-bg: #221e24;
+    --secondary-nav-box-shadow: 0 8px 10px 0 rgba(0, 0, 0, 0.2);
     --secondary-nav-tab-fg: #999;
     --secondary-nav-tab-bg: inherit;
     --secondary-nav-tab-active-text-decoration: underline #0099ff 2px;
@@ -348,13 +361,11 @@
     --torrent-row-comments-fg: #3fb618;
     --torrent-row-internal-fg: #baaf94;
     --torrent-row-personal-fg: #865be9;
-    --torrent-row-stream-optimized-fg: #ff0039;
     --torrent-row-featured-fg: #f92672;
     --torrent-row-freeleech-fg: #ffb800;
     --torrent-row-double-upload-fg: #4cb828;
     --torrent-row-sticky-fg: #111111;
     --torrent-row-highspeed-fg: #ff0039;
-    --torrent-row-sd-fg: #ff7518;
     --torrent-row-bumped-fg: #f9ba13;
 
     --torrent-tag-fg: #eee;
@@ -370,70 +381,17 @@
         0px 3px 4px 0px rgba(0, 0, 0, 0.14), 0px 1px 8px 0px rgba(0, 0, 0, 0.12);
 }
 
-.panel__body {
-    border-bottom-left-radius: var(--panel-border-radius);
-    border-bottom-right-radius: var(--panel-border-radius);
-}
-
-.panel__header {
-    border-top-left-radius: var(--panel-border-radius);
-    border-top-right-radius: var(--panel-border-radius);
-}
-
-.panel__header:has(+ [style='display: none;']),
-.panel__header:has(+ [style='display: none;']) > .panel__heading,
-.panel__header:has(+ [style='display: none;']) > .panel__actions,
-.panel__header:has(+ [style='display: none;'])
-    > .panel__actions
-    > .panel__action,
-.panel__heading:has(+ [style='display: none;']),
-.panel__heading:has(+ .data-table-wrapper):not(:has(+ .data-table-wrapper tr)) {
-    border-bottom-left-radius: var(--panel-border-radius);
-    border-bottom-right-radius: var(--panel-border-radius);
-}
-
 .panel__heading {
-    border-top-left-radius: var(--panel-border-radius);
-    border-top-right-radius: var(--panel-border-radius);
     font-size: 19px;
     font-weight: bold;
     padding: 12px 15px;
 }
 
-.panel__actions,
-.panel__actions > .panel__action:last-child,
-.panel__actions > .panel__action:last-child > .form__group {
-    border-top-right-radius: var(--panel-border-radius);
-}
-
-.featured-carousel__previous {
-    border-bottom-left-radius: var(--panel-border-radius);
-}
-
-.featured-carousel__next {
-    border-bottom-right-radius: var(--panel-border-radius);
-}
-
-.data-table tr:last-of-type td:first-of-type,
+/* Bottom-most table header cells which don't have a following tbody nor tfoot */
 .data-table
-    > thead:not(:has(+ tbody > tr)):not(:has(tfoot))
-    > tr
-    > th:first-of-type {
-    border-bottom-left-radius: var(--panel-border-radius);
-}
-
-.data-table tr:last-of-type td:last-of-type,
-.data-table
-    tr:last-of-type
-    td:not([style='display: none;']):has(+ td[style='display: none;']),
-.data-table
-    > thead:not(:has(+ tbody > tr)):not(:has(tfoot))
-    > tr
-    > th:last-of-type {
-    border-bottom-right-radius: var(--panel-border-radius);
-}
-
-.data-table > thead:not(:has(+ tbody > tr)):not(:has(tfoot)) > tr > th {
+    > thead:not(:has(+ tbody > tr)):not(:has(~ tfoot > tr))
+    > tr:last-of-type
+    > th {
     border-bottom: none;
 }
 
@@ -451,7 +409,7 @@
     border-radius: 22px;
 }
 
-.page__forum--topic .bbcode-input {
+.page__topic--show .bbcode-input {
     --bbcode-input-border: none;
 }
 
@@ -551,11 +509,6 @@ a {
 
 hr {
     border-top: 1px solid #444;
-}
-
-.pagination:last-child {
-    border-bottom-left-radius: var(--panel-border-radius);
-    border-bottom-right-radius: var(--panel-border-radius);
 }
 
 li.pagination__next,

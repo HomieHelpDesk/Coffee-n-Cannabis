@@ -29,7 +29,7 @@ class MediaLanguageController extends Controller
      */
     public function index(): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
-        return view('Staff.media_language.index', [
+        return view('Staff.media-language.index', [
             'media_languages' => MediaLanguage::orderBy('name')->get(),
         ]);
     }
@@ -39,7 +39,7 @@ class MediaLanguageController extends Controller
      */
     public function create(): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
-        return view('Staff.media_language.create');
+        return view('Staff.media-language.create');
     }
 
     /**
@@ -50,7 +50,7 @@ class MediaLanguageController extends Controller
         MediaLanguage::create($request->validated());
 
         return to_route('staff.media_languages.index')
-            ->withSuccess('Media Language Successfully Added');
+            ->with('success', 'Media Language Successfully Added');
     }
 
     /**
@@ -58,7 +58,7 @@ class MediaLanguageController extends Controller
      */
     public function edit(MediaLanguage $mediaLanguage): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
-        return view('Staff.media_language.edit', [
+        return view('Staff.media-language.edit', [
             'media_language' => $mediaLanguage,
         ]);
     }
@@ -71,7 +71,7 @@ class MediaLanguageController extends Controller
         $mediaLanguage->update($request->validated());
 
         return to_route('staff.media_languages.index')
-            ->withSuccess('Media Language Successfully Updated');
+            ->with('success', 'Media Language Successfully Updated');
     }
 
     /**
@@ -84,6 +84,6 @@ class MediaLanguageController extends Controller
         $mediaLanguage->delete();
 
         return to_route('staff.media_languages.index')
-            ->withSuccess('Media Language Has Successfully Been Deleted');
+            ->with('success', 'Media Language Has Successfully Been Deleted');
     }
 }

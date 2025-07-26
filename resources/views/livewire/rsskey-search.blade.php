@@ -70,7 +70,7 @@
                 @forelse ($rsskeys as $rsskey)
                     <tr>
                         <td>
-                            <x-user_tag :user="$rsskey->user" :anon="false" />
+                            <x-user-tag :user="$rsskey->user" :anon="false" />
                         </td>
                         <td>{{ $rsskey->content }}</td>
                         <td>

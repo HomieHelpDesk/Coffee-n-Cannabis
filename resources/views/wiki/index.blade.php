@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>Wikis - {{ config('other.title') }}</title>
@@ -12,7 +12,7 @@
     <li class="breadcrumb--active">Wikis</li>
 @endsection
 
-@section('page', 'page__wikis--index')
+@section('page', 'page__wiki--index')
 
 @section('main')
     @foreach ($wiki_categories as $category)

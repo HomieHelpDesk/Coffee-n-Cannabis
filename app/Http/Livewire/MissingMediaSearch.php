@@ -16,7 +16,7 @@ declare(strict_types=1);
 
 namespace App\Http\Livewire;
 
-use App\Models\Movie;
+use App\Models\TmdbMovie;
 use App\Models\Type;
 use App\Traits\LivewireSort;
 use Livewire\Attributes\Computed;
@@ -50,12 +50,12 @@ class MissingMediaSearch extends Component
     public int $perPage = 50;
 
     /**
-     * @return \Illuminate\Pagination\LengthAwarePaginator<Movie>
+     * @return \Illuminate\Pagination\LengthAwarePaginator<int, TmdbMovie>
      */
     #[Computed]
     final public function medias(): \Illuminate\Pagination\LengthAwarePaginator
     {
-        return Movie::with(['torrents:tmdb,resolution_id,type_id' => ['resolution:id,position,name']])
+        return TmdbMovie::with(['torrents:tmdb_movie_id,tmdb_tv_id,resolution_id,type_id' => ['resolution:id,position,name']])
             ->when($this->name, fn ($query) => $query->where('title', 'LIKE', '%'.$this->name.'%'))
             ->when($this->year, fn ($query) => $query->where('release_date', 'LIKE', '%'.$this->year.'%'))
             ->withCount(['requests' => fn ($query) => $query->whereNull('torrent_id')->whereNull('claimed')])

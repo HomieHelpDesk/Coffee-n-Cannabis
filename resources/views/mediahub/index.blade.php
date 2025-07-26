@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main-and-sidebar')
 
 @section('title')
     <title>{{ __('mediahub.title') }} - {{ config('other.title') }}</title>
@@ -13,6 +13,8 @@
         {{ __('mediahub.title') }}
     </li>
 @endsection
+
+@section('page', 'page__mediahub')
 
 @section('main')
     <section class="panelV2">

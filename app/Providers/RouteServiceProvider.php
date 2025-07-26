@@ -69,12 +69,24 @@ class RouteServiceProvider extends ServiceProvider
     protected function configureRateLimiting(): void
     {
         RateLimiter::for('web', fn (Request $request): Limit => $request->user()
-            ? Limit::perMinute(30)->by('web'.$request->user()->id)
+            ? Limit::perMinute(
+                cache()->remember(
+                    'group:'.$request->user()->group_id.':is_modo',
+                    5,
+                    fn () => $request->user()->group()->value('is_modo')
+                )
+                    ? 60
+                    : 30
+            )
+                ->by('web'.$request->user()->id)
             : Limit::perMinute(8)->by('web'.$request->ip()));
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute(30)->by('api'.$request->ip()));
         RateLimiter::for('announce', fn (Request $request) => Limit::perMinute(500)->by('announce'.$request->ip()));
         RateLimiter::for('chat', fn (Request $request) => Limit::perMinute(60)->by('chat'.($request->user()?->id ?? $request->ip())));
         RateLimiter::for('rss', fn (Request $request) => Limit::perMinute(30)->by('rss'.$request->ip()));
+        RateLimiter::for('authenticated-images', fn (Request $request): Limit => Limit::perMinute(200)->by('authenticated-images:'.$request->user()->id));
+        RateLimiter::for('search', fn (Request $request): Limit => Limit::perMinute(100)->by('search:'.$request->user()->id));
+        RateLimiter::for('tmdb', fn (): Limit => Limit::perSecond(2));
     }
 
     protected function removeIndexPhpFromUrl(): void

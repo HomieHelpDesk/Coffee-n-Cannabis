@@ -46,6 +46,7 @@ class Person
     public function __construct(int $id)
     {
         $this->data = Http::acceptJson()
+            ->retry([1000, 5000, 15000])
             ->withUrlParameters(['id' => $id])
             ->get('https://api.TheMovieDB.org/3/person/{id}', [
                 'api_key'            => config('api-keys.tmdb'),

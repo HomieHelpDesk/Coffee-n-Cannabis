@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>Polls - {{ config('other.title') }}</title>
@@ -15,7 +15,7 @@
     </li>
 @endsection
 
-@section('page', 'page__poll-admin--index')
+@section('page', 'page__staff-poll--index')
 
 @section('main')
     <section class="panelV2">

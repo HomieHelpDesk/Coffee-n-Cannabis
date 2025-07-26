@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('breadcrumbs')
     <li class="breadcrumbV2">
@@ -16,7 +16,7 @@
     </li>
 @endsection
 
-@section('page', 'page__groups--create')
+@section('page', 'page__staff-group--create')
 
 @section('main')
     <section class="panelV2" x-data="{ autogroup: false }">

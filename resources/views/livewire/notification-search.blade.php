@@ -1,4 +1,4 @@
-<div class="sidebar2">
+<article class="sidebar2">
     <div>
         <section class="panelV2">
             <h2 class="panel__heading">{{ __('notification.notifications') }}</h2>
@@ -144,6 +144,34 @@
                                     class="{{ config('other.font-awesome') }} fa-smile-plus text-success"
                                 ></i>
                                 {{ __('user.followers') }}
+                            </label>
+                        </p>
+                        <p class="form__group">
+                            <label class="form__label">
+                                <input
+                                    class="form__checkbox"
+                                    type="checkbox"
+                                    wire:model.live.prefetch="playlist_suggestions"
+                                    value="1"
+                                />
+                                <i
+                                    class="{{ config('other.font-awesome') }} fa-comment-dots text-success"
+                                ></i>
+                                {{ __('playlist.playlist-suggestions') }}
+                            </label>
+                        </p>
+                        <p class="form__group">
+                            <label class="form__label">
+                                <input
+                                    class="form__checkbox"
+                                    type="checkbox"
+                                    wire:model.live.prefetch="playlist_suggestion_rejections"
+                                    value="1"
+                                />
+                                <i
+                                    class="{{ config('other.font-awesome') }} fa-comment-dots text-success"
+                                ></i>
+                                {{ __('playlist.playlist-suggestion-rejections') }}
                             </label>
                         </p>
                         <p class="form__group">
@@ -319,7 +347,12 @@
                         </p>
                         <p class="form__group">
                             <label class="form__label">
-                                <input class="form__checkbox" type="checkbox" value="topics" />
+                                <input
+                                    class="form__checkbox"
+                                    type="checkbox"
+                                    wire:model.live.prefetch="topics"
+                                    value="1"
+                                />
                                 <i
                                     class="{{ config('other.font-awesome') }} fa-comment-alt-check text-success"
                                 ></i>
@@ -398,4 +431,4 @@
             </div>
         </section>
     </aside>
-</div>
+</article>

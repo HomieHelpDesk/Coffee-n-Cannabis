@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>
@@ -25,7 +25,7 @@
     </li>
 @endsection
 
-@section('page', 'page__passkeys-log--index')
+@section('page', 'page__staff-passkey--index')
 
 @section('main')
     @livewire('passkey-search')

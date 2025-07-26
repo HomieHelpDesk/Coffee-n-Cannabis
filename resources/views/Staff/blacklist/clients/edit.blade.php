@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('breadcrumbs')
     <li class="breadcrumbV2">
@@ -15,6 +15,8 @@
         {{ __('common.edit') }}
     </li>
 @endsection
+
+@section('page', 'page__staff-blacklisted-client--edit')
 
 @section('main')
     <section class="panelV2">

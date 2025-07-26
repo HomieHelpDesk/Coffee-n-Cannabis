@@ -51,7 +51,7 @@
                 @forelse ($emailUpdates as $emailUpdate)
                     <tr>
                         <td>
-                            <x-user_tag :user="$emailUpdate->user" :anon="false" />
+                            <x-user-tag :user="$emailUpdate->user" :anon="false" />
                         </td>
                         <td>
                             <time

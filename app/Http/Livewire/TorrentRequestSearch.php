@@ -17,8 +17,8 @@ declare(strict_types=1);
 namespace App\Http\Livewire;
 
 use App\Models\Category;
-use App\Models\Genre;
-use App\Models\Movie;
+use App\Models\TmdbGenre;
+use App\Models\TmdbMovie;
 use App\Models\Resolution;
 use App\Models\TorrentRequest;
 use App\Models\Type;
@@ -152,21 +152,21 @@ class TorrentRequestSearch extends Component
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Collection<int, Genre>
+     * @return \Illuminate\Database\Eloquent\Collection<int, TmdbGenre>
      */
     #[Computed(seconds: 3600, cache: true)]
     final public function genres(): \Illuminate\Database\Eloquent\Collection
     {
-        return Genre::query()->orderBy('name')->get();
+        return TmdbGenre::query()->orderBy('name')->get();
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, Movie>
+     * @return \Illuminate\Support\Collection<int, TmdbMovie>
      */
     #[Computed(seconds: 3600, cache: true)]
     final public function primaryLanguages(): \Illuminate\Support\Collection
     {
-        return Movie::query()
+        return TmdbMovie::query()
             ->select('original_language')
             ->distinct()
             ->orderBy('original_language')
@@ -194,7 +194,7 @@ class TorrentRequestSearch extends Component
     }
 
     /**
-     * @return \Illuminate\Pagination\LengthAwarePaginator<TorrentRequest>
+     * @return \Illuminate\Pagination\LengthAwarePaginator<int, TorrentRequest>
      */
     #[Computed]
     final public function torrentRequests(): \Illuminate\Pagination\LengthAwarePaginator
@@ -240,7 +240,7 @@ class TorrentRequestSearch extends Component
             ->when($this->categoryIds !== [], fn ($query) => $query->whereIntegerInRaw('category_id', $this->categoryIds))
             ->when($this->typeIds !== [], fn ($query) => $query->whereIntegerInRaw('type_id', $this->typeIds))
             ->when($this->resolutionIds !== [], fn ($query) => $query->whereIntegerInRaw('resolution_id', $this->resolutionIds))
-            ->when($this->tmdbId !== null, fn ($query) => $query->where('tmdb', '=', $this->tmdbId))
+            ->when($this->tmdbId !== null, fn ($query) => $query->where(fn ($query) => $query->where('tmdb_movie_id', '=', $this->tmdbId)->orWhere('tmdb_tv_id', '=', $this->tmdbId)))
             ->when($this->imdbId !== '', fn ($query) => $query->where('imdb', '=', (preg_match('/tt0*(?=(\d{7,}))/', $this->imdbId, $matches) ? $matches[1] : $this->imdbId)))
             ->when($this->tvdbId !== null, fn ($query) => $query->where('tvdb', '=', $this->tvdbId))
             ->when($this->malId !== null, fn ($query) => $query->where('mal', '=', $this->malId))
@@ -252,12 +252,12 @@ class TorrentRequestSearch extends Component
                             ->where(
                                 fn ($query) => $query
                                     ->whereRelation('category', 'movie_meta', '=', true)
-                                    ->whereIn('tmdb', DB::table('genre_movie')->select('movie_id')->whereIn('genre_id', $this->genreIds))
+                                    ->whereIn('tmdb_movie_id', DB::table('tmdb_genre_tmdb_movie')->select('tmdb_movie_id')->whereIn('tmdb_genre_id', $this->genreIds))
                             )
                             ->orWhere(
                                 fn ($query) => $query
                                     ->whereRelation('category', 'tv_meta', '=', true)
-                                    ->whereIn('tmdb', DB::table('genre_tv')->select('tv_id')->whereIn('genre_id', $this->genreIds))
+                                    ->whereIn('tmdb_tv_id', DB::table('tmdb_genre_tmdb_tv')->select('tmdb_tv_id')->whereIn('tmdb_genre_id', $this->genreIds))
                             )
                     )
             )
@@ -287,17 +287,17 @@ class TorrentRequestSearch extends Component
                     })
                         ->orWhere(function ($query): void {
                             if ($this->claimed) {
-                                $query->whereNotNull('claimed')->whereNull('torrent_id')->whereNull('approved_by');
+                                $query->whereNotNull('claimed')->whereNull('torrent_id')->whereNull('approved_when');
                             }
                         })
                         ->orWhere(function ($query): void {
                             if ($this->pending) {
-                                $query->whereNotNull('torrent_id')->whereNull('approved_by');
+                                $query->whereNotNull('torrent_id')->whereNull('approved_when');
                             }
                         })
                         ->orWhere(function ($query): void {
                             if ($this->filled) {
-                                $query->whereNotNull('torrent_id')->whereNotNull('approved_by');
+                                $query->whereNotNull('torrent_id')->whereNotNull('approved_when');
                             }
                         });
                 });

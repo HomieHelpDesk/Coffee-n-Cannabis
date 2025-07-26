@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>
@@ -26,7 +26,7 @@
     </li>
 @endsection
 
-@section('page', 'page__users--index')
+@section('page', 'page__staff-user--index')
 
 @section('main')
     @livewire('user-search')

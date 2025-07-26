@@ -29,7 +29,7 @@ class BonExchangeController extends Controller
      */
     public function index(): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
-        return view('Staff.bon_exchange.index', [
+        return view('Staff.bon-exchange.index', [
             'bonExchanges' => BonExchange::all(),
         ]);
     }
@@ -39,7 +39,7 @@ class BonExchangeController extends Controller
      */
     public function create(): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
-        return view('Staff.bon_exchange.create');
+        return view('Staff.bon-exchange.create');
     }
 
     /**
@@ -56,7 +56,7 @@ class BonExchangeController extends Controller
         + $request->validated());
 
         return to_route('staff.bon_exchanges.index')
-            ->withSuccess('Bon Exchange Successfully Added');
+            ->with('success', 'Bon Exchange Successfully Added');
     }
 
     /**
@@ -64,7 +64,7 @@ class BonExchangeController extends Controller
      */
     public function edit(int $id): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
-        return view('Staff.bon_exchange.edit', [
+        return view('Staff.bon-exchange.edit', [
             'bonExchange' => BonExchange::findOrFail($id),
         ]);
     }
@@ -83,7 +83,7 @@ class BonExchangeController extends Controller
         + $request->validated());
 
         return to_route('staff.bon_exchanges.index')
-            ->withSuccess('Bon Exchange Successfully Modified');
+            ->with('success', 'Bon Exchange Successfully Modified');
     }
 
     /**
@@ -96,6 +96,6 @@ class BonExchangeController extends Controller
         BonExchange::findOrFail($id)->delete();
 
         return to_route('staff.bon_exchanges.index')
-            ->withSuccess('Bon Exchange Successfully Deleted');
+            ->with('success', 'Bon Exchange Successfully Deleted');
     }
 }

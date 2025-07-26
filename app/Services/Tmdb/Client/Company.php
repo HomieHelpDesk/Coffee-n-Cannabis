@@ -42,6 +42,7 @@ class Company
         $this->tmdb = new TMDB();
 
         $this->data = Http::acceptJson()
+            ->retry([1000, 5000, 15000])
             ->withUrlParameters(['id' => $id])
             ->get('https://api.TheMovieDB.org/3/company/{id}', [
                 'api_key'            => config('api-keys.tmdb'),

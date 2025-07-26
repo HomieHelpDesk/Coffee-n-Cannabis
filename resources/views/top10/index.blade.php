@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>Top 10</title>
@@ -30,6 +30,8 @@
         </a>
     </li>
 @endsection
+
+@section('page', 'page__top10--index')
 
 @section('main')
     <livewire:top-10 lazy />

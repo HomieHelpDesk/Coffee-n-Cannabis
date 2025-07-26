@@ -75,7 +75,7 @@
                     @foreach ($leakers as $leaker)
                         <tr>
                             <td>
-                                <x-user_tag :user="$leaker->user" :anon="false" />
+                                <x-user-tag :user="$leaker->user" :anon="false" />
                             </td>
                             <td>
                                 {{ round((100 * $leaker->leak_count) / $torrentIdCount) }}%

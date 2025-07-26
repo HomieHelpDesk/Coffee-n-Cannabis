@@ -47,20 +47,20 @@
                 "
             >
                 @foreach ($featured as $feature)
-                    @if ($feature->torrent === null || $feature->torrent->status !== \App\Models\Torrent::APPROVED)
+                    @if ($feature->torrent === null || $feature->torrent->status !== \App\Enums\ModerationStatus::APPROVED)
                         @continue
                     @endif
 
                     @php
                         $meta = match (true) {
-                            $feature->torrent->category->tv_meta => App\Models\Tv::query()
-                                ->with('genres', 'networks', 'seasons')
-                                ->find($feature->torrent->tmdb ?? 0),
-                            $feature->torrent->category->movie_meta => App\Models\Movie::query()
-                                ->with('genres', 'companies', 'collection')
-                                ->find($feature->torrent->tmdb ?? 0),
-                            $feature->torrent->category->game_meta => MarcReichel\IGDBLaravel\Models\Game::query()
-                                ->with(['artworks' => ['url', 'image_id'], 'genres' => ['name']])
+                            $feature->torrent->category->tv_meta => App\Models\TmdbTv::query()
+                                ->with('genres', 'networks')
+                                ->find($feature->torrent->tmdb_tv_id ?? 0),
+                            $feature->torrent->category->movie_meta => App\Models\TmdbMovie::query()
+                                ->with('genres', 'companies')
+                                ->find($feature->torrent->tmdb_movie_id ?? 0),
+                            $feature->torrent->category->game_meta => App\Models\Game::query()
+                                ->with('genres')
                                 ->find((int) $feature->torrent->igdb),
                             default => null,
                         };

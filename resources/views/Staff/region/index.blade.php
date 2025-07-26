@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('breadcrumbs')
     <li class="breadcrumbV2">
@@ -9,7 +9,7 @@
     <li class="breadcrumb--active">Torrent Regions</li>
 @endsection
 
-@section('page', 'page__region--index')
+@section('page', 'page__staff-region--index')
 
 @section('main')
     <section class="panelV2">

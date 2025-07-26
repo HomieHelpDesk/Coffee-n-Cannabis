@@ -16,8 +16,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Helpers\Bbcode;
-use App\Helpers\Linkify;
+use App\Enums\ModerationStatus;
 use App\Helpers\StringHelper;
 use App\Models\Scopes\ApprovedScope;
 use App\Notifications\NewComment;
@@ -29,7 +28,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Scout\Searchable;
-use voku\helper\AntiXSS;
 
 /**
  * App\Models\Torrent.
@@ -52,23 +50,21 @@ use voku\helper\AntiXSS;
  * @property int                             $user_id
  * @property int                             $imdb
  * @property int                             $tvdb
- * @property int                             $tmdb
+ * @property int|null                        $tmdb_movie_id
+ * @property int|null                        $tmdb_tv_id
  * @property int                             $mal
  * @property int                             $igdb
  * @property int|null                        $season_number
  * @property int|null                        $episode_number
- * @property int                             $stream
  * @property int                             $free
  * @property bool                            $doubleup
  * @property bool                            $refundable
  * @property int                             $highspeed
- * @property bool                            $featured
- * @property int                             $status
+ * @property ModerationStatus                $status
  * @property \Illuminate\Support\Carbon|null $moderated_at
  * @property int|null                        $moderated_by
- * @property int                             $anon
+ * @property bool                            $anon
  * @property bool                            $sticky
- * @property int                             $sd
  * @property int                             $internal
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
@@ -80,9 +76,10 @@ use voku\helper\AntiXSS;
  * @property int|null                        $resolution_id
  * @property int|null                        $distributor_id
  * @property int|null                        $region_id
- * @property int                             $personal_release
- * @property int|null                        $balance
- * @property int|null                        $balance_offset
+ * @property bool                            $personal_release
+ * @property int                             $balance
+ * @property int                             $balance_offset
+ * @property int|null                        $balance_reset_at
  */
 class Torrent extends Model
 {
@@ -99,21 +96,38 @@ class Torrent extends Model
     /**
      * Get the attributes that should be cast.
      *
-     * @return array{tmdb: 'int', igdb: 'int', bumped_at: 'datetime', fl_until: 'datetime', du_until: 'datetime', doubleup: 'bool', refundable: 'bool', featured: 'bool', moderated_at: 'datetime', sticky: 'bool'}
+     * @return array{
+     *     tmdb_movie_id: 'int',
+     *     tmdb_tv_id: 'int',
+     *     igdb: 'int',
+     *     status: class-string<ModerationStatus>,
+     *     bumped_at: 'datetime',
+     *     fl_until: 'datetime',
+     *     du_until: 'datetime',
+     *     doubleup: 'bool',
+     *     refundable: 'bool',
+     *     moderated_at: 'datetime',
+     *     anon: 'bool',
+     *     sticky: 'bool',
+     *     personal_release: 'bool'
+     * }
      */
     protected function casts(): array
     {
         return [
-            'tmdb'         => 'int',
-            'igdb'         => 'int',
-            'bumped_at'    => 'datetime',
-            'fl_until'     => 'datetime',
-            'du_until'     => 'datetime',
-            'doubleup'     => 'bool',
-            'refundable'   => 'bool',
-            'featured'     => 'bool',
-            'moderated_at' => 'datetime',
-            'sticky'       => 'bool',
+            'tmdb_movie_id'    => 'int',
+            'tmdb_tv_id'       => 'int',
+            'igdb'             => 'int',
+            'bumped_at'        => 'datetime',
+            'fl_until'         => 'datetime',
+            'du_until'         => 'datetime',
+            'doubleup'         => 'bool',
+            'refundable'       => 'bool',
+            'moderated_at'     => 'datetime',
+            'anon'             => 'bool',
+            'sticky'           => 'bool',
+            'status'           => ModerationStatus::class,
+            'personal_release' => 'bool',
         ];
     }
 
@@ -125,11 +139,6 @@ class Torrent extends Model
     protected $discarded = [
         'info_hash',
     ];
-
-    final public const PENDING = 0;
-    final public const APPROVED = 1;
-    final public const REJECTED = 2;
-    final public const POSTPONED = 3;
 
     /**
      * This query is to be added to a raw select from the torrents table.
@@ -156,21 +165,19 @@ class Torrent extends Model
             torrents.user_id,
             torrents.imdb,
             torrents.tvdb,
-            torrents.tmdb,
+            torrents.tmdb_movie_id,
+            torrents.tmdb_tv_id,
             torrents.mal,
             torrents.igdb,
             torrents.season_number,
             torrents.episode_number,
-            torrents.stream,
             torrents.free,
             torrents.doubleup,
             torrents.refundable,
             torrents.highspeed,
-            torrents.featured,
             torrents.status,
             torrents.anon,
             torrents.sticky,
-            torrents.sd,
             torrents.internal,
             UNIX_TIMESTAMP(torrents.deleted_at) AS deleted_at,
             torrents.distributor_id,
@@ -281,9 +288,9 @@ class Torrent extends Model
             ) AS json_resolution,
             (
                 SELECT vote_average
-                FROM movies
+                FROM tmdb_movies
                 WHERE
-                    torrents.tmdb = movies.id
+                    torrents.tmdb_movie_id = tmdb_movies.id
                     AND torrents.category_id in (
                         SELECT id
                         FROM categories
@@ -291,9 +298,9 @@ class Torrent extends Model
                     )
                 UNION
                 SELECT vote_average
-                FROM tv
+                FROM tmdb_tv
                 WHERE
-                    torrents.tmdb = tv.id
+                    torrents.tmdb_tv_id = tmdb_tv.id
                     AND torrents.category_id in (
                         SELECT id
                         FROM categories
@@ -306,45 +313,50 @@ class Torrent extends Model
                 FROM torrent_trumps
                 WHERE torrents.id = torrent_trumps.torrent_id
             ) AS trumpable,
+            EXISTS(
+                SELECT *
+                FROM featured_torrents
+                WHERE torrents.id = featured_torrents.torrent_id
+            ) AS featured,
             (
                 SELECT JSON_OBJECT(
-                    'id', movies.id,
-                    'name', movies.title,
-                    'year', YEAR(movies.release_date),
-                    'poster', movies.poster,
-                    'original_language', movies.original_language,
-                    'adult', movies.adult != 0,
-                    'rating', movies.vote_average,
+                    'id', tmdb_movies.id,
+                    'name', tmdb_movies.title,
+                    'year', YEAR(tmdb_movies.release_date),
+                    'poster', tmdb_movies.poster,
+                    'original_language', tmdb_movies.original_language,
+                    'adult', tmdb_movies.adult != 0,
+                    'rating', tmdb_movies.vote_average,
                     'companies', (
                         SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
-                            'id', companies.id,
-                            'name', companies.name
+                            'id', tmdb_companies.id,
+                            'name', tmdb_companies.name
                         )), JSON_ARRAY())
-                        FROM companies
-                        WHERE companies.id IN (
-                            SELECT company_id
-                            FROM company_movie
-                            WHERE company_movie.movie_id = torrents.tmdb
+                        FROM tmdb_companies
+                        WHERE tmdb_companies.id IN (
+                            SELECT tmdb_company_id
+                            FROM tmdb_company_tmdb_movie
+                            WHERE tmdb_company_tmdb_movie.tmdb_movie_id = torrents.tmdb_movie_id
                         )
                     ),
                     'genres', (
                         SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
-                            'id', genres.id,
-                            'name', genres.name
+                            'id', tmdb_genres.id,
+                            'name', tmdb_genres.name
                         )), JSON_ARRAY())
-                        FROM genres
-                        WHERE genres.id IN (
-                            SELECT genre_id
-                            FROM genre_movie
-                            WHERE genre_movie.movie_id = torrents.tmdb
+                        FROM tmdb_genres
+                        WHERE tmdb_genres.id IN (
+                            SELECT tmdb_genre_id
+                            FROM tmdb_genre_tmdb_movie
+                            WHERE tmdb_genre_tmdb_movie.tmdb_movie_id = torrents.tmdb_movie_id
                         )
                     ),
                     'collection', (
                         SELECT JSON_OBJECT(
-                            'id', collection_movie.collection_id
+                            'id', tmdb_collection_tmdb_movie.tmdb_collection_id
                         )
-                        FROM collection_movie
-                        WHERE movies.id = collection_movie.movie_id
+                        FROM tmdb_collection_tmdb_movie
+                        WHERE tmdb_movies.id = tmdb_collection_tmdb_movie.tmdb_movie_id
                         LIMIT 1
                     ),
                     'wishes', (
@@ -352,60 +364,60 @@ class Torrent extends Model
                             'user_id', wishes.user_id
                         )), JSON_ARRAY())
                         FROM wishes
-                        WHERE wishes.movie_id = movies.id
+                        WHERE wishes.tmdb_movie_id = tmdb_movies.id
                     )
                 )
-                FROM movies
-                WHERE torrents.tmdb = movies.id
+                FROM tmdb_movies
+                WHERE torrents.tmdb_movie_id = tmdb_movies.id
                     AND torrents.category_id in (
                         SELECT id
                         FROM categories
                         WHERE movie_meta = 1
                     )
                 LIMIT 1
-            ) AS json_movie,
+            ) AS json_tmdb_movie,
             (
                 SELECT JSON_OBJECT(
-                    'id', tv.id,
-                    'name', tv.name,
-                    'year', YEAR(tv.first_air_date),
-                    'poster', tv.poster,
-                    'original_language', tv.original_language,
-                    'rating', tv.vote_average,
+                    'id', tmdb_tv.id,
+                    'name', tmdb_tv.name,
+                    'year', YEAR(tmdb_tv.first_air_date),
+                    'poster', tmdb_tv.poster,
+                    'original_language', tmdb_tv.original_language,
+                    'rating', tmdb_tv.vote_average,
                     'companies', (
                         SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
-                            'id', companies.id,
-                            'name', companies.name
+                            'id', tmdb_companies.id,
+                            'name', tmdb_companies.name
                         )), JSON_ARRAY())
-                        FROM companies
-                        WHERE companies.id IN (
-                            SELECT company_id
-                            FROM company_tv
-                            WHERE company_tv.tv_id = torrents.id
+                        FROM tmdb_companies
+                        WHERE tmdb_companies.id IN (
+                            SELECT tmdb_company_id
+                            FROM tmdb_company_tmdb_tv
+                            WHERE tmdb_company_tmdb_tv.tmdb_tv_id = torrents.tmdb_tv_id
                         )
                     ),
                     'genres', (
                         SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
-                            'id', genres.id,
-                            'name', genres.name
+                            'id', tmdb_genres.id,
+                            'name', tmdb_genres.name
                         )), JSON_ARRAY())
-                        FROM genres
-                        WHERE genres.id IN (
-                            SELECT genre_id
-                            FROM genre_tv
-                            WHERE genre_tv.tv_id = torrents.tmdb
+                        FROM tmdb_genres
+                        WHERE tmdb_genres.id IN (
+                            SELECT tmdb_genre_id
+                            FROM tmdb_genre_tmdb_tv
+                            WHERE tmdb_genre_tmdb_tv.tmdb_tv_id = torrents.tmdb_tv_id
                         )
                     ),
                     'networks', (
                         SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
-                            'id', networks.id,
-                            'name', networks.name
+                            'id', tmdb_networks.id,
+                            'name', tmdb_networks.name
                         )), JSON_ARRAY())
-                        FROM networks
-                        WHERE networks.id IN (
-                            SELECT network_id
-                            FROM network_tv
-                            WHERE network_tv.tv_id = torrents.id
+                        FROM tmdb_networks
+                        WHERE tmdb_networks.id IN (
+                            SELECT tmdb_network_id
+                            FROM tmdb_network_tmdb_tv
+                            WHERE tmdb_network_tmdb_tv.tmdb_tv_id = torrents.tmdb_tv_id
                         )
                     ),
                     'wishes', (
@@ -413,18 +425,18 @@ class Torrent extends Model
                             'user_id', wishes.user_id
                         )), JSON_ARRAY())
                         FROM wishes
-                        WHERE wishes.tv_id = tv.id
+                        WHERE wishes.tmdb_tv_id = tmdb_tv.id
                     )
                 )
-                FROM tv
-                WHERE torrents.tmdb = tv.id
+                FROM tmdb_tv
+                WHERE torrents.tmdb_tv_id = tmdb_tv.id
                     AND torrents.category_id in (
                         SELECT id
                         FROM categories
                         WHERE tv_meta = 1
                     )
                 LIMIT 1
-            ) AS json_tv,
+            ) AS json_tmdb_tv,
             (
                 SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(
                     'id', playlist_torrents.playlist_id
@@ -533,27 +545,27 @@ class Torrent extends Model
     /**
      * Belongs To A Movie.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Movie, $this>
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<TmdbMovie, $this>
      */
     public function movie(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(Movie::class, 'tmdb');
+        return $this->belongsTo(TmdbMovie::class, 'tmdb_movie_id');
     }
 
     /**
      * Belongs To A Tv.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Tv, $this>
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<TmdbTv, $this>
      */
     public function tv(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(Tv::class, 'tmdb');
+        return $this->belongsTo(TmdbTv::class, 'tmdb_tv_id');
     }
 
     /**
      * Belongs To A Playlist.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<Playlist, $this>
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<Playlist, $this, PlaylistTorrent>
      */
     public function playlists(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
@@ -752,24 +764,6 @@ class Torrent extends Model
     }
 
     /**
-     * Set The Torrents Description After Its Been Purified.
-     */
-    public function setDescriptionAttribute(?string $value): void
-    {
-        $this->attributes['description'] = $value === null ? null : htmlspecialchars((new AntiXSS())->xss_clean($value), ENT_NOQUOTES);
-    }
-
-    /**
-     * Parse Description And Return Valid HTML.
-     */
-    public function getDescriptionHtml(): string
-    {
-        $bbcode = new Bbcode();
-
-        return (new Linkify())->linky($bbcode->parse($this->description));
-    }
-
-    /**
      * Set The Torrents MediaInfo After Its Been Purified.
      */
     public function setMediaInfoAttribute(?string $value): void
@@ -815,11 +809,11 @@ class Torrent extends Model
     /**
      * Torrent Is Freeleech.
      */
-    public function isFreeleech(User $user = null): bool
+    public function isFreeleech(?User $user = null): bool
     {
-        $pfree = $user && ($user->group->is_freeleech || cache()->get('personal_freeleech:'.$user->id));
+        $isFreeleech = $user && ($user->group->is_freeleech || cache()->get('personal_freeleech:'.$user->id));
 
-        return $this->free || config('other.freeleech') || $pfree;
+        return $this->free || config('other.freeleech') || $isFreeleech;
     }
 
     /**
@@ -848,12 +842,12 @@ class Torrent extends Model
             'user_id',
             'imdb',
             'tvdb',
-            'tmdb',
+            'tmdb_movie_id',
+            'tmdb_tv_id',
             'mal',
             'igdb',
             'season_number',
             'episode_number',
-            'stream',
             'free',
             'doubleup',
             'refundable',
@@ -862,7 +856,6 @@ class Torrent extends Model
             'status',
             'anon',
             'sticky',
-            'sd',
             'internal',
             'deleted_at',
             'distributor_id',
@@ -875,8 +868,8 @@ class Torrent extends Model
             'json_type',
             'json_category',
             'json_resolution',
-            'json_movie',
-            'json_tv',
+            'json_tmdb_movie',
+            'json_tmdb_tv',
             'json_playlists',
             'json_freeleech_tokens',
             'json_bookmarks',
@@ -920,21 +913,20 @@ class Torrent extends Model
             'user_id'            => $torrent->user_id,
             'imdb'               => $torrent->imdb,
             'tvdb'               => $torrent->tvdb,
-            'tmdb'               => $torrent->tmdb,
+            'tmdb_movie_id'      => $torrent->tmdb_movie_id,
+            'tmdb_tv_id'         => $torrent->tmdb_tv_id,
             'mal'                => $torrent->mal,
             'igdb'               => $torrent->igdb,
             'season_number'      => $torrent->season_number,
             'episode_number'     => $torrent->episode_number,
-            'stream'             => (bool) $torrent->stream,
             'free'               => $torrent->free,
             'doubleup'           => (bool) $torrent->doubleup,
             'refundable'         => (bool) $torrent->refundable,
             'highspeed'          => (bool) $torrent->highspeed,
             'featured'           => (bool) $torrent->featured,
-            'status'             => $torrent->status,
+            'status'             => $torrent->status->value,
             'anon'               => (bool) $torrent->anon,
             'sticky'             => (int) $torrent->sticky,
-            'sd'                 => (bool) $torrent->sd,
             'internal'           => (bool) $torrent->internal,
             'deleted_at'         => $torrent->deleted_at?->timestamp,
             'distributor_id'     => $torrent->distributor_id,
@@ -947,8 +939,8 @@ class Torrent extends Model
             'type'               => json_decode($torrent->json_type ?? 'null'),
             'category'           => json_decode($torrent->json_category ?? 'null'),
             'resolution'         => json_decode($torrent->json_resolution ?? 'null'),
-            'movie'              => json_decode($torrent->json_movie ?? 'null'),
-            'tv'                 => json_decode($torrent->json_tv ?? 'null'),
+            'tmdb_movie'         => json_decode($torrent->json_tmdb_movie ?? 'null'),
+            'tmdb_tv'            => json_decode($torrent->json_tmdb_tv ?? 'null'),
             'playlists'          => json_decode($torrent->json_playlists ?? '[]'),
             'freeleech_tokens'   => json_decode($torrent->json_freeleech_tokens ?? '[]'),
             'bookmarks'          => json_decode($torrent->json_bookmarks ?? '[]'),

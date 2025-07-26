@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('breadcrumbs')
     <li class="breadcrumbV2">
@@ -8,6 +8,8 @@
     </li>
     <li class="breadcrumb--active">Client Blacklist</li>
 @endsection
+
+@section('page', 'page__staff-blacklisted-client--index')
 
 @section('main')
     <section class="panelV2">

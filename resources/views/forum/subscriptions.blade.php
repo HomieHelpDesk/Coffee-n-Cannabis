@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>
@@ -24,6 +24,8 @@
 @section('nav-tabs')
     @include('forum.partials.buttons')
 @endsection
+
+@section('page', 'page__subscription--index')
 
 @section('main')
     @livewire('subscribed-forum', [], key('forums'))

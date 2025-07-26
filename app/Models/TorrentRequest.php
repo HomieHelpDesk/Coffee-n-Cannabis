@@ -16,12 +16,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Helpers\Bbcode;
-use App\Helpers\Linkify;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use voku\helper\AntiXSS;
 
 /**
  * App\Models\TorrentRequest.
@@ -31,7 +28,8 @@ use voku\helper\AntiXSS;
  * @property int                             $category_id
  * @property int|null                        $imdb
  * @property int|null                        $tvdb
- * @property int|null                        $tmdb
+ * @property int|null                        $tmdb_movie_id
+ * @property int|null                        $tmdb_tv_id
  * @property int|null                        $mal
  * @property int                             $igdb
  * @property string                          $description
@@ -39,7 +37,7 @@ use voku\helper\AntiXSS;
  * @property string                          $bounty
  * @property int                             $votes
  * @property int|null                        $claimed
- * @property int                             $anon
+ * @property bool                            $anon
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property int|null                        $filled_by
@@ -75,16 +73,26 @@ class TorrentRequest extends Model
     /**
      * Get the attributes that should be cast.
      *
-     * @return array{filled_when: 'datetime', approved_when: 'datetime', tmdb: 'int', igdb: 'int', bounty: 'decimal:2'}
+     * @return array{
+     *     filled_when: 'datetime',
+     *     approved_when: 'datetime',
+     *     tmdb_movie_id: 'int',
+     *     tmdb_tv_id: 'int',
+     *     igdb: 'int',
+     *     bounty: 'decimal:2',
+     *     anon: 'bool'
+     * }
      */
     protected function casts(): array
     {
         return [
             'filled_when'   => 'datetime',
             'approved_when' => 'datetime',
-            'tmdb'          => 'int',
+            'tmdb_movie_id' => 'int',
+            'tmdb_tv_id'    => 'int',
             'igdb'          => 'int',
             'bounty'        => 'decimal:2',
+            'anon'          => 'bool',
         ];
     }
 
@@ -170,21 +178,21 @@ class TorrentRequest extends Model
     /**
      * Belongs To A Movie.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Movie, $this>
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<TmdbMovie, $this>
      */
     public function movie(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(Movie::class, 'tmdb');
+        return $this->belongsTo(TmdbMovie::class, 'tmdb_movie_id');
     }
 
     /**
      * Belongs To A Tv.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Tv, $this>
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<TmdbTv, $this>
      */
     public function tv(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(Tv::class, 'tmdb');
+        return $this->belongsTo(TmdbTv::class, 'tmdb_tv_id');
     }
 
     /**
@@ -213,23 +221,5 @@ class TorrentRequest extends Model
     public function claim(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(TorrentRequestClaim::class, 'request_id');
-    }
-
-    /**
-     * Set The Requests Description After Its Been Purified.
-     */
-    public function setDescriptionAttribute(?string $value): void
-    {
-        $this->attributes['description'] = $value === null ? null : htmlspecialchars((new AntiXSS())->xss_clean($value), ENT_NOQUOTES);
-    }
-
-    /**
-     * Parse Description And Return Valid HTML.
-     */
-    public function getDescriptionHtml(): string
-    {
-        $bbcode = new Bbcode();
-
-        return (new Linkify())->linky($bbcode->parse($this->description));
     }
 }

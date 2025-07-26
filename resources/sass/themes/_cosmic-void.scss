@@ -69,9 +69,16 @@
     --chatbox-tab-delete-fg: #c22222;
     --chatbox-tab-delete-bg: #393939;
 
+    --compact-search-bg: #1b1b1b;
+    --compact-search-box-shadow: none;
+    --compact-search-border-radius: 8px;
+    --compact-search-fg: var(--text-color);
+    --compact-search-padding: 5px;
+
     --comparison-divider-fg: #fff;
     --comparison-button-fg: #fff;
 
+    --data-table-border-radius: 0;
     --data-table-fg: inherit;
     --data-table-th-bg: #19191b;
     --data-table-thead-border: none;
@@ -116,6 +123,7 @@
     --input-text-padding-active: 11px;
     --input-text-padding-hover: 11px;
 
+    --key-value-border-radius: 0;
     --key-value-even-bg: #222;
     --key-value-fg: inherit;
     --key-value-odd-bg: #222;
@@ -139,7 +147,7 @@
     --mediahub-card-border-radius: 0;
     --mediahub-card-box-shadow: none;
 
-    --meta-backdrop-filter: brightness(30%);
+    --meta-backdrop-filter: brightness(30%) blur(100px);
     --meta-dropdown-backdrop-filter: brightness(2) blur(10px);
     --meta-dropdown-bg: #4449;
     --meta-dropdown-backdrop-filter-hover: brightness(2) blur(10px);
@@ -173,6 +181,7 @@
     --paginate-bg: #19191b;
     --paginate-bg-hover: #222;
     --paginate-bg-current: #202020;
+    --paginate-border-radius: 0;
     --paginate-fg: #888;
     --paginate-fg-disabled: #555;
     --paginate-divider: #303030;
@@ -181,10 +190,12 @@
     --panel-border: 3px solid rgba(14, 21, 34, 0.25);
     --panel-bg: #222;
     --panel-fg: inherit;
+    --panel-body-border-radius: 0;
     --panel-box-shadow: none;
     --panel-border-radius: 0;
     --panel-head-bg: #19191b;
     --panel-head-fg: #fff;
+    --panel-head-border-radius: 0;
     --panel-group-fg: #fff;
 
     --playlist-card-bg: #111;
@@ -242,6 +253,7 @@
     --scrollbar-color: #ffffff13;
 
     --secondary-nav-bg: #292929;
+    --secondary-nav-box-shadow: 0 8px 10px 0 rgba(0, 0, 0, 0.2);
     --secondary-nav-tab-fg: #aaa;
     --secondary-nav-tab-bg: inherit;
     --secondary-nav-tab-active-text-decoration: underline #777 2px;
@@ -336,13 +348,11 @@
     --torrent-row-comments-fg: #ddd;
     --torrent-row-internal-fg: #ddd;
     --torrent-row-personal-fg: #ddd;
-    --torrent-row-stream-optimized-fg: #ddd;
     --torrent-row-featured-fg: #ddd;
     --torrent-row-freeleech-fg: #ddd;
     --torrent-row-double-upload-fg: #ddd;
     --torrent-row-sticky-fg: #ddd;
     --torrent-row-highspeed-fg: #ddd;
-    --torrent-row-sd-fg: #ddd;
     --torrent-row-bumped-fg: #ddd;
 
     --torrent-tag-fg: #eee;

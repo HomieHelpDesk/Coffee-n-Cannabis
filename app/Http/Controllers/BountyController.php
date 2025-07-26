@@ -40,7 +40,7 @@ class BountyController extends Controller
      */
     public function store(StoreTorrentRequestBountyRequest $request, TorrentRequest $torrentRequest): \Illuminate\Http\RedirectResponse
     {
-        abort_unless($torrentRequest->approved_by === null, 403);
+        abort_unless($torrentRequest->approved_when === null, 403);
 
         $user = $request->user();
 
@@ -78,12 +78,10 @@ class BountyController extends Controller
 
         $requester = $torrentRequest->user;
 
-        if ($requester->acceptsNotification($request->user(), $requester, 'request', 'show_request_bounty')) {
-            $requester->notify(new NewRequestBounty($bounty));
-        }
+        $requester->notify(new NewRequestBounty($bounty));
 
         return to_route('requests.show', ['torrentRequest' => $torrentRequest])
-            ->withSuccess(trans('request.added-bonus'));
+            ->with('success', trans('request.added-bonus'));
     }
 
     public function update(UpdateTorrentRequestBountyRequest $request, TorrentRequest $torrentRequest, TorrentRequestBounty $torrentRequestBounty): \Illuminate\Http\RedirectResponse

@@ -94,14 +94,14 @@
                             @if ($gift->sender === null)
                                 Deleted user
                             @else
-                                <x-user_tag :user="$gift->sender" :anon="false" />
+                                <x-user-tag :user="$gift->sender" :anon="false" />
                             @endif
                         </td>
                         <td>
                             @if ($gift->recipient === null)
                                 Deleted user
                             @else
-                                <x-user_tag :user="$gift->recipient" :anon="false" />
+                                <x-user-tag :user="$gift->recipient" :anon="false" />
                             @endif
                         </td>
                         <td>{{ $gift->bon }}</td>

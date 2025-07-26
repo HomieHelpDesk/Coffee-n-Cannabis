@@ -48,7 +48,7 @@ class DeleteUnparticipatedConversations extends Command
 
         $deletedConversations = Conversation::query()->whereDoesntHave('participants')->delete();
 
-        $elapsed = now()->floatDiffInSeconds($start);
+        $elapsed = (int) now()->diffInSeconds($start, true);
 
         $this->info("Deleted {$deletedParticipants} participants and {$deletedConversations} conversations in {$elapsed} seconds");
     }

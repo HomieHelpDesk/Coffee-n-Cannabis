@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ __('forum.create-new-topic') }} - {{ config('other.title') }}</title>
@@ -35,6 +35,8 @@
 @section('nav-tabs')
     @include('forum.partials.buttons')
 @endsection
+
+@section('page', 'page__topic--edit')
 
 @section('main')
     <section class="panelV2">

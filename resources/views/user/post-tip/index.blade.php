@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main-and-sidebar')
 
 @section('title')
     <title>{{ $user->username }} {{ __('user.tips') }} - {{ config('other.title') }}</title>
@@ -24,7 +24,7 @@
     @include('user.buttons.user')
 @endsection
 
-@section('page', 'page__bonus--tips')
+@section('page', 'page__user-post-tip--index')
 
 @section('main')
     <section class="panelV2">
@@ -47,14 +47,14 @@
                                 @if ($tip->sender === null)
                                     Deleted user
                                 @else
-                                    <x-user_tag :user="$tip->sender" :anon="false" />
+                                    <x-user-tag :user="$tip->sender" :anon="false" />
                                 @endif
                             </td>
                             <td>
                                 @if ($tip->post === null)
                                     Post Deleted
                                 @else
-                                    <x-user_tag :user="$tip->recipient" :anon="false" />
+                                    <x-user-tag :user="$tip->recipient" :anon="false" />
                                 @endif
                             </td>
                             <td>{{ $tip->bon }}</td>

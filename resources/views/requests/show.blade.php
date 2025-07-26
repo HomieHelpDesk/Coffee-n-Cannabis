@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>Request - {{ config('other.title') }} - {{ $torrentRequest->name }}</title>
@@ -21,19 +21,19 @@
     @if ($user->can_request ?? $user->group->can_request)
         @switch(true)
             @case($torrentRequest->category->movie_meta)
-                @include('torrent.partials.movie_meta', ['torrent' => $torrentRequest, 'category' => $torrentRequest->category, 'tmdb' => $torrentRequest->tmdb])
+                @include('torrent.partials.movie-meta', ['torrent' => $torrentRequest, 'category' => $torrentRequest->category, 'tmdb' => $torrentRequest->tmdb_movie_id])
 
                 @break
             @case($torrentRequest->category->tv_meta)
-                @include('torrent.partials.tv_meta', ['torrent' => $torrentRequest, 'category' => $torrentRequest->category, 'tmdb' => $torrentRequest->tmdb])
+                @include('torrent.partials.tv-meta', ['torrent' => $torrentRequest, 'category' => $torrentRequest->category, 'tmdb' => $torrentRequest->tmdb_tv_id])
 
                 @break
             @case($torrentRequest->category->game_meta)
-                @include('torrent.partials.game_meta', ['torrent' => $torrentRequest, 'category' => $torrentRequest->category, 'igdb' => $torrentRequest->igdb])
+                @include('torrent.partials.game-meta', ['torrent' => $torrentRequest, 'category' => $torrentRequest->category, 'igdb' => $torrentRequest->igdb])
 
                 @break
             @default
-                @include('torrent.partials.no_meta', ['torrent' => $torrentRequest, 'category' => $torrentRequest->category])
+                @include('torrent.partials.no-meta', ['torrent' => $torrentRequest, 'category' => $torrentRequest->category])
 
                 @break
         @endswitch
@@ -51,7 +51,7 @@
 
                     @break
                     {{-- Pending --}}
-                @case($torrentRequest->torrent_id !== null && $torrentRequest->approved_by === null)
+                @case($torrentRequest->torrent_id !== null && $torrentRequest->approved_when === null)
                     @include('requests.partials.report')
                     @includeWhen($user->group->is_modo, 'requests.partials.edit')
                     @includeWhen($user->group->is_modo, 'requests.partials.delete')
@@ -93,7 +93,7 @@
                 </span>
             </li>
             <li class="request__requester">
-                <x-user_tag :user="$torrentRequest->user" :anon="$torrentRequest->anon" />
+                <x-user-tag :user="$torrentRequest->user" :anon="$torrentRequest->anon" />
             </li>
             <li class="request__created-at">
                 <time
@@ -111,7 +111,7 @@
                             {{ __('request.claimed') }}
 
                             @break
-                        @case($torrentRequest->torrent !== null && $torrentRequest->approved_by === null)
+                        @case($torrentRequest->torrent !== null && $torrentRequest->approved_when === null)
                             <i class="fas fa-circle text-purple"></i>
                             {{ __('request.pending') }}
 
@@ -137,7 +137,7 @@
                 {{ $torrentRequest->bounty }} {{ __('bon.bon') }}
             </h2>
             <div class="panel__body bbcode-rendered">
-                @joypixels($torrentRequest->getDescriptionHtml())
+                @bbcode($torrentRequest->description)
             </div>
         </section>
         @if ($torrentRequest->claim !== null && $torrentRequest->torrent === null)
@@ -147,7 +147,7 @@
                     <div class="key-value__group">
                         <dt>{{ __('request.claimed') }} by</dt>
                         <dd>
-                            <x-user_tag
+                            <x-user-tag
                                 :user="$torrentRequest->claim->user"
                                 :anon="$torrentRequest->claim->anon"
                             />
@@ -175,7 +175,7 @@
                     <div class="key-value__group">
                         <dt>{{ __('request.filled') }} by</dt>
                         <dd>
-                            <x-user_tag
+                            <x-user-tag
                                 :user="$torrentRequest->filler"
                                 :anon="$torrentRequest->filled_anon"
                             />
@@ -207,7 +207,7 @@
                         </dd>
                     </div>
                 </dl>
-                @if ($torrentRequest->approved_by === null && ($torrentRequest->user_id == $user->id || auth()->user()->group->is_modo))
+                @if ($torrentRequest->approved_when === null && ($torrentRequest->user_id == $user->id || auth()->user()->group->is_modo))
                     <div class="panel__body">
                         <div class="form__group">
                             <form
@@ -273,7 +273,7 @@
                         @foreach ($torrentRequest->bounties as $bounty)
                             <tr @if($loop->iteration > 10) x-show="isToggledOn" x-cloak @endif>
                                 <td>
-                                    <x-user_tag :user="$bounty->user" :anon="$bounty->anon" />
+                                    <x-user-tag :user="$bounty->user" :anon="$bounty->anon" />
                                 </td>
                                 <td>{{ $bounty->seedbonus }}</td>
                                 <td>

@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\ModerationStatus;
 use App\Helpers\Bencode;
 use App\Helpers\TorrentTools;
 use App\Models\Category;
@@ -38,13 +39,35 @@ class StoreTorrentRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'tmdb_movie_id' => $this->has('movie_exists_on_tmdb') ? ($this->input('tmdb_movie_id') ?: null) : null,
+            'tmdb_tv_id'    => $this->has('tv_exists_on_tmdb') ? ($this->input('tmdb_tv_id') ?: null) : null,
+            'imdb'          => $this->has('title_exists_on_imdb') ? ($this->input('imdb') ?: null) : null,
+            'tvdb'          => $this->has('tv_exists_on_tvdb') ? ($this->input('tvdb') ?: null) : null,
+            'mal'           => $this->has('anime_exists_on_mal') ? ($this->input('mal') ?: null) : null,
+            'igdb'          => $this->has('game_exists_on_igdb') ? ($this->input('igdb') ?: null) : null,
+        ]);
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, array<Closure(string, mixed, Closure(string): never): void|\Illuminate\Validation\Rules\ProhibitedIf|\Illuminate\Validation\ConditionalRules|\Illuminate\Validation\Rules\Unique|string>>
+     * @return array<string, array<Closure(string, mixed, Closure(string): never): void|\Illuminate\Validation\Rules\ProhibitedIf|\Illuminate\Validation\Rules\RequiredIf|\Illuminate\Validation\Rules\ExcludeIf|\Illuminate\Validation\ConditionalRules|\Illuminate\Validation\Rules\Unique|string>>
      */
     public function rules(Request $request): array
     {
+        $user = $request->user()->loadExists('internals');
         $category = Category::findOrFail($request->integer('category_id'));
+
+        $mustBeNull = function (string $attribute, mixed $value, callable $fail): void {
+            if ($value !== null) {
+                $fail("The {$attribute} must be null.");
+            }
+        };
 
         return [
             'torrent' => [
@@ -79,11 +102,10 @@ class StoreTorrentRequest extends FormRequest
 
                     if ($torrent !== null) {
                         match ($torrent->status) {
-                            Torrent::PENDING   => $fail('A torrent with the same info_hash has already been uploaded and is pending moderation.'),
-                            Torrent::APPROVED  => $fail('A torrent with the same info_hash has already been uploaded and has been approved.'),
-                            Torrent::REJECTED  => $fail('A torrent with the same info_hash has already been uploaded and has been rejected.'),
-                            Torrent::POSTPONED => $fail('A torrent with the same info_hash has already been uploaded and is currently postponed.'),
-                            default            => null,
+                            ModerationStatus::PENDING   => $fail('A torrent with the same info_hash has already been uploaded and is pending moderation.'),
+                            ModerationStatus::APPROVED  => $fail('A torrent with the same info_hash has already been uploaded and has been approved.'),
+                            ModerationStatus::REJECTED  => $fail('A torrent with the same info_hash has already been uploaded and has been rejected.'),
+                            ModerationStatus::POSTPONED => $fail('A torrent with the same info_hash has already been uploaded and is currently postponed.'),
                         };
                     }
                 }
@@ -140,52 +162,68 @@ class StoreTorrentRequest extends FormRequest
             ],
             'imdb' => [
                 Rule::when($category->movie_meta || $category->tv_meta, [
-                    'required',
+                    'required_with:title_exists_on_imdb',
+                    'nullable',
                     'decimal:0',
                     'min:0',
                 ]),
                 Rule::when(!($category->movie_meta || $category->tv_meta), [
-                    Rule::in([0]),
+                    $mustBeNull,
                 ]),
             ],
             'tvdb' => [
                 Rule::when($category->tv_meta, [
-                    'required',
+                    'required_with:tv_exists_on_tvdb',
+                    'nullable',
                     'decimal:0',
                     'min:0',
                 ]),
                 Rule::when(!$category->tv_meta, [
-                    Rule::in([0]),
+                    $mustBeNull,
                 ]),
             ],
-            'tmdb' => [
-                Rule::when($category->movie_meta || $category->tv_meta, [
-                    'required',
+            'tmdb_movie_id' => [
+                Rule::when($category->movie_meta, [
+                    'required_with:movie_exists_on_tmdb',
+                    'nullable',
                     'decimal:0',
                     'min:0',
                 ]),
-                Rule::when(!($category->movie_meta || $category->tv_meta), [
-                    Rule::in([0]),
+                Rule::when(!$category->movie_meta, [
+                    $mustBeNull,
+                ]),
+            ],
+            'tmdb_tv_id' => [
+                Rule::when($category->tv_meta, [
+                    'required_with:tv_exists_on_tmdb',
+                    'nullable',
+                    'decimal:0',
+                    'min:0',
+                ]),
+                Rule::when(!$category->tv_meta, [
+                    $mustBeNull,
                 ]),
             ],
             'mal' => [
                 Rule::when($category->movie_meta || $category->tv_meta, [
-                    'required',
+                    'required_with:anime_exists_on_mal',
+                    'nullable',
                     'decimal:0',
                     'min:0',
                 ]),
                 Rule::when(!($category->movie_meta || $category->tv_meta), [
-                    Rule::in([0]),
+                    $mustBeNull,
                 ]),
             ],
             'igdb' => [
                 Rule::when($category->game_meta, [
-                    'required',
+                    'required_with:game_exists_on_igdb',
+                    'nullable',
                     'decimal:0',
                     'min:0',
                 ]),
                 Rule::when(!$category->game_meta, [
-                    Rule::in([0]),
+                    $mustBeNull,
                 ]),
             ],
             'season_number' => [
@@ -208,14 +246,6 @@ class StoreTorrentRequest extends FormRequest
                 'required',
                 'boolean',
             ],
-            'stream' => [
-                'required',
-                'boolean',
-            ],
-            'sd' => [
-                'required',
-                'boolean',
-            ],
             'personal_release' => [
                 'required',
                 'boolean',
@@ -223,36 +253,29 @@ class StoreTorrentRequest extends FormRequest
             'internal' => [
                 'sometimes',
                 'boolean',
-                Rule::when(!$request->user()->group->is_modo && !$request->user()->group->is_internal, 'prohibited'),
+                /** @phpstan-ignore property.notFound (Larastan doesn't yet support loadExists()) */
+                Rule::requiredIf($user->group->is_modo || $user->internals_exists),
+                /** @phpstan-ignore property.notFound (Larastan doesn't yet support loadExists()) */
+                Rule::excludeIf(!($user->group->is_modo || $user->internals_exists)),
             ],
             'free' => [
                 'sometimes',
                 'integer',
                 'numeric',
                 'between:0,100',
-                Rule::when(!$request->user()->group->is_modo && !$request->user()->group->is_internal, 'prohibited'),
+                /** @phpstan-ignore property.notFound (Larastan doesn't yet support loadExists()) */
+                Rule::requiredIf($user->group->is_modo || $user->internals_exists),
+                /** @phpstan-ignore property.notFound (Larastan doesn't yet support loadExists()) */
+                Rule::excludeIf(!($user->group->is_modo || $user->internals_exists)),
             ],
             'refundable' => [
                 'sometimes',
                 'boolean',
-                Rule::when(!$request->user()->group->is_modo && !$request->user()->group->is_internal, 'prohibited'),
+                /** @phpstan-ignore property.notFound (Larastan doesn't yet support loadExists()) */
+                Rule::requiredIf($user->group->is_modo || $user->internals_exists),
+                /** @phpstan-ignore property.notFound (Larastan doesn't yet support loadExists()) */
+                Rule::excludeIf(!($user->group->is_modo || $user->internals_exists)),
             ],
-        ];
-    }
-
-    /**
-     * Get the error messages for the defined validation rules.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            'igdb.in' => 'The IGBB ID must be 0 if the media doesn\'t exist on IGDB or you\'re not uploading a game.',
-            'tmdb.in' => 'The TMDB ID must be 0 if the media doesn\'t exist on TMDB or you\'re not uploading a tv show or movie.',
-            'imdb.in' => 'The IMDB ID must be 0 if the media doesn\'t exist on IMDB or you\'re not uploading a tv show or movie.',
-            'tvdb.in' => 'The TVDB ID must be 0 if the media doesn\'t exist on TVDB or you\'re not uploading a tv show.',
-            'mal.in'  => 'The MAL ID must be 0 if the media doesn\'t exist on MAL or you\'re not uploading a tv or movie.',
         ];
     }
 }

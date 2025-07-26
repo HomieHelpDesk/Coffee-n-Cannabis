@@ -64,6 +64,11 @@ class EventController extends Controller
      */
     public function destroy(Event $event): \Illuminate\Http\RedirectResponse
     {
+        if ($event->claimedPrizes()->exists()) {
+            return to_route('staff.events.index')
+                ->withErrors('Cannot delete event because users have claimed prizes. You can mark it as inactive instead.');
+        }
+
         $event->delete();
 
         return to_route('staff.events.index');

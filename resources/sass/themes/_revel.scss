@@ -97,9 +97,16 @@
     --chatbox-tab-delete-fg: #c22222;
     --chatbox-tab-delete-bg: #444;
 
+    --compact-search-bg: #272727;
+    --compact-search-box-shadow: none;
+    --compact-search-border-radius: 0;
+    --compact-search-fg: var(--text-color);
+    --compact-search-padding: 4px;
+
     --comparison-divider-fg: #fff;
     --comparison-button-fg: #fff;
 
+    --data-table-border-radius: 0;
     --data-table-fg: var(--text-color);
     --data-table-th-bg: #2c2c2c;
     --data-table-thead-border: none;
@@ -149,6 +156,7 @@
     --input-text-padding-active: 11px;
     --input-text-padding-hover: 11px;
 
+    --key-value-border-radius: 0;
     --key-value-even-bg: #272727;
     --key-value-fg: var(--text-color);
     --key-value-odd-bg: #272727;
@@ -172,7 +180,7 @@
     --mediahub-card-border-radius: 0;
     --mediahub-card-box-shadow: none;
 
-    --meta-backdrop-filter: brightness(30%);
+    --meta-backdrop-filter: brightness(30%) blur(100px);
     --meta-dropdown-backdrop-filter: brightness(2) blur(10px);
     --meta-dropdown-bg: #4449;
     --meta-dropdown-backdrop-filter-hover: brightness(2) blur(10px);
@@ -206,6 +214,7 @@
     --paginate-bg: #232323;
     --paginate-bg-hover: #373737;
     --paginate-bg-current: #292929;
+    --paginate-border-radius: 0;
     --paginate-fg: #888;
     --paginate-fg-disabled: #424242;
     --paginate-divider: #303030;
@@ -214,10 +223,12 @@
     --panel-border: none;
     --panel-bg: #272727;
     --panel-fg: var(--text-color);
+    --panel-body-border-radius: 0;
     --panel-box-shadow: none;
     --panel-border-radius: 0;
     --panel-head-bg: #232323;
     --panel-head-fg: #fff;
+    --panel-head-border-radius: 0;
 
     --playlist-card-bg: #2c2c2c;
     --playlist-card-border: none;
@@ -272,6 +283,7 @@
     --scrollbar-color: #ffffff19;
 
     --secondary-nav-bg: #292929;
+    --secondary-nav-box-shadow: none;
     --secondary-nav-tab-fg: #aaa;
     --secondary-nav-tab-bg: inherit;
     --secondary-nav-tab-active-text-decoration: none;
@@ -367,13 +379,11 @@
     --torrent-row-comments-fg: #669966;
     --torrent-row-internal-fg: #baaf92;
     --torrent-row-personal-fg: #865be9;
-    --torrent-row-stream-optimized-fg: #996666;
     --torrent-row-featured-fg: #997799;
     --torrent-row-freeleech-fg: #ffb800;
     --torrent-row-double-upload-fg: #619061;
     --torrent-row-sticky-fg: #cccccc;
     --torrent-row-highspeed-fg: #996666;
-    --torrent-row-sd-fg: #997766;
     --torrent-row-bumped-fg: #f98a1e;
 
     --torrent-tag-fg: #eee;
@@ -586,6 +596,10 @@ a:hover {
 
 .quick-search {
     grid-area: quick-search;
+}
+
+.quick-search__inputs {
+    position: static;
 }
 
 .top-nav__right {
@@ -921,12 +935,12 @@ a:hover {
 /* Forums
 ---------------------------------------------------------------------------- */
 
-.page__forums--index > article {
+.page__forum--index > article {
     flex-direction: column;
 }
 
-.page__forums--index > article > div,
-.page__forums--index > article > aside {
+.page__forum--index > article > div,
+.page__forum--index > article > aside {
     max-width: 100%;
     width: 100%;
 }
@@ -993,21 +1007,21 @@ a:hover {
 }
 
 /* Topic listing */
-.page__forum--display .sidebar2 {
+.page__forum-topic--index .sidebar2 {
     flex-direction: column-reverse;
 }
 
-.page__forum--display .sidebar2 > div,
-.page__forum--display .sidebar2 > aside {
+.page__forum-topic--index .sidebar2 > div,
+.page__forum-topic--index .sidebar2 > aside {
     max-width: 100%;
     width: 100%;
 }
 
-.page__forum--display .sidebar2 > aside .panel__body {
+.page__forum-topic--index .sidebar2 > aside .panel__body {
     padding: 8px;
 }
 
-.page__forum--display .sidebar2 > aside form {
+.page__forum-topic--index .sidebar2 > aside form {
     flex-direction: row;
     padding-top: 0;
 }
@@ -1063,11 +1077,11 @@ a:hover {
 
 /* Topic */
 
-.page__forum--topic > .sidebar2 > div > .panelV2 {
+.page__topic--show > .sidebar2 > div > .panelV2 {
     background-color: transparent;
 }
 
-.page__forum--topic > .sidebar2 > div > .panelV2 > .panel__body {
+.page__topic--show > .sidebar2 > div > .panelV2 > .panel__body {
     padding: 0;
     background-color: transparent;
 }

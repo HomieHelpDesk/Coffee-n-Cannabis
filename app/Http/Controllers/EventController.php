@@ -42,7 +42,7 @@ class EventController extends Controller
                 ->claimedPrizes()
                 ->where('user_id', '=', $request->user()->id)
                 ->get()
-                ->groupBy(fn ($claimedPrize) => $claimedPrize->created_at->diffInDays($event->starts_at)),
+                ->groupBy(fn ($claimedPrize) => (int) $claimedPrize->created_at->diffInDays($event->starts_at, true)),
         ]);
     }
 }

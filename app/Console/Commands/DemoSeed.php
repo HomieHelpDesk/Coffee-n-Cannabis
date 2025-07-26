@@ -80,7 +80,7 @@ class DemoSeed extends Command
 
                     Torrent::factory()->create([
                         'user_id'        => $uid,
-                        'tmdb'           => $id,
+                        'tmdb_movie_id'  => $id,
                         'name'           => $movie['title'],
                         'description'    => $movie['overview'],
                         'category_id'    => 1,
@@ -89,8 +89,7 @@ class DemoSeed extends Command
                         'region_id'      => random_int(1, 242),
                         'distributor_id' => random_int(1, 965),
                         'free'           => $freeleech[$selected],
-                        'featured'       => false,
-                        'sticky'         => 0,
+                        'sticky'         => false,
                         'mediainfo'      => '
 Complete name                            : Double.Impact.1991.1080p.BluRay.DD+5.1.x264-LoRD.mkv
 Format                                   : Matroska
@@ -276,7 +275,7 @@ Menu
 
                     Torrent::factory()->create([
                         'user_id'        => $uid,
-                        'tmdb'           => $id,
+                        'tmdb_tv_id'     => $id,
                         'name'           => $tv['name'],
                         'description'    => $tv['overview'],
                         'category_id'    => 2,
@@ -285,8 +284,7 @@ Menu
                         'region_id'      => random_int(1, 242),
                         'distributor_id' => random_int(1, 965),
                         'free'           => $freeleech[$selected],
-                        'featured'       => false,
-                        'sticky'         => 0,
+                        'sticky'         => false,
                         'mediainfo'      => '
 Complete name                            : Double.Impact.1991.1080p.BluRay.DD+5.1.x264-LoRD.mkv
 Format                                   : Matroska

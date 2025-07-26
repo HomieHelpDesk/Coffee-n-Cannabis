@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>
@@ -33,7 +33,7 @@
     </li>
 @endsection
 
-@section('page', 'page__forums-admin--edit')
+@section('page', 'page__staff-forum-category--edit')
 
 @section('main')
     <section class="panelV2">

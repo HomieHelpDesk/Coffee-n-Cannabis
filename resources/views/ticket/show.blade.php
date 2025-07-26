@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main-and-sidebar')
 
 @section('title')
     <title>{{ __('ticket.helpdesk') }} - {{ config('other.title') }}</title>
@@ -83,9 +83,9 @@
                         @forelse ($ticket->notes as $note)
                             <tr>
                                 <td>
-                                    <x-user_tag :anon="false" :user="$note->user" />
+                                    <x-user-tag :anon="false" :user="$note->user" />
                                 </td>
-                                {{-- format-ignore-start --}}<td style="white-space: pre-wrap">@joypixels($note->getMessageHtml())</td>{{-- format-ignore-end --}}
+                                {{-- format-ignore-start --}}<td style="white-space: pre-wrap">@linkify($note->message)</td>{{-- format-ignore-end --}}
                                 <td>
                                     <time
                                         datetime="{{ $note->created_at }}"
@@ -147,7 +147,7 @@
             <div class="key-value__group">
                 <dt>{{ __('ticket.opened-by') }}</dt>
                 <dd>
-                    <x-user_tag :user="$ticket->user" :anon="false" />
+                    <x-user-tag :user="$ticket->user" :anon="false" />
                 </dd>
             </div>
             <div class="key-value__group">

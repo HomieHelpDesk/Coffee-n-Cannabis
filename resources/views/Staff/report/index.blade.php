@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>Reports - {{ __('staff.staff-dashboard') }} - {{ config('other.title') }}</title>
@@ -19,7 +19,7 @@
     </li>
 @endsection
 
-@section('page', 'page__report--index')
+@section('page', 'page__staff-report--index')
 
 @section('main')
     @livewire('report-search')

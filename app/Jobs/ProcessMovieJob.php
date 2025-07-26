@@ -16,19 +16,22 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Models\Collection;
-use App\Models\Company;
-use App\Models\Credit;
-use App\Models\Genre;
-use App\Models\Movie;
-use App\Models\Person;
-use App\Models\Recommendation;
+use App\Models\TmdbCollection;
+use App\Models\TmdbCompany;
+use App\Models\TmdbCredit;
+use App\Models\TmdbGenre;
+use App\Models\TmdbMovie;
+use App\Models\TmdbPerson;
 use App\Models\Torrent;
 use App\Services\Tmdb\Client;
+use DateTime;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\Middleware\RateLimited;
+use Illuminate\Queue\Middleware\Skip;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
 
 class ProcessMovieJob implements ShouldQueue
@@ -45,17 +48,47 @@ class ProcessMovieJob implements ShouldQueue
     {
     }
 
+    /**
+     * Get the middleware the job should pass through.
+     *
+     * @return array<int, object>
+     */
+    public function middleware(): array
+    {
+        return [
+            Skip::when(cache()->has("tmdb-movie-scraper:{$this->id}")),
+            new WithoutOverlapping((string) $this->id)->dontRelease()->expireAfter(30),
+            new RateLimited('tmdb'),
+        ];
+    }
+
+    /**
+     * Determine the time at which the job should timeout.
+     */
+    public function retryUntil(): DateTime
+    {
+        return now()->addDay();
+    }
+
     public function handle(): void
     {
+        // TMDB caches their api responses for 8 hours, so don't abuse them
+
+        cache()->put("tmdb-movie-scraper:{$this->id}", now(), 8 * 3600);
+
         // Movie
 
         $movieScraper = new Client\Movie($this->id);
 
-        $movie = Movie::updateOrCreate(['id' => $this->id], $movieScraper->getMovie());
+        if ($movieScraper->getMovie() === null) {
+            return;
+        }
+
+        $movie = TmdbMovie::updateOrCreate(['id' => $this->id], $movieScraper->getMovie());
 
         // Genres
 
-        Genre::upsert($movieScraper->getGenres(), 'id');
+        TmdbGenre::upsert($movieScraper->getGenres(), 'id');
         $movie->genres()->sync(array_unique(array_column($movieScraper->getGenres(), 'id')));
 
         // Companies
@@ -66,7 +99,7 @@ class ProcessMovieJob implements ShouldQueue
             $companies[] = (new Client\Company($company['id']))->getCompany();
         }
 
-        Company::upsert($companies, 'id');
+        TmdbCompany::upsert($companies, 'id');
         $movie->companies()->sync(array_unique(array_column($companies, 'id')));
 
         // Collection
@@ -74,8 +107,8 @@ class ProcessMovieJob implements ShouldQueue
         if ($movieScraper->data['belongs_to_collection'] !== null) {
             $collection = (new Client\Collection($movieScraper->data['belongs_to_collection']['id']))->getCollection();
 
-            Collection::upsert($collection, 'id');
-            $movie->collection()->sync([$collection['id']]);
+            TmdbCollection::upsert($collection, 'id');
+            $movie->collections()->sync([$collection['id']]);
         }
 
         // People
@@ -83,20 +116,30 @@ class ProcessMovieJob implements ShouldQueue
         $credits = $movieScraper->getCredits();
         $people = [];
 
-        foreach (array_unique(array_column($credits, 'person_id')) as $person_id) {
-            $people[] = (new Client\Person($person_id))->getPerson();
+        foreach (array_unique(array_column($credits, 'tmdb_person_id')) as $personId) {
+            // TMDB caches their api responses for 8 hours, so don't abuse them
+
+            $cacheKey = "tmdb-person-scraper:{$personId}";
+
+            if (cache()->has($cacheKey)) {
+                continue;
+            }
+
+            cache()->put($cacheKey, now(), 8 * 3600);
+
+            $people[] = (new Client\Person($personId))->getPerson();
         }
 
-        Person::upsert($people, 'id');
-        Credit::where('movie_id', '=', $this->id)->delete();
-        Credit::upsert($credits, ['person_id', 'movie_id', 'tv_id', 'occupation_id', 'character']);
+        TmdbPerson::upsert($people, 'id');
+        TmdbCredit::where('tmdb_movie_id', '=', $this->id)->delete();
+        TmdbCredit::upsert($credits, ['tmdb_person_id', 'tmdb_movie_id', 'tmdb_tv_id', 'occupation_id', 'character']);
 
         // Recommendations
 
-        Recommendation::upsert($movieScraper->getRecommendations(), ['recommendation_movie_id', 'movie_id']);
+        $movie->recommendedMovies()->sync(array_unique(array_column($movieScraper->getRecommendations(), 'recommended_tmdb_movie_id')));
 
         Torrent::query()
-            ->where('tmdb', '=', $this->id)
+            ->where('tmdb_movie_id', '=', $this->id)
             ->whereRelation('category', 'movie_meta', '=', true)
             ->searchable();
     }

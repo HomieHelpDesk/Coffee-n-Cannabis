@@ -70,7 +70,7 @@
                 @forelse ($passkeys as $passkey)
                     <tr>
                         <td>
-                            <x-user_tag :user="$passkey->user" :anon="false" />
+                            <x-user-tag :user="$passkey->user" :anon="false" />
                         </td>
                         <td>{{ $passkey->content }}</td>
                         <td>

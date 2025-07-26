@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main-and-sidebar')
 
 @section('breadcrumbs')
     <li class="breadcrumbV2">
@@ -16,8 +16,10 @@
     </li>
 @endsection
 
+@section('page', 'page__person--show')
+
 @section('main')
-    @livewire('person-credit', ['person' => $person])
+    @livewire('tmdb-person-credit', ['person' => $person])
 @endsection
 
 @section('sidebar')

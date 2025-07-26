@@ -41,16 +41,16 @@ class StoreWishRequest extends FormRequest
         $user = auth()->user();
 
         return [
-            'movie_id' => [
+            'tmdb_movie_id' => [
                 'required_if:meta,movie',
-                'required_without:tv_id',
+                'required_without:tmdb_tv_id',
                 'decimal:0',
                 'min:1',
                 Rule::unique('wishes')->where(fn (Builder $query) => $query->where('user_id', '=', $user->id)),
             ],
-            'tv_id' => [
+            'tmdb_tv_id' => [
                 'required_if:meta,tv',
-                'required_without:movie_id',
+                'required_without:tmdb_movie_id',
                 'decimal:0',
                 'min:1',
                 Rule::unique('wishes')->where(fn (Builder $query) => $query->where('user_id', '=', $user->id)),
@@ -70,8 +70,8 @@ class StoreWishRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'movie_id.unique' => 'You are already receiving notifications for this movie.',
-            'tv_id.unique'    => 'You are already receiving notifications for this tv.',
+            'tmdb_movie_id.unique' => 'You are already receiving notifications for this movie.',
+            'tmdb_tv_id.unique'    => 'You are already receiving notifications for this tv.',
         ];
     }
 }

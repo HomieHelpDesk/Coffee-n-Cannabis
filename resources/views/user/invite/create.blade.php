@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main-and-sidebar')
 
 @section('title')
     <title>
@@ -20,6 +20,8 @@
 @section('nav-tabs')
     @include('user.buttons.user')
 @endsection
+
+@section('page', 'page__user-invite--create')
 
 @if (config('other.invite-only') === false)
     @section('main')

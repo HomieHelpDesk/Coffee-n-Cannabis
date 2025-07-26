@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ $collection->name }} - {{ config('other.title') }}</title>
@@ -23,6 +23,8 @@
         {{ $collection->name }}
     </li>
 @endsection
+
+@section('page', 'page__collection--show')
 
 @section('main')
     <section class="meta">
@@ -68,7 +70,7 @@
             </div>
         </header>
         <div class="panel__body torrent-search--poster__results">
-            @foreach ($collection->movie->sortBy('release_date') as $movie)
+            @foreach ($collection->movies->sortBy('release_date') as $movie)
                 <x-movie.poster
                     :movie="$movie"
                     :category-id="$movie->torrents()->first()->category_id"

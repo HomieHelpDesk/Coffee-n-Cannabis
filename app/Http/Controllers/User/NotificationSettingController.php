@@ -40,7 +40,7 @@ class NotificationSettingController extends Controller
         cache()->forget('user-notification:by-user-id:'.$user->id);
 
         return to_route('users.notification_settings.edit', ['user' => $user])
-            ->withSuccess('Your notification settings have been successfully saved.');
+            ->with('success', 'Your notification settings have been successfully saved.');
     }
 
     /**
@@ -50,7 +50,7 @@ class NotificationSettingController extends Controller
     {
         abort_unless($request->user()->is($user), 403);
 
-        return view('user.notification_setting.edit', [
+        return view('user.notification-setting.edit', [
             'user'   => $user,
             'groups' => Group::query()
                 ->where('is_modo', '=', false)

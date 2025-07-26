@@ -15,10 +15,10 @@ parameters:
         - resources
         - routes
     excludePaths:
-        - app/Helpers/Markdown
-        - app/Helpers/MarkdownExtra
-        - app/Http/Livewire/PersonCredit
-        - app/Http/Livewire/TorrentSearch
+        - app/Helpers/Markdown.php
+        - app/Helpers/MarkdownExtra.php
+        - app/Http/Livewire/TmdbPersonCredit.php
+        - app/Http/Livewire/TorrentSearch.php
         - bootstrap/cache
     level: 7
     checkOctaneCompatibility: true
@@ -27,8 +27,10 @@ parameters:
             message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Torrent\>\:\:searchable\(\)\.$#'
             identifier: method.notFound
         -
-            message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\Torrent, [a-zA-Z0-9\\_]+\>\:\:searchable\(\)\.$#'
+            message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\Torrent, [a-zA-Z0-9\\_\\\\, ]+\>\:\:searchable\(\)\.$#'
             identifier: method.notFound
         -
             message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Torrent, [a-zA-Z0-9\\_]+\>\:\:searchable\(\)\.$#'
             identifier: method.notFound
+        -
+            identifier: nullsafe.neverNull

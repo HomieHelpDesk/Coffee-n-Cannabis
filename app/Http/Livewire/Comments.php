@@ -28,8 +28,9 @@ use App\Achievements\UserMade800Comments;
 use App\Achievements\UserMade900Comments;
 use App\Achievements\UserMadeComment;
 use App\Achievements\UserMadeTenComments;
+use App\Enums\ModerationStatus;
 use App\Models\Article;
-use App\Models\Collection;
+use App\Models\TmdbCollection;
 use App\Models\Playlist;
 use App\Models\Ticket;
 use App\Models\Torrent;
@@ -55,7 +56,7 @@ class Comments extends Component
 
     public ?User $user;
 
-    public null|Article|Collection|Playlist|Ticket|Torrent|TorrentRequest $model;
+    public null|Article|TmdbCollection|Playlist|Ticket|Torrent|TorrentRequest $model;
 
     public bool $anon = false;
 
@@ -114,7 +115,7 @@ class Comments extends Component
         // Authorization
         abort_unless($this->model instanceof Ticket || ($this->user->can_comment ?? $this->user->group->can_comment), 403, __('comment.rights-revoked'));
 
-        abort_if($this->model instanceof Torrent && $this->model->status !== Torrent::APPROVED, 403, __('comment.torrent-status'));
+        abort_if($this->model instanceof Torrent && $this->model->status !== ModerationStatus::APPROVED, 403, __('comment.torrent-status'));
 
         // Validation
         $this->validate();
@@ -128,24 +129,18 @@ class Comments extends Component
         // New Comment Notification
         switch (true) {
             case $this->model instanceof Ticket:
-                $ticket = $this->model;
+                // Notify assigned staff if needed
+                User::find($this->model->staff_id)?->notify(new NewComment($this->model, $comment));
 
-                if ($this->user->id !== $ticket->staff_id && $ticket->staff_id !== null) {
-                    User::find($ticket->staff_id)?->notify(new NewComment($this->model, $comment));
-                }
-
-                if ($this->user->id !== $ticket->user_id) {
-                    User::find($ticket->user_id)?->notify(new NewComment($this->model, $comment));
-                }
+                // Notify ticket creator if needed
+                User::find($this->model->user_id)?->notify(new NewComment($this->model, $comment));
 
                 break;
             case $this->model instanceof Article:
             case $this->model instanceof Playlist:
             case $this->model instanceof TorrentRequest:
             case $this->model instanceof Torrent:
-                if ($this->user->id !== $this->model->user_id) {
-                    User::find($this->model->user_id)?->notify(new NewComment($this->model, $comment));
-                }
+                User::find($this->model->user_id)?->notify(new NewComment($this->model, $comment));
 
                 break;
         }
@@ -163,7 +158,7 @@ class Comments extends Component
                     $this->chatRepository->systemMessage($username.' has left a comment on Article [url='.href_article($this->model).']'.$this->model->title.'[/url]');
 
                     break;
-                case $this->model instanceof Collection:
+                case $this->model instanceof TmdbCollection:
                     $this->chatRepository->systemMessage($username.' has left a comment on Collection [url='.href_collection($this->model).']'.$this->model->name.'[/url]');
 
                     break;
@@ -204,7 +199,7 @@ class Comments extends Component
     }
 
     /**
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator<\App\Models\Comment>
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator<int, \App\Models\Comment>
      */
     #[Computed]
     final public function comments(): \Illuminate\Contracts\Pagination\LengthAwarePaginator

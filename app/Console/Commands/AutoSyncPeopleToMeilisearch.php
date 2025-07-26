@@ -16,7 +16,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Models\Person;
+use App\Models\TmdbPerson;
 use Exception;
 use Illuminate\Console\Command;
 use Meilisearch\Client;
@@ -47,9 +47,9 @@ class AutoSyncPeopleToMeilisearch extends Command
         $start = now();
 
         $client = new Client(config('scout.meilisearch.host'), config('scout.meilisearch.key'));
-        $index = $client->index('people');
+        $index = $client->index(config('scout.prefix').'people');
 
-        $people = Person::all(['id', 'name', 'birthday', 'still']);
+        $people = TmdbPerson::all(['id', 'name', 'birthday', 'still']);
 
         $documents = $people->map(fn ($person) => [
             'id'       => $person->id,
@@ -60,6 +60,6 @@ class AutoSyncPeopleToMeilisearch extends Command
 
         $index->addDocuments($documents);
 
-        $this->comment('Synced all people to Meilisearch in '.(now()->diffInMilliseconds($start) / 1000).' seconds.');
+        $this->comment('Synced all people to Meilisearch in '.(int) (now()->diffInMilliseconds($start, true) / 1000).' seconds.');
     }
 }

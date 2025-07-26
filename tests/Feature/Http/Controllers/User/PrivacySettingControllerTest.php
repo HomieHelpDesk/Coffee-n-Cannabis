@@ -27,7 +27,7 @@ test('edit returns an ok response', function (): void {
     $response = $this->actingAs($authUser)->get(route('users.privacy_settings.edit', [$user]));
 
     $response->assertOk();
-    $response->assertViewIs('user.privacy_setting.edit');
+    $response->assertViewIs('user.privacy-setting.edit');
     $response->assertViewHas('user', $user);
     $response->assertViewHas('groups', $groups);
 

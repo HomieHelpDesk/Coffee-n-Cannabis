@@ -16,12 +16,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\ModerationStatus;
 use App\Helpers\Bencode;
 use App\Models\Scopes\ApprovedScope;
 use App\Models\Torrent;
 use App\Models\TorrentDownload;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class TorrentDownloadController extends Controller
 {
@@ -30,7 +32,7 @@ class TorrentDownloadController extends Controller
      */
     public function show(Request $request, int $id): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
-        return view('torrent.download_check', [
+        return view('torrent.download-check', [
             'torrent' => Torrent::withoutGlobalScope(ApprovedScope::class)->findOrFail($id),
             'user'    => $request->user(),
         ]);
@@ -62,13 +64,13 @@ class TorrentDownloadController extends Controller
         }
 
         // Torrent Status Is Rejected
-        if ($torrent->status === Torrent::REJECTED) {
+        if ($torrent->status === ModerationStatus::REJECTED) {
             return to_route('torrents.show', ['id' => $torrent->id])
                 ->withErrors('This Torrent Has Been Rejected By Staff');
         }
 
         // The torrent file exist ?
-        if (!file_exists(getcwd().'/files/torrents/'.$torrent->file_name)) {
+        if (!Storage::disk('torrent-files')->exists($torrent->file_name)) {
             return to_route('torrents.show', ['id' => $torrent->id])
                 ->withErrors('Torrent File Not Found! Please Report This Torrent!');
         }
@@ -85,7 +87,7 @@ class TorrentDownloadController extends Controller
 
         return response()->streamDownload(
             function () use ($id, $user, $torrent): void {
-                $dict = Bencode::bdecode(file_get_contents(getcwd().'/files/torrents/'.$torrent->file_name));
+                $dict = Bencode::bdecode(Storage::disk('torrent-files')->get($torrent->file_name));
 
                 // Set the announce key and add the user passkey
                 $dict['announce'] = route('announce', ['passkey' => $user->passkey]);
@@ -99,7 +101,7 @@ class TorrentDownloadController extends Controller
 
                 echo Bencode::bencode($dict);
             },
-            str_replace([' ', '/', '\\'], ['.', '-', '-'], '['.config('torrent.source').']'.$torrent->name.'.torrent'),
+            sanitize_filename('['.config('torrent.source').']'.$torrent->name.'.torrent'),
             ['Content-Type' => 'application/x-bittorrent']
         );
     }

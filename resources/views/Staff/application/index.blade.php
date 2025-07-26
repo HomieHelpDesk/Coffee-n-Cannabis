@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>Applications - {{ __('staff.staff-dashboard') }} - {{ config('other.title') }}</title>
@@ -19,7 +19,7 @@
     </li>
 @endsection
 
-@section('page', 'page__application--index')
+@section('page', 'page__staff-application--index')
 
 @section('main')
     @livewire('application-search')

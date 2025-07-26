@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>
@@ -21,7 +21,7 @@
     </li>
 @endsection
 
-@section('page', 'page__articles--show')
+@section('page', 'page__article--show')
 
 @section('main')
     <section class="panelV2">
@@ -38,7 +38,7 @@
             </div>
         </header>
         <div class="panel__body bbcode-rendered">
-            @joypixels($article->getContentHtml())
+            @bbcode($article->content)
         </div>
     </section>
     <livewire:comments :model="$article" />

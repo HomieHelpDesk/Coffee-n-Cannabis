@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('breadcrumbs')
     <li class="breadcrumbV2">
@@ -29,7 +29,7 @@
     </li>
 @endsection
 
-@section('page', 'page__chat-room--index')
+@section('page', 'page__staff-chat-room--index')
 
 @section('main')
     <section class="panelV2">

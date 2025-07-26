@@ -35,7 +35,7 @@ class GeneralSettingController extends Controller
         cache()->forget('user-settings:by-user-id:'.$user->id);
 
         return to_route('users.general_settings.edit', ['user' => $user])
-            ->withSuccess('Your general settings have been successfully saved.');
+            ->with('success', 'Your general settings have been successfully saved.');
     }
 
     /**
@@ -45,6 +45,6 @@ class GeneralSettingController extends Controller
     {
         abort_unless($request->user()->is($user), 403);
 
-        return view('user.general_setting.edit', ['user' => $user]);
+        return view('user.general-setting.edit', ['user' => $user]);
     }
 }

@@ -27,7 +27,7 @@ class CheatedTorrentController extends Controller
      */
     public function index(): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
-        return view('Staff.cheated_torrent.index', [
+        return view('Staff.cheated-torrent.index', [
             'torrents' => Torrent::query()
                 ->select([
                     'torrents.id',
@@ -38,33 +38,41 @@ class CheatedTorrentController extends Controller
                     'torrents.size',
                     'torrents.balance',
                     'torrents.balance_offset',
+                    'torrents.balance_reset_at',
                     'torrents.created_at',
                 ])
-                ->selectRaw('MAX(history.completed_at) as last_completed')
-                ->selectRaw('MAX(history.created_at) as last_started')
-                ->selectRaw('balance + COALESCE(balance_offset, 0) AS current_balance')
-                ->selectRaw('(CAST((balance + COALESCE(balance_offset, 0)) AS float) / CAST((size + 1) AS float)) AS times_cheated')
-                ->join('history', 'history.torrent_id', '=', 'torrents.id')
-                ->groupBy([
-                    'torrents.id',
-                    'torrents.name',
-                    'torrents.seeders',
-                    'torrents.leechers',
-                    'torrents.times_completed',
-                    'torrents.size',
-                    'torrents.balance',
-                    'torrents.balance_offset',
-                    'torrents.created_at',
-                ])
-                ->having('current_balance', '<>', 0)
-                /**
-                 * @phpstan-ignore-next-line
-                 */
-                ->having('last_completed', '<', now()->subHours(2))
-                /**
-                 * @phpstan-ignore-next-line
-                 */
-                ->having('last_started', '<', now()->subHours(2))
+                ->selectRaw('balance + balance_offset AS current_balance')
+                ->selectRaw('(balance + balance_offset) / GREATEST(size, 1) AS times_cheated')
+                // Exclude torrents that have active data transfer when the current balance (or its offset) is being calculated.
+                // The balance is inaccurate during these times since seeds only report upload data once per announce interval (max 1 hour).
+                // Balances are only accurate once it's been at least 1 announce interval since the last leech completed the torrent.
+                ->whereDoesntHave(
+                    'history',
+                    fn ($query) => $query
+                        // Exclude torrents where the reporting period overlapped with the balance reset, but eventually completed
+                        ->where(
+                            fn ($query) => $query
+                                ->whereNotNull('balance_reset_at')
+                                ->whereColumn('balance_reset_at', '>', 'history.created_at')
+                                ->whereColumn(DB::raw('DATE_SUB(balance_reset_at, INTERVAL 1 HOUR)'), '<', 'history.completed_at')
+                                ->whereNotNull('completed_at')
+                        )
+                        // Exclude torrents where the reporting period overlapped with both the balance reset and the current balance calculation
+                        ->orWhere(
+                            fn ($query) => $query
+                                ->whereNotNull('balance_reset_at')
+                                ->whereColumn('balance_reset_at', '>', 'history.created_at')
+                                ->whereNull('completed_at')
+                                ->where('active', '=', true)
+                                ->where('seeder', '=', false)
+                        )
+                        // Exclude torrents where the reporting period overlapped with right now
+                        ->orWhereColumn(DB::raw('DATE_SUB(NOW(), INTERVAL 1 HOUR)'), '<', 'created_at')
+                        ->orWhereColumn(DB::raw('DATE_SUB(NOW(), INTERVAL 1 HOUR)'), '<', 'completed_at')
+                )
+                // Tolerance of 5%
+                // @phpstan-ignore argument.type (This function works with DB::raw() even though larastan doesn't think so)
+                ->havingBetween('current_balance', [DB::raw('-0.05 * size'), DB::raw('0.05 * size')], 'and', true)
                 ->orderByDesc('times_cheated')
                 ->paginate(25),
         ]);
@@ -76,11 +84,12 @@ class CheatedTorrentController extends Controller
     public function destroy(Torrent $cheatedTorrent): \Illuminate\Http\RedirectResponse
     {
         $cheatedTorrent->update([
-            'balance_offset' => DB::raw('balance * -1'),
+            'balance_offset'   => DB::raw('balance * -1'),
+            'balance_reset_at' => now(),
         ]);
 
         return to_route('staff.cheated_torrents.index')
-            ->withSuccess('Balance successfully reset');
+            ->with('success', 'Balance successfully reset');
     }
 
     /**
@@ -89,10 +98,11 @@ class CheatedTorrentController extends Controller
     public function massDestroy(): \Illuminate\Http\RedirectResponse
     {
         Torrent::query()->update([
-            'balance_offset' => DB::raw('balance * -1'),
+            'balance_offset'   => DB::raw('balance * -1'),
+            'balance_reset_at' => now(),
         ]);
 
         return to_route('staff.cheated_torrents.index')
-            ->withSuccess('All balances successfully reset');
+            ->with('success', 'All balances successfully reset');
     }
 }

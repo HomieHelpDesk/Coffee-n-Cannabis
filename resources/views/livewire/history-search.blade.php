@@ -209,7 +209,7 @@
                             @foreach ($histories as $history)
                                 <tr>
                                     <td>
-                                        <x-user_tag :user="$history->user" :anon="false" />
+                                        <x-user-tag :user="$history->user" :anon="false" />
                                     </td>
                                     <td>
                                         {{ $history->torrent_count }}
@@ -414,7 +414,7 @@
                             @foreach ($histories as $history)
                                 <tr>
                                     <td>
-                                        <x-user_tag :user="$history->user" :anon="false" />
+                                        <x-user-tag :user="$history->user" :anon="false" />
                                     </td>
                                     <td>
                                         <a

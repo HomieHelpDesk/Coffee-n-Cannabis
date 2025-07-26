@@ -52,7 +52,7 @@ class Internal extends Model
     /**
      * Has Many Users.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<User, $this>
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<User, $this, InternalUser>
      */
     public function users(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {

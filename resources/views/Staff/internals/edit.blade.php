@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('breadcrumbs')
     <li class="breadcrumbV2">
@@ -17,12 +17,12 @@
     </li>
 @endsection
 
-@section('page', 'page__internals--edit')
+@section('page', 'page__staff-internal--edit')
 
 @section('main')
     <section class="panelV2">
         <h2 class="panel__heading">
-            {{ __('common.edit') }} Interal Group: {{ $internal->name }}
+            {{ __('common.edit') }} Internal Group: {{ $internal->name }}
         </h2>
         <div class="panel__body">
             <form
@@ -151,7 +151,7 @@
                         <tr>
                             <td>{{ $user->pivot->position }}</td>
                             <td>
-                                <x-user_tag :user="$user" :anon="false" />
+                                <x-user-tag :user="$user" :anon="false" />
                             </td>
                             <td>
                                 <time

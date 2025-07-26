@@ -20,7 +20,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Staff\StoreRssRequest;
 use App\Http\Requests\Staff\UpdateRssRequest;
 use App\Models\Category;
-use App\Models\Genre;
+use App\Models\TmdbGenre;
 use App\Models\Resolution;
 use App\Models\Rss;
 use App\Models\Type;
@@ -51,7 +51,7 @@ class RssController extends Controller
             'categories'  => Category::select(['id', 'name', 'position'])->orderBy('position')->get(),
             'types'       => Type::select(['id', 'name', 'position'])->orderBy('position')->get(),
             'resolutions' => Resolution::select(['id', 'name', 'position'])->orderBy('position')->get(),
-            'genres'      => Genre::orderBy('name')->get(),
+            'genres'      => TmdbGenre::orderBy('name')->get(),
             'user'        => $request->user(),
         ]);
     }
@@ -70,7 +70,7 @@ class RssController extends Controller
         $rss->save();
 
         return to_route('staff.rss.index')
-            ->withSuccess('Public RSS Feed Created');
+            ->with('success', 'Public RSS Feed Created');
     }
 
     /**
@@ -84,7 +84,7 @@ class RssController extends Controller
             'categories'  => Category::select(['id', 'name', 'position'])->orderBy('position')->get(),
             'types'       => Type::select(['id', 'name', 'position'])->orderBy('position')->get(),
             'resolutions' => Resolution::select(['id', 'name', 'position'])->orderBy('position')->get(),
-            'genres'      => Genre::orderBy('name')->get(),
+            'genres'      => TmdbGenre::orderBy('name')->get(),
             'user'        => $request->user(),
             'rss'         => $rss,
         ]);
@@ -104,7 +104,7 @@ class RssController extends Controller
         ]);
 
         return to_route('staff.rss.index')
-            ->withSuccess('Public RSS Feed Updated');
+            ->with('success', 'Public RSS Feed Updated');
     }
 
     /**
@@ -119,6 +119,6 @@ class RssController extends Controller
         $rss->delete();
 
         return to_route('staff.rss.index')
-            ->withSuccess('RSS Feed Deleted!');
+            ->with('success', 'RSS Feed Deleted!');
     }
 }

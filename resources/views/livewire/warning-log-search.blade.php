@@ -118,10 +118,10 @@
             @forelse ($warnings as $warning)
                 <tr>
                     <td>
-                        <x-user_tag :anon="false" :user="$warning->warneduser" />
+                        <x-user-tag :anon="false" :user="$warning->warneduser" />
                     </td>
                     <td>
-                        <x-user_tag :anon="false" :user="$warning->staffuser" />
+                        <x-user-tag :anon="false" :user="$warning->staffuser" />
                     </td>
                     <td>
                         @isset($warning->torrent)

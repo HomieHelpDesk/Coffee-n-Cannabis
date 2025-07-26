@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('breadcrumbs')
     <li class="breadcrumbV2">
@@ -9,7 +9,7 @@
     <li class="breadcrumb--active">Internals</li>
 @endsection
 
-@section('page', 'page__internals--index')
+@section('page', 'page__staff-internal--index')
 
 @section('main')
     <section class="panelV2">
@@ -104,7 +104,7 @@
                     @foreach ($internalUsers as $user)
                         <tr>
                             <td>
-                                <x-user_tag :anon="false" :user="$user" />
+                                <x-user-tag :anon="false" :user="$user" />
                             </td>
                             <td>{{ $user->internals->pluck('name')->implode(', ') }}</td>
                             <td>{{ $user->total_uploads }}</td>

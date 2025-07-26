@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('breadcrumbs')
     <li class="breadcrumbV2">
@@ -11,7 +11,7 @@
     </li>
 @endsection
 
-@section('page', 'page__category--index')
+@section('page', 'page__staff-category--index')
 
 @section('main')
     <section class="panelV2">
@@ -57,7 +57,10 @@
                             </td>
                             <td>
                                 @if ($category->image != null)
-                                    <img alt="" src="{{ url('files/img/' . $category->image) }}" />
+                                    <img
+                                        alt=""
+                                        src="{{ route('authenticated_images.category_image', ['category' => $category]) }}"
+                                    />
                                 @else
                                     <span>N/A</span>
                                 @endif

@@ -183,10 +183,11 @@ class uploadExtensionBuilder {
     }
     hook() {
         let name = document.querySelector('#title');
-        let tmdb = document.querySelector('#autotmdb');
+        let tmdb_movie = document.querySelector('#auto_tmdb_movie');
+        let tmdb_tv = document.querySelector('#auto_tmdb_tv');
         let imdb = document.querySelector('#autoimdb');
 
-        if (!name.value.trim() && !tmdb.value.trim()) {
+        if (!name.value.trim() && (!tmdb_movie.value.trim() || !tmdb_tv.value.trim())) {
             let torrent = document.querySelector('#torrent');
             let release;
             if (!name.value) {
@@ -292,7 +293,7 @@ class uploadExtensionBuilder {
                 data = JSON.parse(data);
                 if (release.type === 'Movie') {
                     if (data.results && data.results.length > 0) {
-                        document.getElementById('autotmdb').value = data.results[0].id;
+                        document.getElementById('auto_tmdb_movie').value = data.results[0].id;
                         document.getElementById('apimatch').value =
                             'Found Match: ' +
                             data.results[0].title +
@@ -316,7 +317,7 @@ class uploadExtensionBuilder {
                     }
                 } else if (release.type === 'TV Show') {
                     if (data.results && data.results.length > 0) {
-                        document.getElementById('autotmdb').value = data.results[0].id;
+                        document.getElementById('auto_tmdb_tv').value = data.results[0].id;
                         document.getElementById('apimatch').value =
                             'Found Match: ' +
                             data.results[0].name +
@@ -376,11 +377,6 @@ class uploadExtensionBuilder {
 
             function e(data) {
                 console.log('Error callback: ' + data);
-            }
-
-            // Torrent Stream Optimized?
-            if (release.container === 'MP4' && release.audio === 'AAC') {
-                document.getElementById('stream').checked = true;
             }
         }
     }

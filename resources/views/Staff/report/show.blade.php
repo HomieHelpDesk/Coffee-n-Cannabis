@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main-and-sidebar')
 
 @section('title')
     <title>Reports - {{ __('staff.staff-dashboard') }} - {{ config('other.title') }}</title>
@@ -22,7 +22,7 @@
     <li class="breadcrumb--active">{{ __('common.report') }} Details</li>
 @endsection
 
-@section('page', 'page__poll--show')
+@section('page', 'page__staff-report--show')
 
 @section('main')
     @if ($report->torrent)
@@ -100,20 +100,20 @@
     <section class="panelV2">
         <h2 class="panel__heading">Reported {{ __('common.user') }}</h2>
         <div class="panel__body">
-            <x-user_tag :anon="false" :user="$report->reported" />
+            <x-user-tag :anon="false" :user="$report->reported" />
         </div>
     </section>
     <section class="panelV2">
         <h2 class="panel__heading">{{ __('common.reporter') }}</h2>
         <div class="panel__body">
-            <x-user_tag :anon="false" :user="$report->reporter" />
+            <x-user-tag :anon="false" :user="$report->reporter" />
         </div>
     </section>
     <section class="panelV2">
         <h2 class="panel__heading">Solved by</h2>
         <div class="panel__body">
             @if ($report->solved)
-                <x-user_tag :anon="false" :user="$report->staff" />
+                <x-user-tag :anon="false" :user="$report->staff" />
             @else
                 <span class="text-red">
                     <i class="{{ config('other.font-awesome') }} fa-times"></i>

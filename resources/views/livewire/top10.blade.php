@@ -24,6 +24,7 @@
                         <option value="all">All-time</option>
                         <option value="weekly">Weekly</option>
                         <option value="monthly">Monthly</option>
+                        <option value="release_year">Release year</option>
                         <option value="custom">Custom</option>
                     </select>
                     <label class="form__label form__label--floating" for="interval">Interval</label>
@@ -98,7 +99,7 @@
                                                 <x-movie.poster
                                                     :movie="$ranking->movie"
                                                     :categoryId="$ranking->category_id"
-                                                    :tmdb="$ranking->tmdb"
+                                                    :tmdb="$ranking->tmdb_movie_id"
                                                 />
 
                                                 @break
@@ -106,7 +107,7 @@
                                                 <x-tv.poster
                                                     :tv="$ranking->tv"
                                                     :categoryId="$ranking->category_id"
-                                                    :tmdb="$ranking->tmdb"
+                                                    :tmdb="$ranking->tmdb_tv_id"
                                                 />
 
                                                 @break
@@ -150,7 +151,7 @@
                                                 <x-movie.poster
                                                     :movie="$ranking->movie"
                                                     :categoryId="$ranking->category_id"
-                                                    :tmdb="$ranking->tmdb"
+                                                    :tmdb="$ranking->tmdb_movie_id"
                                                 />
 
                                                 @break
@@ -158,7 +159,57 @@
                                                 <x-tv.poster
                                                     :tv="$ranking->tv"
                                                     :categoryId="$ranking->category_id"
-                                                    :tmdb="$ranking->tmdb"
+                                                    :tmdb="$ranking->tmdb_tv_id"
+                                                />
+
+                                                @break
+                                        @endswitch
+                                        <figcaption
+                                            class="top10-poster__download-count"
+                                            title="{{ __('torrent.completed-times') }}"
+                                        >
+                                            {{ $ranking->download_count }}
+                                        </figcaption>
+                                    </figure>
+                                @endforeach
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @elseif ($this->interval === 'release_year')
+        <div class="data-table-wrapper">
+            <div wire:loading.delay class="panel__body">Computing...</div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Year</th>
+                        <th>Rankings</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($works as $releaseYearRankings)
+                        <tr>
+                            <th>{{ $releaseYearRankings->first()?->the_year }}</th>
+                            <td class="panel__body top10-weekly__row">
+                                @foreach ($releaseYearRankings as $ranking)
+                                    <figure class="top10-poster">
+                                        @switch($this->metaType)
+                                            @case('movie_meta')
+                                                <x-movie.poster
+                                                    :movie="$ranking->movie"
+                                                    :categoryId="$ranking->category_id"
+                                                    :tmdb="$ranking->tmdb_movie_id"
+                                                />
+
+                                                @break
+                                            @case('tv_meta')
+                                                <x-tv.poster
+                                                    :tv="$ranking->tv"
+                                                    :categoryId="$ranking->category_id"
+                                                    :tmdb="$ranking->tmdb_tv_id"
                                                 />
 
                                                 @break
@@ -188,7 +239,7 @@
                             <x-movie.poster
                                 :movie="$work->movie"
                                 :categoryId="$work->category_id"
-                                :tmdb="$work->tmdb"
+                                :tmdb="$work->tmdb_movie_id"
                             />
                             <figcaption
                                 class="top10-poster__download-count"
@@ -206,7 +257,7 @@
                             <x-tv.poster
                                 :tv="$work->tv"
                                 :categoryId="$work->category_id"
-                                :tmdb="$work->tmdb"
+                                :tmdb="$work->tmdb_tv_id"
                             />
                             <figcaption
                                 class="top10-poster__download-count"

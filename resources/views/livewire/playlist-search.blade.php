@@ -33,6 +33,26 @@
                 </div>
             </div>
             <div class="panel__action">
+                <div class="form__group">
+                    <select
+                        id="playlist_category_id"
+                        class="form__select"
+                        wire:model.live.debounce.250ms="playlistCategoryId"
+                        required
+                    >
+                        <option selected value="__any">Any</option>
+                        @foreach ($playlistCategories as $playlistCategory)
+                            <option class="form__option" value="{{ $playlistCategory->id }}">
+                                {{ $playlistCategory->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <label class="form__label form__label--floating" for="playlist_category_id">
+                        {{ __('torrent.category') }}
+                    </label>
+                </div>
+            </div>
+            <div class="panel__action">
                 <a class="form__button form__button--text" href="{{ route('playlists.create') }}">
                     {{ __('common.add') }}
                 </a>
@@ -41,46 +61,7 @@
     </header>
     <div class="panel__body playlists">
         @forelse ($playlists as $playlist)
-            <article class="playlists__playlist">
-                @if (isset($playlist->cover_image) && file_exists(public_path() . '/files/img/' . $playlist->cover_image))
-                    <a
-                        class="playlists__playlist-image-link"
-                        href="{{ route('playlists.show', ['playlist' => $playlist]) }}"
-                    >
-                        <img
-                            class="playlists__playlist-image"
-                            src="{{ url('files/img/' . $playlist->cover_image) }}"
-                            alt=""
-                        />
-                    </a>
-                @else
-                    <a
-                        class="playlists__playlist-image-link--none"
-                        href="{{ route('playlists.show', ['playlist' => $playlist]) }}"
-                    >
-                        <div class="playlists__playlist-image--none"></div>
-                    </a>
-                @endif
-                <div class="playlists__playlist-author">
-                    <x-user_tag :user="$playlist->user" :anon="false" />
-                </div>
-                <a
-                    class="playlists__playlist-link"
-                    href="{{ route('playlists.show', ['playlist' => $playlist]) }}"
-                >
-                    <h3 class="playlists__playlist-name">
-                        {{ $playlist->name }}
-                    </h3>
-                </a>
-                <a
-                    class="playlists__playlist-link-titles"
-                    href="{{ route('playlists.show', ['playlist' => $playlist]) }}"
-                >
-                    <p class="playlists__playlist-titles">
-                        {{ $playlist->torrents_count }} {{ __('torrent.torrents') }}
-                    </p>
-                </a>
-            </article>
+            <x-playlist.card :$playlist />
         @empty
             {{ __('playlist.about') }}
         @endforelse

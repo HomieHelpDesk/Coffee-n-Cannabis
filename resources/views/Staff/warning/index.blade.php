@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>Warnings Log - {{ __('staff.staff-dashboard') }} - {{ config('other.title') }}</title>
@@ -19,7 +19,7 @@
     </li>
 @endsection
 
-@section('page', 'page__warning-log--index')
+@section('page', 'page__staff-warning--index')
 
 @section('main')
     @livewire('warning-log-search')

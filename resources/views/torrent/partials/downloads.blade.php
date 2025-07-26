@@ -26,7 +26,7 @@
                 @foreach (App\Models\TorrentDownload::with(['user:id,username,group_id' => ['group:id,name,color,icon,effect']])->where('torrent_id', '=', $torrent->id)->latest()->get() as $download)
                     <tr>
                         <td>
-                            <x-user_tag :user="$download->user" :anon="false" />
+                            <x-user-tag :user="$download->user" :anon="false" />
                         </td>
                         <td>
                             <time

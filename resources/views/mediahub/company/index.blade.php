@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ __('mediahub.companies') }} - {{ config('other.title') }}</title>
@@ -19,6 +19,8 @@
     </li>
 @endsection
 
-@section('content')
-    @livewire('company-search')
+@section('page', 'page__company--index')
+
+@section('main')
+    @livewire('tmdb-company-search')
 @endsection

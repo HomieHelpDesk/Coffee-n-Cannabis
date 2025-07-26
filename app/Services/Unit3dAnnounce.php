@@ -81,7 +81,7 @@ class Unit3dAnnounce
     {
         return self::put('torrents', [
             'id'              => $torrent->id,
-            'status'          => $torrent->status,
+            'status'          => $torrent->status->value,
             'info_hash'       => bin2hex($torrent->info_hash),
             'is_deleted'      => false,
             'seeders'         => $torrent->seeders,
@@ -170,7 +170,7 @@ class Unit3dAnnounce
         return $torrent;
     }
 
-    public static function addUser(User $user): bool
+    public static function addUser(User $user, ?string $newPasskey = null): bool
     {
         if ($user->deleted_at !== null) {
             return true;
@@ -185,6 +185,7 @@ class Unit3dAnnounce
             'id'           => (int) $user->id,
             'group_id'     => (int) $user->group_id,
             'passkey'      => $user->passkey,
+            'new_passkey'  => $newPasskey,
             'can_download' => (bool) $user->can_download,
             'is_donor'     => (bool) $user->is_donor,
             'is_lifetime'  => (bool) $user->is_lifetime,
@@ -425,7 +426,7 @@ class Unit3dAnnounce
                     'data'   => $data,
                 ]);
 
-                Session::flash('errors', (new ViewErrorBag())->put('test', (new MessageBag(['External tracker returned error']))));
+                Session::flash('errors', (new ViewErrorBag())->put('test', new MessageBag(['error' => 'External tracker returned error'])));
             }
 
             return $isSuccess;
@@ -471,7 +472,7 @@ class Unit3dAnnounce
                     'data'   => $data,
                 ]);
 
-                Session::flash('errors', (new ViewErrorBag())->put('test', (new MessageBag(['External tracker returned error']))));
+                Session::flash('errors', (new ViewErrorBag())->put('test', new MessageBag(['error' => 'External tracker returned error'])));
             }
 
             return $isSuccess;

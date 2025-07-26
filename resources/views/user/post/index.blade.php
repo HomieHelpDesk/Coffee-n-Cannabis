@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ $user->username }} {{ __('user.posts') }} - {{ config('other.title') }}</title>
@@ -18,6 +18,8 @@
 @section('nav-tabs')
     @include('user.buttons.user')
 @endsection
+
+@section('page', 'page__user-post--index')
 
 @section('main')
     @if (auth()->user()->isAllowed($user, 'forum', 'show_post'))

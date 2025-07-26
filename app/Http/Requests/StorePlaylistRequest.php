@@ -43,6 +43,10 @@ class StorePlaylistRequest extends FormRequest
                 'required',
                 'max:255',
             ],
+            'playlist_category_id' => [
+                'required',
+                'exists:playlist_categories,id',
+            ],
             'description' => [
                 'required',
                 'max:65535',

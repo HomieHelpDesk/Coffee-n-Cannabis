@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>Audits Log - {{ __('staff.staff-dashboard') }} - {{ config('other.title') }}</title>
@@ -19,7 +19,7 @@
     </li>
 @endsection
 
-@section('page', 'page__audit-log--index')
+@section('page', 'page__staff-audit--index')
 
 @section('main')
     <section class="panelV2">
@@ -38,7 +38,7 @@
                     @foreach ($staffUsers as $staffUser)
                         <tr>
                             <td>
-                                <x-user_tag :anon="false" :user="$staffUser" />
+                                <x-user-tag :anon="false" :user="$staffUser" />
                             </td>
                             <td>{{ $staffUser->last_30_days }}</td>
                             <td>{{ $staffUser->last_60_days }}</td>

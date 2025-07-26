@@ -46,12 +46,12 @@
                                 IMDB Link:<a href="https://anon.to?http://www.imdb.com/title/tt{{ \str_pad((string) $torrent['imdb'], \max(\strlen((string) $torrent['imdb']), 7), '0', STR_PAD_LEFT) }}"
                                              target="_blank">tt{{ $torrent['imdb'] }}</a><br>
                             @endif
-                            @if ($torrent['category']['movie_meta'] && $torrent['tmdb'] != 0)
-                                TMDB Link: <a href="https://anon.to?https://www.themoviedb.org/movie/{{ $torrent['tmdb'] }}"
-                                              target="_blank">{{ $torrent['tmdb'] }}</a><br>
-                            @elseif ($torrent['category']['tv_meta'] && $torrent['tmdb'] != 0)
-                                TMDB Link: <a href="https://anon.to?https://www.themoviedb.org/tv/{{ $torrent['tmdb'] }}"
-                                              target="_blank">{{ $torrent['tmdb'] }}</a><br>
+                            @if ($torrent['category']['movie_meta'] && $torrent['tmdb_movie_id'] > 0)
+                                TMDB Link: <a href="https://anon.to?https://www.themoviedb.org/movie/{{ $torrent['tmdb_movie_id'] }}"
+                                              target="_blank">{{ $torrent['tmdb_movie_id'] }}</a><br>
+                            @elseif ($torrent['category']['tv_meta'] && $torrent['tmdb_tv_id'] > 0)
+                                TMDB Link: <a href="https://anon.to?https://www.themoviedb.org/tv/{{ $torrent['tmdb_tv_id'] }}"
+                                              target="_blank">{{ $torrent['tmdb_tv_id'] }}</a><br>
                             @endif
                             @if (($torrent['category']['tv_meta']) && $torrent['tvdb'] != 0)
                                 TVDB Link:<a href="https://anon.to?https://www.thetvdb.com/?tab=series&id={{ $torrent['tvdb'] }}"

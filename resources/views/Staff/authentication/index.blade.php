@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>
@@ -21,7 +21,7 @@
     </li>
 @endsection
 
-@section('page', 'page__failed-logins-log--index')
+@section('page', 'page__staff-failed-logins--index')
 
 @section('main')
     @livewire('failed-login-search')

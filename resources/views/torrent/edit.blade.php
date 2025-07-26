@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('breadcrumbs')
     <li class="breadcrumbV2">
@@ -16,6 +16,8 @@
     </li>
 @endsection
 
+@section('page', 'page__torrent--edit')
+
 @section('main')
     <section
         class="panelV2"
@@ -24,6 +26,13 @@
             cats: JSON.parse(atob('{{ base64_encode(json_encode($categories)) }}')),
             type: {{ (int) $torrent->type_id }},
             types: JSON.parse(atob('{{ base64_encode(json_encode($types)) }}')),
+            tmdb_movie_exists:
+                {{ Js::from(old('movie_exists_on_tmdb', $torrent->tmdb_movie_id) !== null) }},
+            tmdb_tv_exists: {{ Js::from(old('tv_exists_on_tmdb', $torrent->tmdb_tv_id) !== null) }},
+            imdb_title_exists: {{ Js::from(old('title_exists_on_imdb', $torrent->imdb) !== null) }},
+            tvdb_tv_exists: {{ Js::from(old('tv_exists_on_tvdb', $torrent->tvdb) !== null) }},
+            mal_anime_exists: {{ Js::from(old('anime_exists_on_mal', $torrent->mal) !== null) }},
+            igdb_game_exists: {{ Js::from(old('game_exists_on_igdb', $torrent->igdb) !== null) }},
         }"
     >
         <h2 class="panel__heading">{{ __('common.edit') }}: {{ $torrent->name }}</h2>
@@ -86,7 +95,7 @@
                             {{ $torrent->category->name }} ({{ __('torrent.current') }})
                         </option>
                         @foreach ($categories as $id => $category)
-                            <option value="{{ $id }}" @selected('category_id' === $id)>
+                            <option value="{{ $id }}" @selected(old('category_id') === $id)>
                                 {{ $category['name'] }}
                             </option>
                         @endforeach
@@ -264,101 +273,236 @@
                 </div>
                 <div
                     class="form__group--horizontal"
-                    x-show="cats[cat].type === 'movie' || cats[cat].type === 'tv'"
+                    x-show="cats[cat].type === 'movie' || cats[cat].type === 'tv' || cats[cat].type === 'game'"
                 >
-                    <p class="form__group">
-                        <input type="hidden" name="tmdb" value="0" />
-                        <input
-                            id="tmdb"
-                            class="form__text"
-                            inputmode="numeric"
-                            name="tmdb"
-                            pattern="[0-9]*"
-                            type="text"
-                            value="{{ old('tmdb') ?? $torrent->tmdb }}"
-                            x-bind:value="
-                                cats[cat].type === 'movie' || cats[cat].type === 'tv'
-                                    ? '{{ old('tmdb') ?? $torrent->tmdb }}'
-                                    : '0'
-                            "
-                            x-bind:required="cats[cat].type === 'movie' || cats[cat].type === 'tv'"
-                        />
-                        <label class="form__label form__label--floating" for="tmdb">
-                            TMDB ID
-                            <b>({{ __('common.required') }})</b>
-                        </label>
-                    </p>
-                    <p class="form__group">
-                        <input type="hidden" name="imdb" value="0" />
-                        <input
-                            id="imdb"
-                            class="form__text"
-                            inputmode="numeric"
-                            name="imdb"
-                            pattern="[0-9]*"
-                            type="text"
-                            value="{{ old('imdb') ?? $torrent->imdb }}"
-                            x-bind:value="
-                                cats[cat].type === 'movie' || cats[cat].type === 'tv'
-                                    ? '{{ old('imdb') ?? $torrent->imdb }}'
-                                    : '0'
-                            "
-                            x-bind:required="cats[cat].type === 'movie' || cats[cat].type === 'tv'"
-                        />
-                        <label class="form__label form__label--floating" for="imdb">IMDB ID</label>
-                    </p>
-                    <p class="form__group" x-show="cats[cat].type === 'tv'">
-                        <input type="hidden" name="tvdb" value="0" />
-                        <input
-                            id="tvdb"
-                            class="form__text"
-                            inputmode="numeric"
-                            name="tvdb"
-                            pattern="[0-9]*"
-                            type="text"
-                            value="{{ old('tvdb') ?? $torrent->tvdb }}"
-                            x-bind:value="cats[cat].type === 'tv' ? '{{ old('tvdb') ?? $torrent->tvdb }}' : '0'"
-                            x-bind:required="cats[cat].type === 'tv'"
-                        />
-                        <label class="form__label form__label--floating" for="tvdb">TVDB ID</label>
-                    </p>
-                    <p class="form__group">
-                        <input type="hidden" name="mal" value="0" />
-                        <input
-                            id="mal"
-                            class="form__text"
-                            inputmode="numeric"
-                            name="mal"
-                            pattern="[0-9]*"
-                            type="text"
-                            value="{{ old('mal') ?? $torrent->mal }}"
-                            x-bind:value="cats[cat].type === 'movie' || cats[cat].type === 'tv' ? '{{ old('mal') ?? $torrent->mal }}' : '0'"
-                            x-bind:required="cats[cat].type === 'movie' || cats[cat].type === 'tv'"
-                        />
-                        <label class="form__label form__label--floating" for="mal">
-                            MAL ID
-                            <b>({{ __('request.required') }} For Anime)</b>
-                        </label>
-                    </p>
+                    <div class="form__group--vertical" x-show="cats[cat].type === 'movie'">
+                        <p class="form__group">
+                            <input
+                                type="checkbox"
+                                class="form__checkbox"
+                                id="movie_exists_on_tmdb"
+                                name="movie_exists_on_tmdb"
+                                value="1"
+                                @checked(old('movie_exists_on_tmdb', true))
+                                x-model="tmdb_movie_exists"
+                            />
+                            <label class="form__label" for="movie_exists_on_tmdb">
+                                This movie exists on TMDB
+                            </label>
+                        </p>
+                        <p class="form__group" x-show="tmdb_movie_exists">
+                            <input type="hidden" name="tmdb_movie_id" value="0" />
+                            <input
+                                id="tmdb_movie_id"
+                                class="form__text"
+                                inputmode="numeric"
+                                name="tmdb_movie_id"
+                                pattern="[0-9]*"
+                                placeholder=" "
+                                type="text"
+                                value="{{ old('tmdb_movie_id', $torrent->tmdb_movie_id) }}"
+                                x-bind:value="
+                                    cats[cat].type === 'movie' && tmdb_movie_exists
+                                        ? '{{ old('tmdb_movie_id', $torrent->tmdb_movie_id) }}'
+                                        : ''
+                                "
+                                x-bind:required="cats[cat].type === 'movie' && tmdb_movie_exists"
+                            />
+                            <label class="form__label form__label--floating" for="tmdb_movie_id">
+                                TMDB Movie ID
+                            </label>
+                            <span class="form__hint">Numeric digits only.</span>
+                        </p>
+                    </div>
+                    <div class="form__group--vertical" x-show="cats[cat].type === 'tv'">
+                        <p class="form__group">
+                            <input
+                                type="checkbox"
+                                class="form__checkbox"
+                                id="tv_exists_on_tmdb"
+                                name="tv_exists_on_tmdb"
+                                value="1"
+                                @checked(old('tv_exists_on_tmdb', true))
+                                x-model="tmdb_tv_exists"
+                            />
+                            <label class="form__label" for="tv_exists_on_tmdb">
+                                This TV show exists on TMDB
+                            </label>
+                        </p>
+                        <p class="form__group" x-show="tmdb_tv_exists">
+                            <input type="hidden" name="tmdb_tv_id" value="0" />
+                            <input
+                                id="tmdb_tv_id"
+                                class="form__text"
+                                inputmode="numeric"
+                                name="tmdb_tv_id"
+                                pattern="[0-9]*"
+                                placeholder=" "
+                                type="text"
+                                value="{{ old('tmdb_tv_id', $torrent->tmdb_tv_id) }}"
+                                x-bind:value="cats[cat].type === 'tv' && tmdb_tv_exists ? '{{ old('tmdb_tv_id', $torrent->tmdb_tv_id) }}' : ''"
+                                x-bind:required="cats[cat].type === 'tv' && tmdb_tv_exists"
+                            />
+                            <label class="form__label form__label--floating" for="tmdb_tv_id">
+                                TMDB TV ID
+                            </label>
+                            <span class="form__hint">Numeric digits only.</span>
+                        </p>
+                    </div>
+                    <div
+                        class="form__group--vertical"
+                        x-show="cats[cat].type === 'movie' || cats[cat].type === 'tv'"
+                    >
+                        <p class="form__group">
+                            <input
+                                type="checkbox"
+                                class="form__checkbox"
+                                id="title_exists_on_imdb"
+                                name="title_exists_on_imdb"
+                                value="1"
+                                @checked(old('title_exists_on_imdb', true))
+                                x-model="imdb_title_exists"
+                            />
+                            <label class="form__label" for="title_exists_on_imdb">
+                                This title exists on IMDB
+                            </label>
+                        </p>
+                        <p class="form__group" x-show="imdb_title_exists">
+                            <input type="hidden" name="imdb" value="0" />
+                            <input
+                                id="imdb"
+                                class="form__text"
+                                inputmode="numeric"
+                                name="imdb"
+                                pattern="[0-9]*"
+                                placeholder=" "
+                                type="text"
+                                value="{{ old('imdb', $torrent->imdb) }}"
+                                x-bind:value="
+                                    (cats[cat].type === 'movie' || cats[cat].type === 'tv') && imdb_title_exists
+                                        ? '{{ old('imdb', $torrent->imdb) }}'
+                                        : ''
+                                "
+                                x-bind:required="(cats[cat].type === 'movie' || cats[cat].type === 'tv') && imdb_title_exists"
+                            />
+                            <label class="form__label form__label--floating" for="imdb">
+                                IMDB ID
+                            </label>
+                            <span class="form__hint">Numeric digits only.</span>
+                        </p>
+                    </div>
+                    <div class="form__group--vertical" x-show="cats[cat].type === 'tv'">
+                        <p class="form__group">
+                            <input
+                                type="checkbox"
+                                class="form__checkbox"
+                                id="tv_exists_on_tvdb"
+                                name="tv_exists_on_tvdb"
+                                value="1"
+                                @checked(old('tv_exists_on_tvdb', true))
+                                x-model="tvdb_tv_exists"
+                            />
+                            <label class="form__label" for="tv_exists_on_tvdb">
+                                This TV show exists on TVDB
+                            </label>
+                        </p>
+                        <p class="form__group" x-show="tvdb_tv_exists">
+                            <input type="hidden" name="tvdb" value="0" />
+                            <input
+                                id="tvdb"
+                                class="form__text"
+                                inputmode="numeric"
+                                name="tvdb"
+                                pattern="[0-9]*"
+                                placeholder=" "
+                                type="text"
+                                value="{{ old('tvdb', $torrent->tvdb) }}"
+                                x-bind:value="cats[cat].type === 'tv' && tvdb_tv_exists ? '{{ old('tvdb', $torrent->tvdb) }}' : ''"
+                                x-bind:required="cats[cat].type === 'tv' && tvdb_tv_exists"
+                            />
+                            <label class="form__label form__label--floating" for="tvdb">
+                                TVDB ID
+                            </label>
+                            <span class="form__hint">Numeric digits only.</span>
+                        </p>
+                    </div>
+                    <div
+                        class="form__group--vertical"
+                        x-show="cats[cat].type === 'movie' || cats[cat].type === 'tv'"
+                    >
+                        <p class="form__group">
+                            <input
+                                type="checkbox"
+                                class="form__checkbox"
+                                id="anime_exists_on_mal"
+                                name="anime_exists_on_mal"
+                                value="1"
+                                @checked(old('anime_exists_on_mal', true))
+                                x-model="mal_anime_exists"
+                            />
+                            <label class="form__label" for="anime_exists_on_mal">
+                                This anime exists on MAL
+                            </label>
+                        </p>
+                        <p class="form__group" x-show="mal_anime_exists">
+                            <input type="hidden" name="mal" value="0" />
+                            <input
+                                id="mal"
+                                class="form__text"
+                                inputmode="numeric"
+                                name="mal"
+                                pattern="[0-9]*"
+                                placeholder=" "
+                                type="text"
+                                value="{{ old('mal', $torrent->mal) }}"
+                                x-bind:value="
+                                    (cats[cat].type === 'movie' || cats[cat].type === 'tv') && mal_anime_exists
+                                        ? '{{ old('mal', $torrent->mal) }}'
+                                        : ''
+                                "
+                                x-bind:required="(cats[cat].type === 'movie' || cats[cat].type === 'tv') && mal_anime_exists"
+                            />
+                            <label class="form__label form__label--floating" for="mal">
+                                MAL ID
+                            </label>
+                            <span class="form__hint">Numeric digits only.</span>
+                        </p>
+                    </div>
+                    <div class="form__group--vertical" x-show="cats[cat].type === 'game'">
+                        <p class="form__group">
+                            <input
+                                type="checkbox"
+                                class="form__checkbox"
+                                id="game_exists_on_igdb"
+                                name="game_exists_on_igdb"
+                                value="1"
+                                @checked(old('game_exists_on_igdb', true))
+                                x-model="igdb_game_exists"
+                            />
+                            <label class="form__label" for="game_exists_on_igdb">
+                                This game exists on IGDB
+                            </label>
+                        </p>
+                        <p class="form__group" x-show="igdb_game_exists">
+                            <input type="hidden" name="igdb" value="0" />
+                            <input
+                                id="igdb"
+                                class="form__text"
+                                name="igdb"
+                                type="text"
+                                value="{{ old('igdb', $torrent->igdb) }}"
+                                inputmode="numeric"
+                                pattern="[0-9]*"
+                                placeholder=" "
+                                x-bind:value="cats[cat].type === 'game' && igdb_game_exists ? '{{ old('igdb', $torrent->igdb) }}' : ''"
+                                x-bind:required="cats[cat].type === 'game' && igdb_game_exists"
+                            />
+                            <label class="form__label form__label--floating" for="igdb">
+                                IGDB ID
+                            </label>
+                        </p>
+                    </div>
                 </div>
-                <p class="form__group" x-show="cats[cat].type === 'game'">
-                    <input type="hidden" name="igdb" value="0" />
-                    <input
-                        id="igdb"
-                        class="form__text"
-                        name="igdb"
-                        type="text"
-                        value="{{ old('igdb') ?? $torrent->igdb }}"
-                        inputmode="numeric"
-                        pattern="[0-9]*"
-                        x-bind:value="cats[cat].type === 'game' ? '{{ old('igdb') ?? $torrent->igdb }}' : '0'"
-                        x-bind:required="cats[cat].type === 'game'"
-                    />
-                    <label class="form__label form__label--floating" for="igdb">
-                        IGDB ID
-                        <b>{{ __('request.required') }} For Games)</b>
-                    </label>
-                </p>
                 <p class="form__group">
                     <input
                         id="keywords"
@@ -416,42 +560,9 @@
                         />
                         <label class="form__label" for="anon">{{ __('common.anonymous') }}?</label>
                     </p>
-                @else
-                    <input type="hidden" name="anon" value="{{ $torrent->anon }}" />
                 @endif
-                <p
-                    class="form__group"
-                    x-show="cats[cat].type === 'movie' || cats[cat].type === 'tv'"
-                >
-                    <input type="hidden" name="stream" value="0" />
-                    <input
-                        type="checkbox"
-                        class="form__checkbox"
-                        id="stream"
-                        name="stream"
-                        x-bind:value="cats[cat].type === 'movie' || cats[cat].type === 'tv' ? '1' : '0'"
-                        @checked(old('stream') ?? $torrent->stream)
-                    />
-                    <label class="form__label" for="stream">
-                        {{ __('torrent.stream-optimized') }}?
-                    </label>
-                </p>
-                <p
-                    class="form__group"
-                    x-show="cats[cat].type === 'movie' || cats[cat].type === 'tv'"
-                >
-                    <input type="hidden" name="sd" value="0" />
-                    <input
-                        type="checkbox"
-                        class="form__checkbox"
-                        id="sd"
-                        name="sd"
-                        x-bind:value="cats[cat].type === 'movie' || cats[cat].type === 'tv' ? '1' : '0'"
-                        @checked(old('stream') ?? $torrent->sd)
-                    />
-                    <label class="form__label" for="sd">{{ __('torrent.sd-content') }}?</label>
-                </p>
-                @if (auth()->user()->group->is_modo || auth()->user()->group->is_internal)
+
+                @if (auth()->user()->group->is_modo ||auth()->user()->internals()->exists())
                     <p class="form__group">
                         <input type="hidden" name="internal" value="0" />
                         <input
@@ -481,13 +592,8 @@
                         />
                         <label class="form__label" for="personal_release">Personal Release?</label>
                     </p>
-                @else
-                    <input
-                        type="hidden"
-                        name="personal_release"
-                        value="{{ $torrent->personal_release }}"
-                    />
                 @endif
+
                 <p class="form__group">
                     <button class="form__button form__button--filled">
                         {{ __('common.submit') }}

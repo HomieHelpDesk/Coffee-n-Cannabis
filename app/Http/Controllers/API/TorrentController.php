@@ -24,13 +24,15 @@ use App\Http\Resources\TorrentResource;
 use App\Http\Resources\TorrentsResource;
 use App\Models\Category;
 use App\Models\FeaturedTorrent;
+use App\Models\IgdbGame;
 use App\Models\Keyword;
-use App\Models\Movie;
+use App\Models\TmdbMovie;
 use App\Models\Torrent;
 use App\Models\TorrentFile;
-use App\Models\Tv;
+use App\Models\TmdbTv;
 use App\Models\User;
 use App\Repositories\ChatRepository;
+use App\Services\Igdb\IgdbScraper;
 use App\Services\Tmdb\TMDBScraper;
 use App\Services\Unit3dAnnounce;
 use App\Traits\TorrentMeta;
@@ -40,7 +42,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
-use MarcReichel\IGDBLaravel\Models\Game;
 use Meilisearch\Endpoints\Indexes;
 
 /**
@@ -72,6 +73,9 @@ class TorrentController extends BaseController
             $torrents = Torrent::with(
                 ['user:id,username', 'category', 'type', 'resolution', 'region', 'distributor', 'files']
             )
+                ->withExists([
+                    'featured as featured'
+                ])
                 ->select('*')
                 ->selectRaw(
                     "
@@ -102,7 +106,7 @@ class TorrentController extends BaseController
      */
     public function store(Request $request): \Illuminate\Http\JsonResponse
     {
-        $user = $request->user();
+        $user = $request->user()->loadExists('internals');
         abort_unless($user->can_upload ?? $user->group->can_upload, 403, __('torrent.cant-upload').' '.__('torrent.cant-upload-desc'));
 
         $requestFile = $request->file('torrent');
@@ -115,7 +119,7 @@ class TorrentController extends BaseController
             return $this->sendError('Validation Error.', 'You Must Provide A Valid Torrent File For Upload!');
         }
 
-        // Deplace and decode the torrent temporarily
+        // Move and decode the torrent temporarily
         $decodedTorrent = TorrentTools::normalizeTorrent($requestFile);
         $infohash = Bencode::get_infohash($decodedTorrent);
 
@@ -132,7 +136,7 @@ class TorrentController extends BaseController
         }
 
         $fileName = \sprintf('%s.torrent', uniqid('', true)); // Generate a unique name
-        Storage::disk('torrents')->put($fileName, Bencode::bencode($decodedTorrent));
+        Storage::disk('torrent-files')->put($fileName, Bencode::bencode($decodedTorrent));
 
         // Find the right category
         $category = Category::withCount('torrents')->findOrFail($request->integer('category_id'));
@@ -155,41 +159,51 @@ class TorrentController extends BaseController
         $torrent->region_id = $request->input('region_id');
         $torrent->distributor_id = $request->input('distributor_id');
         $torrent->user_id = $user->id;
-        $torrent->imdb = $request->input('imdb');
-        $torrent->tvdb = $request->input('tvdb');
-        $torrent->tmdb = $request->input('tmdb');
-        $torrent->mal = $request->input('mal');
-        $torrent->igdb = $request->input('igdb');
+        $torrent->imdb = ($category->movie_meta || $category->tv_meta) ? ($request->integer('imdb') ?: null) : null;
+        $torrent->tvdb = ($category->movie_meta || $category->tv_meta) ? ($request->integer('tvdb') ?: null) : null;
+        $torrent->tmdb_movie_id = $category->movie_meta ? ($request->integer('tmdb') ?: null) : null;
+        $torrent->tmdb_tv_id = $category->tv_meta ? ($request->integer('tmdb') ?: null) : null;
+        $torrent->mal = ($category->movie_meta || $category->tv_meta) ? ($request->integer('mal') ?: null) : null;
+        $torrent->igdb = $category->game_meta ? ($request->integer('igdb') ?: null) : null;
         $torrent->season_number = $request->input('season_number');
         $torrent->episode_number = $request->input('episode_number');
         $torrent->anon = $request->input('anonymous');
-        $torrent->stream = $request->input('stream');
-        $torrent->sd = $request->input('sd');
-        $torrent->personal_release = $request->input('personal_release') ?? 0;
-        $torrent->internal = $user->group->is_modo || $user->group->is_internal ? ($request->input('internal') ?? 0) : 0;
-        $torrent->featured = $user->group->is_modo || $user->group->is_internal ? ($request->input('featured') ?? false) : false;
-        $torrent->doubleup = $user->group->is_modo || $user->group->is_internal ? ($request->input('doubleup') ?? 0) : 0;
-        $torrent->refundable = $user->group->is_modo || $user->group->is_internal ? ($request->input('refundable') ?? false) : false;
+        $torrent->personal_release = $request->input('personal_release') ?? false;
+
+        /** @phpstan-ignore property.notFound (Larastan doesn't yet support loadExists()) */
+        $torrent->internal = $user->group->is_modo || $user->internals_exists ? ($request->input('internal') ?? 0) : 0;
+
+        /** @phpstan-ignore property.notFound (Larastan doesn't yet support loadExists()) */
+        $torrent->doubleup = $user->group->is_modo || $user->internals_exists ? ($request->input('doubleup') ?? 0) : 0;
+
+        /** @phpstan-ignore property.notFound (Larastan doesn't yet support loadExists()) */
+        $torrent->refundable = $user->group->is_modo || $user->internals_exists ? ($request->input('refundable') ?? false) : false;
         $du_until = $request->input('du_until');
 
-        if (($user->group->is_modo || $user->group->is_internal) && isset($du_until)) {
+        /** @phpstan-ignore property.notFound (Larastan doesn't yet support loadExists()) */
+        if (($user->group->is_modo || $user->internals_exists) && isset($du_until)) {
             $torrent->du_until = Carbon::now()->addDays($request->integer('du_until'));
         }
-        $torrent->free = $user->group->is_modo || $user->group->is_internal ? ($request->input('free') ?? 0) : 0;
+
+        /** @phpstan-ignore property.notFound (Larastan doesn't yet support loadExists()) */
+        $torrent->free = $user->group->is_modo || $user->internals_exists ? ($request->input('free') ?? 0) : 0;
         $fl_until = $request->input('fl_until');
 
-        if (($user->group->is_modo || $user->group->is_internal) && isset($fl_until)) {
+        /** @phpstan-ignore property.notFound (Larastan doesn't yet support loadExists()) */
+        if (($user->group->is_modo || $user->internals_exists) && isset($fl_until)) {
             $torrent->fl_until = Carbon::now()->addDays($request->integer('fl_until'));
         }
-        $torrent->sticky = $user->group->is_modo || $user->group->is_internal ? ($request->input('sticky') ?? 0) : 0;
+
+        /** @phpstan-ignore property.notFound (Larastan doesn't yet support loadExists()) */
+        $torrent->sticky = $user->group->is_modo || $user->internals_exists ? ($request->input('sticky') ?? false) : false;
         $torrent->moderated_at = Carbon::now();
         $torrent->moderated_by = User::SYSTEM_USER_ID;
 
-        // Set freeleech and doubleup if featured
-        if ($torrent->featured === true) {
-            $torrent->free = 100;
-            $torrent->doubleup = true;
-        }
+        $mustBeNull = function (string $attribute, mixed $value, callable $fail): void {
+            if ($value !== null) {
+                $fail("The {$attribute} must be null.");
+            }
+        };
 
         // Validation
         $v = validator($torrent->toArray(), [
@@ -241,24 +255,64 @@ class TorrentController extends BaseController
                 'exists:users,id',
             ],
             'imdb' => [
-                'required',
-                'numeric',
+                Rule::when($category->movie_meta || $category->tv_meta, [
+                    'nullable',
+                    'decimal:0',
+                    'min:0',
+                ]),
+                Rule::when(!($category->movie_meta || $category->tv_meta), [
+                    $mustBeNull,
+                ]),
             ],
             'tvdb' => [
-                'required',
-                'numeric',
+                Rule::when($category->tv_meta, [
+                    'nullable',
+                    'decimal:0',
+                    'min:0',
+                ]),
+                Rule::when(!$category->tv_meta, [
+                    $mustBeNull,
+                ]),
             ],
-            'tmdb' => [
-                'required',
-                'numeric',
+            'tmdb_movie_id' => [
+                Rule::when($category->movie_meta, [
+                    'nullable',
+                    'decimal:0',
+                    'min:0',
+                ]),
+                Rule::when(!$category->movie_meta, [
+                    $mustBeNull,
+                ]),
+            ],
+            'tmdb_tv_id' => [
+                Rule::when($category->tv_meta, [
+                    'nullable',
+                    'decimal:0',
+                    'min:0',
+                ]),
+                Rule::when(!$category->tv_meta, [
+                    $mustBeNull,
+                ]),
             ],
             'mal' => [
-                'required',
-                'numeric',
+                Rule::when($category->movie_meta || $category->tv_meta, [
+                    'nullable',
+                    'decimal:0',
+                    'min:0',
+                ]),
+                Rule::when(!($category->movie_meta || $category->tv_meta), [
+                    $mustBeNull,
+                ]),
             ],
             'igdb' => [
-                'required',
-                'numeric',
+                Rule::when($category->game_meta, [
+                    'nullable',
+                    'decimal:0',
+                    'min:0',
+                ]),
+                Rule::when(!$category->game_meta, [
+                    $mustBeNull,
+                ]),
             ],
             'season_number' => [
                 Rule::when($category->tv_meta, [
@@ -279,19 +333,10 @@ class TorrentController extends BaseController
             'anon' => [
                 'required',
             ],
-            'stream' => [
-                'required',
-            ],
-            'sd' => [
-                'required',
-            ],
             'personal_release' => [
                 'nullable',
             ],
             'internal' => [
-                'required',
-            ],
-            'featured' => [
                 'required',
             ],
             'free' => [
@@ -310,8 +355,8 @@ class TorrentController extends BaseController
         ]);
 
         if ($v->fails()) {
-            if (Storage::disk('torrents')->exists($fileName)) {
-                Storage::disk('torrents')->delete($fileName);
+            if (Storage::disk('torrent-files')->exists($fileName)) {
+                Storage::disk('torrent-files')->delete($fileName);
             }
 
             return $this->sendError('Validation Error.', $v->errors());
@@ -337,7 +382,7 @@ class TorrentController extends BaseController
         }
 
         // Set torrent to featured
-        if ($torrent->getAttribute('featured')) {
+        if (($user->group->is_modo || $user->group->is_internal) && $request->input('featured')) {
             $featuredTorrent = new FeaturedTorrent();
             $featuredTorrent->user_id = $user->id;
             $featuredTorrent->torrent_id = $torrent->id;
@@ -348,21 +393,18 @@ class TorrentController extends BaseController
 
         Unit3dAnnounce::addTorrent($torrent);
 
-        if ($torrent->getAttribute('featured')) {
+        if (($user->group->is_modo || $user->group->is_internal) && $request->input('featured')) {
             Unit3dAnnounce::addFeaturedTorrent($torrent->id);
         }
 
-        // TMDB updates come after tracker updates in case TMDB's offline
+        // Metadata updates come after tracker updates in case TMDB or IGDB is offline
 
-        $tmdbScraper = new TMDBScraper();
-
-        if ($torrent->category->tv_meta && $torrent->tmdb) {
-            $tmdbScraper->tv($torrent->tmdb);
-        }
-
-        if ($torrent->category->movie_meta && $torrent->tmdb) {
-            $tmdbScraper->movie($torrent->tmdb);
-        }
+        match (true) {
+            $category->tv_meta && $torrent->tmdb_tv_id > 0       => new TMDBScraper()->tv($torrent->tmdb_tv_id),
+            $category->movie_meta && $torrent->tmdb_movie_id > 0 => new TMDBScraper()->movie($torrent->tmdb_movie_id),
+            $category->game_meta && $torrent->igdb > 0           => new IgdbScraper()->game($torrent->igdb),
+            default                                              => null,
+        };
 
         // Torrent Keywords System
         $keywords = [];
@@ -375,18 +417,18 @@ class TorrentController extends BaseController
             Keyword::upsert($keywords->toArray(), ['torrent_id', 'name']);
         }
 
-        // check for trusted user and update torrent
-        if ($user->group->is_trusted) {
+        // check for trusted user & mod queue isn't opted in and update torrent
+        if ($user->group->is_trusted && !$request->boolean('mod_queue_opt_in')) {
             $appurl = config('app.url');
             $user = $torrent->user;
             $username = $user->username;
             $anon = $torrent->anon;
-            $featured = $torrent->getAttribute('featured');
+            $featured = ($user->group->is_modo || $user->group->is_internal) && $request->input('featured');
             $free = $torrent->free;
             $doubleup = $torrent->doubleup;
 
             // Announce To Shoutbox
-            if ($anon == 0) {
+            if (!$anon) {
                 $this->chatRepository->systemMessage(
                     \sprintf('User [url=%s/users/', $appurl).$username.']'.$username.\sprintf('[/url] has uploaded a new '.$torrent->category->name.'. [url=%s/torrents/', $appurl).$torrent->id.']'.$torrent->name.'[/url], grab it now!'
                 );
@@ -396,11 +438,11 @@ class TorrentController extends BaseController
                 );
             }
 
-            if ($anon == 1 && $featured == 1) {
+            if ($anon && $featured == 1) {
                 $this->chatRepository->systemMessage(
                     \sprintf('Ladies and Gents, [url=%s/torrents/', $appurl).$torrent->id.']'.$torrent->name.'[/url] has been added to the Featured Torrents Slider by an anonymous user! Grab It While You Can!'
                 );
-            } elseif ($anon == 0 && $featured == 1) {
+            } elseif (!$anon && $featured == 1) {
                 $this->chatRepository->systemMessage(
                     \sprintf('Ladies and Gents, [url=%s/torrents/', $appurl).$torrent->id.']'.$torrent->name.\sprintf('[/url] has been added to the Featured Torrents Slider by [url=%s/users/', $appurl).$username.']'.$username.'[/url]! Grab It While You Can!'
                 );
@@ -468,16 +510,16 @@ class TorrentController extends BaseController
 
         $torrent->setAttribute('meta', null);
 
-        if ($torrent->category->tv_meta && $torrent->tmdb) {
-            $torrent->setAttribute('meta', Tv::with(['genres'])->find($torrent->tmdb));
+        if ($torrent->category->tv_meta && $torrent->tmdb_tv_id) {
+            $torrent->setAttribute('meta', TmdbTv::with(['genres'])->find($torrent->tmdb_tv_id));
         }
 
-        if ($torrent->category->movie_meta && $torrent->tmdb) {
-            $torrent->setAttribute('meta', Movie::with(['genres'])->find($torrent->tmdb));
+        if ($torrent->category->movie_meta && $torrent->tmdb_movie_id) {
+            $torrent->setAttribute('meta', TmdbMovie::with(['genres'])->find($torrent->tmdb_movie_id));
         }
 
         if ($torrent->category->game_meta && $torrent->igdb) {
-            $torrent->setAttribute('meta', Game::with(['genres' => ['name']])->find($torrent->igdb));
+            $torrent->setAttribute('meta', IgdbGame::with(['genres'])->find($torrent->igdb));
         }
 
         TorrentResource::withoutWrapping();
@@ -562,8 +604,6 @@ class TorrentController extends BaseController
                 doubleup: $request->filled('doubleup'),
                 refundable: $request->filled('refundable'),
                 featured: $request->filled('featured'),
-                stream: $request->filled('stream'),
-                sd: $request->filled('sd'),
                 highspeed: $request->filled('highspeed'),
                 internal: $request->filled('internal'),
                 personalRelease: $request->filled('personalRelease'),
@@ -644,7 +684,7 @@ class TorrentController extends BaseController
                             'seeders'          => $hit['seeders'],
                             'leechers'         => $hit['leechers'],
                             'times_completed'  => $hit['times_completed'],
-                            'tmdb_id'          => $hit['tmdb'],
+                            'tmdb_id'          => $hit['tmdb_movie_id'] ?: $hit['tmdb_tv_id'] ?: 0,
                             'imdb_id'          => $hit['imdb'],
                             'tvdb_id'          => $hit['tvdb'],
                             'mal_id'           => $hit['mal'],

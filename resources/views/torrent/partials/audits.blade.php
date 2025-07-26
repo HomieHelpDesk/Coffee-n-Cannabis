@@ -29,7 +29,7 @@
                     {{-- format-ignore-end --}}
                     <tr>
                         <td>
-                            <x-user_tag :user="$audit->user" :anon="false" />
+                            <x-user-tag :user="$audit->user" :anon="false" />
                         </td>
                         <td>{{ $audit->action }}</td>
                         <td>

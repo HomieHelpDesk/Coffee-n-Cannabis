@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ __('torrent.torrents') }} - {{ config('other.title') }}</title>
@@ -37,6 +37,8 @@
     </li>
 @endsection
 
-@section('content')
+@section('page', 'page__torrent--index')
+
+@section('main')
     @livewire('torrent-search')
 @endsection

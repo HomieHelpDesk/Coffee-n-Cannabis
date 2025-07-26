@@ -50,6 +50,26 @@ class Bookmark extends Model
     }
 
     /**
+     * Belongs To A User Setting.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<UserSetting, $this>
+     */
+    public function userSetting(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(UserSetting::class, 'user_id', 'user_id');
+    }
+
+    /**
+     * Belongs To A History.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<History, $this>
+     */
+    public function history(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(History::class, 'user_id', 'user_id')->whereColumn('bookmarks.torrent_id', '=', 'history.torrent_id');
+    }
+
+    /**
      * Belongs To A Torrent.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Torrent, $this>

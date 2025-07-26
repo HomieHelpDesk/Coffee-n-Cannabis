@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ __('bot.edit-bot') }} - {{ config('other.title') }}</title>
@@ -41,7 +41,7 @@
     </li>
 @endsection
 
-@section('page', 'page__chat-bot--edit')
+@section('page', 'page__staff-bot--edit')
 
 @section('main')
     <section class="panelV2">

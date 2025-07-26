@@ -114,7 +114,7 @@
                     <tr>
                         <td>
                             @foreach ($conversation->users as $sender)
-                                <x-user_tag :user="$sender" :anon="false" />
+                                <x-user-tag :user="$sender" :anon="false" />
                             @endforeach
                         </td>
                         <td>

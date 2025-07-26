@@ -16,8 +16,8 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Models\Movie;
-use App\Models\Tv;
+use App\Models\TmdbMovie;
+use App\Models\TmdbTv;
 use Illuminate\Console\Command;
 use Exception;
 use Illuminate\Support\Facades\Redis;
@@ -46,13 +46,13 @@ class AutoCacheRandomMediaIds extends Command
      */
     final public function handle(): void
     {
-        $movieIds = Movie::query()
+        $movieIds = TmdbMovie::query()
             ->select('id')
             ->whereHas('torrents')
             ->whereNotNull('backdrop')
             ->pluck('id');
 
-        $tvIds = Tv::query()
+        $tvIds = TmdbTv::query()
             ->select('id')
             ->whereHas('torrents')
             ->whereNotNull('backdrop')

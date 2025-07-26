@@ -91,9 +91,16 @@
     --chatbox-tab-delete-fg: #c22222;
     --chatbox-tab-delete-bg: #4c566a;
 
+    --compact-search-bg: #3b4252;
+    --compact-search-box-shadow: none;
+    --compact-search-border-radius: 8px;
+    --compact-search-fg: var(--text-color);
+    --compact-search-padding: 5px;
+
     --comparison-divider-fg: #fff;
     --comparison-button-fg: #fff;
 
+    --data-table-border-radius: 0;
     --data-table-fg: var(--text-color);
     --data-table-th-bg: #3b4252;
     --data-table-thead-border: none;
@@ -143,6 +150,7 @@
     --input-text-padding-active: 11px;
     --input-text-padding-hover: 11px;
 
+    --key-value-border-radius: 0;
     --key-value-even-bg: #3b4252;
     --key-value-fg: var(--text-color);
     --key-value-odd-bg: #3b4252;
@@ -166,7 +174,7 @@
     --mediahub-card-border-radius: 10px;
     --mediahub-card-box-shadow: none;
 
-    --meta-backdrop-filter: brightness(30%);
+    --meta-backdrop-filter: brightness(30%) blur(100px);
     --meta-dropdown-backdrop-filter: brightness(2) blur(10px);
     --meta-dropdown-bg: #4449;
     --meta-dropdown-backdrop-filter-hover: brightness(2) blur(10px);
@@ -200,6 +208,7 @@
     --paginate-bg: #3b4252;
     --paginate-bg-hover: #434c5e;
     --paginate-bg-current: #4c566a;
+    --paginate-border-radius: 0;
     --paginate-fg: #d8dee9;
     --paginate-fg-disabled: #d8dee9;
     --paginate-divider: #d8dee9;
@@ -208,10 +217,12 @@
     --panel-border: none;
     --panel-bg: #272727;
     --panel-fg: var(--text-color);
+    --panel-body-border-radius: 0;
     --panel-box-shadow: none;
     --panel-border-radius: 0;
     --panel-head-bg: transparent;
     --panel-head-fg: #fff;
+    --panel-head-border-radius: 0;
 
     --playlist-card-bg: #434c5e;
     --playlist-card-border: none;
@@ -268,6 +279,7 @@
     --scrollbar-color: #ffffff19;
 
     --secondary-nav-bg: #242933;
+    --secondary-nav-box-shadow: 0 8px 10px 0 rgba(0, 0, 0, 0.2);
     --secondary-nav-tab-fg: #d8dee9;
     --secondary-nav-tab-bg: inherit;
     --secondary-nav-tab-active-text-decoration: transparent #81a1c1 2px;
@@ -363,13 +375,11 @@
     --torrent-row-comments-fg: #a3be8c;
     --torrent-row-internal-fg: #baaf94;
     --torrent-row-personal-fg: #b48ead;
-    --torrent-row-stream-optimized-fg: #bf616a;
     --torrent-row-featured-fg: #bf616a;
     --torrent-row-freeleech-fg: #ebcb8b;
     --torrent-row-double-upload-fg: #a3be8c;
     --torrent-row-sticky-fg: #111111;
     --torrent-row-highspeed-fg: #bf616a;
-    --torrent-row-sd-fg: #d08770;
     --torrent-row-bumped-fg: #d08770;
 
     --torrent-tag-fg: #d8dee9;
@@ -456,6 +466,45 @@ hr {
     border-bottom: 1px solid #88c0d0;
 }
 
+/* Data Tables
+---------------------------------------------------------------------------- */
+
+/* Bottom-left-most table header which doesn't have a following tbody, tfoot nor pagination */
+.data-table-wrapper:not(:has(+ .pagination)) >.data-table
+    > thead:not(:has(+ tbody > tr)):not(:has(~ tfoot > tr))
+    > tr:last-of-type
+    > th:first-of-type,
+/* Bottom-left-most tbody table row cell which doesn't have a following tfoot nor pagination */
+.data-table-wrapper:not(:has(+ .pagination)) >.data-table > tbody:not(:has(~ tfoot > tr)) > tr:last-of-type td:first-of-type,
+/* Bottom-left-most tfoot table row cell which doesn't have a following pagination */
+.data-table-wrapper:not(:has(+ .pagination)) >.data-table > tfoot > tr:last-of-type > td:first-of-type {
+    border-bottom-left-radius: 10px;
+}
+
+/* Unhidden bottom-right-most table cell on bon earning calculation page */
+.data-table-wrapper:not(:has(+ .pagination)) >.data-table
+    tr:last-of-type
+    td:not([style='display: none;']):has(+ td[style='display: none;']),
+/* Bottom-right-most table header which doesn't have a following tbody, tfoot nor pagination */
+.data-table-wrapper:not(:has(+ .pagination)) >.data-table
+    > thead:not(:has(+ tbody > tr)):not(:has(~ tfoot > tr))
+    > tr:last-of-type
+    > th:last-of-type,
+/* Bottom-right-most tbody table row cell which doesn't have a following tfoot nor pagination */
+.data-table-wrapper:not(:has(+ .pagination)) >.data-table > tbody:not(:has(~ tfoot > tr)) > tr:last-of-type td:last-of-type,
+/* Bottom-right-most tfoot table row cell which doesn't have a following pagination */
+.data-table-wrapper:not(:has(+ .pagination)) >.data-table > tfoot > tr:last-of-type > td:last-of-type {
+    border-bottom-right-radius: 10px;
+}
+
+/* Bottom-most table header cells which don't have a following tbody nor tfoot */
+.data-table
+    > thead:not(:has(+ tbody > tr)):not(:has(~ tfoot > tr))
+    > tr:last-of-type
+    > th {
+    border-bottom: none;
+}
+
 /* Achievements
 ---------------------------------------------------------------------------- */
 
@@ -489,12 +538,12 @@ svg > circle:last-child {
     background-color: #434c5e;
 }
 
-.page__forum--topic > article > div > section > .panel__body {
+.page__topic--show > article > div > section > .panel__body {
     background-color: transparent;
     padding: 12px 0 8px 0;
 }
 
-.page__forum--topic
+.page__topic--show
     > article
     > div
     > section

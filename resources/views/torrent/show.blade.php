@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>
@@ -24,22 +24,24 @@
     </li>
 @endsection
 
+@section('page', 'page__torrent--show')
+
 @section('main')
     @switch(true)
         @case($torrent->category->movie_meta)
-            @include('torrent.partials.movie_meta', ['category' => $torrent->category, 'tmdb' => $torrent->tmdb])
+            @include('torrent.partials.movie-meta', ['category' => $torrent->category, 'tmdb' => $torrent->tmdb_movie_id])
 
             @break
         @case($torrent->category->tv_meta)
-            @include('torrent.partials.tv_meta', ['category' => $torrent->category, 'tmdb' => $torrent->tmdb])
+            @include('torrent.partials.tv-meta', ['category' => $torrent->category, 'tmdb' => $torrent->tmdb_tv_id])
 
             @break
         @case($torrent->category->game_meta)
-            @include('torrent.partials.game_meta', ['category' => $torrent->category, 'igdb' => $torrent->igdb])
+            @include('torrent.partials.game-meta', ['category' => $torrent->category, 'igdb' => $torrent->igdb])
 
             @break
         @default
-            @include('torrent.partials.no_meta', ['category' => $torrent->category])
+            @include('torrent.partials.no-meta', ['category' => $torrent->category])
 
             @break
     @endswitch
@@ -50,7 +52,7 @@
     @include('torrent.partials.buttons')
 
     {{-- Tools Block --}}
-    @if (auth()->user()->group->is_internal || auth()->user()->group->is_editor || auth()->user()->group->is_modo || (auth()->id() === $torrent->user_id && $canEdit))
+    @if (auth()->user()->internals()->exists() ||auth()->user()->group->is_editor ||auth()->user()->group->is_modo ||(auth()->id() === $torrent->user_id && $canEdit))
         @include('torrent.partials.tools')
     @endif
 
@@ -80,8 +82,8 @@
     @endif
 
     {{-- Extra Meta Block --}}
-    @include('torrent.partials.extra_meta')
+    @include('torrent.partials.extra-meta')
 
-    {{-- Commments Block --}}
+    {{-- Comments Block --}}
     @include('torrent.partials.comments')
 @endsection

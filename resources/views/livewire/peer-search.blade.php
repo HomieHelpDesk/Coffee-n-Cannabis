@@ -340,7 +340,7 @@
                     @foreach ($peers as $peer)
                         <tr>
                             <td>
-                                <x-user_tag :user="$peer->user" :anon="false" />
+                                <x-user-tag :user="$peer->user" :anon="false" />
                             </td>
                             @if ($groupBy !== 'none')
                                 <td style="text-align: right">

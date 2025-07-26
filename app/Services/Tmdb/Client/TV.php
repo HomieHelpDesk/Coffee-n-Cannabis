@@ -302,6 +302,7 @@ class TV
     public function __construct(int $id)
     {
         $this->data = Http::acceptJson()
+            ->retry([1000, 5000, 15000])
             ->withUrlParameters(['id' => $id])
             ->get('https://api.TheMovieDB.org/3/tv/{id}', [
                 'api_key'            => config('api-keys.tmdb'),
@@ -394,8 +395,8 @@ class TV
      * @return array<
      *     int<0, max>,
      *     array{
-     *         tv_id: ?int,
-     *         person_id: ?int,
+     *         tmdb_tv_id: ?int,
+     *         tmdb_person_id: ?int,
      *         occupation_id: value-of<Occupation>,
      *         character: ?string,
      *         order: ?int,
@@ -409,11 +410,11 @@ class TV
         foreach ($this->data['aggregate_credits']['cast'] ?? [] as $person) {
             foreach ($person['roles'] ?? [] as $role) {
                 $credits[] = [
-                    'tv_id'         => $this->data['id'],
-                    'person_id'     => $person['id'],
-                    'occupation_id' => Occupation::ACTOR->value,
-                    'character'     => $role['character'] ?? '',
-                    'order'         => $person['order'] ?? null
+                    'tmdb_tv_id'     => $this->data['id'],
+                    'tmdb_person_id' => $person['id'],
+                    'occupation_id'  => Occupation::ACTOR->value,
+                    'character'      => Str::limit($role['character'] ?? '', 200),
+                    'order'          => $person['order'] ?? null
                 ];
             }
         }
@@ -428,11 +429,11 @@ class TV
 
                 if ($occupation !== null) {
                     $credits[] = [
-                        'tv_id'         => $this->data['id'],
-                        'person_id'     => $person['id'],
-                        'occupation_id' => $occupation->value,
-                        'character'     => null,
-                        'order'         => null,
+                        'tmdb_tv_id'     => $this->data['id'],
+                        'tmdb_person_id' => $person['id'],
+                        'occupation_id'  => $occupation->value,
+                        'character'      => null,
+                        'order'          => null,
                     ];
                 }
             }
@@ -440,11 +441,11 @@ class TV
 
         foreach ($this->data['created_by'] ?? [] as $person) {
             $credits[] = [
-                'tv_id'         => $this->data['id'],
-                'person_id'     => $person['id'],
-                'occupation_id' => Occupation::CREATOR->value,
-                'character'     => null,
-                'order'         => null,
+                'tmdb_tv_id'     => $this->data['id'],
+                'tmdb_person_id' => $person['id'],
+                'occupation_id'  => Occupation::CREATOR->value,
+                'character'      => null,
+                'order'          => null,
             ];
         }
 
@@ -452,46 +453,14 @@ class TV
     }
 
     /**
-     * @return array<
-     *     int<0, max>,
-     *     array{
-     *         id: ?int,
-     *         season_number: int,
-     *     },
-     * >
-     */
-    public function getSeasons(): array
-    {
-        $seasons = [];
-
-        foreach ($this->data['seasons'] ?? [] as $season) {
-            if ($season['season_number'] !== null) {
-                $seasons[] = [
-                    'id'            => $season['id'],
-                    'season_number' => $season['season_number'],
-                ];
-            }
-        }
-
-        return $seasons;
-    }
-
-    /**
-     * @return array<
-     *     int<0, max>,
-     *     array{
-     *         recommendation_tv_id: ?int,
-     *         tv_id: ?int,
-     *         title: ?string,
-     *         vote_average: ?float,
-     *         poster: ?string,
-     *         first_air_date: ?string,
-     *     }
-     * >
+     * @return list<array{
+     *     tmdb_tv_id: ?int,
+     *     recommended_tmdb_tv_id: ?int,
+     * }>
      */
     public function getRecommendations(): array
     {
-        $tv_ids = \App\Models\Tv::query()
+        $tv_ids = \App\Models\TmdbTv::query()
             ->select('id')
             ->whereIntegerInRaw('id', array_column($this->data['recommendations']['results'] ?? [], 'id'))
             ->pluck('id');
@@ -499,18 +468,14 @@ class TV
         $recommendations = [];
 
         foreach ($this->data['recommendations']['results'] ?? [] as $recommendation) {
-            if ($recommendation === null || $recommendation['id'] === null) {
+            if ($recommendation === null || $recommendation['id'] === null || $this->data['id'] === null) {
                 continue;
             }
 
             if ($tv_ids->contains($recommendation['id'])) {
                 $recommendations[] = [
-                    'recommendation_tv_id' => $recommendation['id'],
-                    'tv_id'                => $this->data['id'],
-                    'title'                => $recommendation['name'],
-                    'vote_average'         => $recommendation['vote_average'],
-                    'poster'               => $this->tmdb->image('poster', $recommendation),
-                    'first_air_date'       => $recommendation['first_air_date'],
+                    'tmdb_tv_id'             => $this->data['id'],
+                    'recommended_tmdb_tv_id' => $recommendation['id'],
                 ];
             }
         }

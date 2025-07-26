@@ -73,9 +73,16 @@
 
     --collection-fg: #ccc;
 
+    --compact-search-bg: #e2e2e2;
+    --compact-search-box-shadow: none;
+    --compact-search-border-radius: 8px;
+    --compact-search-fg: inherit;
+    --compact-search-padding: 5px;
+
     --comparison-divider-fg: #000;
     --comparison-button-fg: #000;
 
+    --data-table-border-radius: 0;
     --data-table-fg: inherit;
     --data-table-th-bg: #efefef;
     --data-table-thead-border: 1px solid rgba(14, 21, 34, 0.25);
@@ -126,6 +133,7 @@
     --input-text-padding-active: 11px;
     --input-text-padding-hover: 11px;
 
+    --key-value-border-radius: 0;
     --key-value-even-bg: #e2e2e2;
     --key-value-fg: inherit;
     --key-value-odd-bg: #e2e2e2;
@@ -149,7 +157,7 @@
     --mediahub-card-border-radius: 0;
     --mediahub-card-box-shadow: none;
 
-    --meta-backdrop-filter: brightness(150%) contrast(30%);
+    --meta-backdrop-filter: brightness(150%) contrast(30%) blur(50px);
     --meta-dropdown-backdrop-filter: brightness(130%) blur(10px);
     --meta-dropdown-bg: #4449;
     --meta-dropdown-backdrop-filter-hover: brightness(130%) blur(10px);
@@ -183,6 +191,7 @@
     --paginate-bg: #373d43;
     --paginate-bg-hover: #4f5964;
     --paginate-bg-current: #454d55;
+    --paginate-border-radius: 0;
     --paginate-fg: #ddd;
     --paginate-fg-disabled: #999;
     --paginate-divider: #888;
@@ -191,10 +200,12 @@
     --panel-border: 1px solid #ddd;
     --panel-bg: #e2e2e2;
     --panel-fg: inherit;
+    --panel-body-border-radius: 0;
     --panel-box-shadow: 0 5px 5px rgba(93, 93, 93, 0.83);
     --panel-border-radius: 0;
     --panel-head-bg: #373d43;
     --panel-head-fg: #fff;
+    --panel-head-border-radius: 0;
     --panel-group-fg: #373d43;
 
     --playlist-card-bg: #f6f6f6;
@@ -253,6 +264,7 @@
     --scrollbar-color: #0004;
 
     --secondary-nav-bg: #e2e2e2;
+    --secondary-nav-box-shadow: 0 8px 10px 0 rgba(0, 0, 0, 0.2);
     --secondary-nav-tab-fg: #222;
     --secondary-nav-tab-bg: inherit;
     --secondary-nav-tab-active-text-decoration: underline #222 2px;
@@ -348,13 +360,11 @@
     --torrent-row-comments-fg: #3fb618;
     --torrent-row-internal-fg: #baaf94;
     --torrent-row-personal-fg: #865be9;
-    --torrent-row-stream-optimized-fg: #ff0039;
     --torrent-row-featured-fg: #f92672;
     --torrent-row-freeleech-fg: #ffb800;
     --torrent-row-double-upload-fg: #4cb828;
     --torrent-row-sticky-fg: #111111;
     --torrent-row-highspeed-fg: #ff0039;
-    --torrent-row-sd-fg: #ff7518;
     --torrent-row-bumped-fg: #f9ba13;
 
     --torrent-tag-fg: #111;

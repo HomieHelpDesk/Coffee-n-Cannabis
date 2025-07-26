@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>
@@ -25,7 +25,7 @@
     </li>
 @endsection
 
-@section('page', 'page__seedbox--index')
+@section('page', 'page__staff-seedbox--index')
 
 @section('main')
     <section class="panelV2">
@@ -46,7 +46,7 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>
-                                <x-user_tag :anon="false" :user="$seedbox->user" />
+                                <x-user-tag :anon="false" :user="$seedbox->user" />
                             </td>
                             <td>{{ $seedbox->ip }}</td>
                             <td>

@@ -50,5 +50,5 @@ test('show returns an ok response', function (): void {
     ]);
 
     $response = $this->actingAs($user)->get(route('forums.show', ['id' => $forum->id]));
-    $response->assertViewIs('forum.forum_topic.index');
+    $response->assertViewIs('forum.forum-topic.index');
 });

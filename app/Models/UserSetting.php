@@ -33,6 +33,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property ?string                         $custom_css
  * @property ?string                         $standalone_css
  * @property bool                            $show_poster
+ * @property bool                            $unbookmark_torrents_on_completion
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  */
@@ -44,15 +45,22 @@ class UserSetting extends Model
     /**
      * Get the attributes that should be cast.
      *
-     * @return array{censor: 'bool', chat_hidden: 'bool', torrent_filters: 'bool', show_poster: 'bool'}
+     * @return array{
+     *     censor: 'bool',
+     *     chat_hidden: 'bool',
+     *     torrent_filters: 'bool',
+     *     show_poster: 'bool',
+     *     unbookmark_torrents_on_completion: 'bool',
+     * }
      */
     protected function casts(): array
     {
         return [
-            'censor'          => 'bool',
-            'chat_hidden'     => 'bool',
-            'torrent_filters' => 'bool',
-            'show_poster'     => 'bool',
+            'censor'                            => 'bool',
+            'chat_hidden'                       => 'bool',
+            'torrent_filters'                   => 'bool',
+            'show_poster'                       => 'bool',
+            'unbookmark_torrents_on_completion' => 'bool',
         ];
     }
 

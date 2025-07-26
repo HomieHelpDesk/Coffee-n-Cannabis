@@ -66,7 +66,7 @@
                             @if ($application->user === null)
                                 N/A
                             @else
-                                <x-user_tag :anon="false" :user="$application->user" />
+                                <x-user-tag :anon="false" :user="$application->user" />
                             @endif
                         </td>
                         <td>{{ $application->email }}</td>
@@ -83,15 +83,15 @@
                         </td>
                         <td>
                             @switch($application->status)
-                                @case(\App\Models\Application::PENDING)
+                                @case(\App\Enums\ModerationStatus::PENDING)
                                     <span class="application--pending">Pending</span>
 
                                     @break
-                                @case(\App\Models\Application::APPROVED)
+                                @case(\App\Enums\ModerationStatus::APPROVED)
                                     <span class="application--approved">Approved</span>
 
                                     @break
-                                @case(\App\Models\Application::REJECTED)
+                                @case(\App\Enums\ModerationStatus::REJECTED)
                                     <span class="application--rejected">Rejected</span>
 
                                     @break
@@ -103,7 +103,7 @@
                             @if ($application->moderated === null)
                                 N/A
                             @else
-                                <x-user_tag :anon="false" :user="$application->moderated" />
+                                <x-user-tag :anon="false" :user="$application->moderated" />
                             @endif
                         </td>
                         <td>

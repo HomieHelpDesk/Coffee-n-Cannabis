@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ __('stat.stats') }} - {{ config('other.title') }}</title>
@@ -38,7 +38,7 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>
-                                <x-user_tag
+                                <x-user-tag
                                     :user="$user->user"
                                     :anon="$user->user->privacy?->private_profile"
                                 />

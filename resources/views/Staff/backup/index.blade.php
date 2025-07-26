@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>
@@ -23,7 +23,7 @@
     <li class="breadcrumb--active">{{ __('backup.backup') }} {{ __('backup.manager') }}</li>
 @endsection
 
-@section('page', 'page__backup-manager--index')
+@section('page', 'page__staff-backup-manager--index')
 
 @section('main')
     @livewire('backup-panel')

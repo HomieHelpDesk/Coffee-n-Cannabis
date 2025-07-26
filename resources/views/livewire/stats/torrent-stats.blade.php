@@ -1,20 +1,31 @@
 <section class="panelV2 panel--grid-item">
     <h2 class="panel__heading">{{ __('torrent.torrents') }}</h2>
     <dl class="key-value">
-        @foreach ($categories as $category)
-            <div class="key-value__group">
-                <dt>{{ $category->name }} {{ __('common.category') }}</dt>
-                <dd>{{ $category->torrents_count }}</dd>
-            </div>
-        @endforeach
-
-        <div class="key-value__group">
-            <dt>HD</dt>
-            <dd>{{ $num_hd }}</dd>
+        <div class="key-value__group--nested">
+            <dt>{{ __('common.category') }}</dt>
+            <dd>
+                <dl class="key-value">
+                    @foreach ($categories as $category)
+                        <div class="key-value__group">
+                            <dt>{{ $category->name }}</dt>
+                            <dd>{{ $category->torrents_count }}</dd>
+                        </div>
+                    @endforeach
+                </dl>
+            </dd>
         </div>
-        <div class="key-value__group">
-            <dt>SD</dt>
-            <dd>{{ $num_sd }}</dd>
+        <div class="key-value__group--nested">
+            <dt>{{ __('common.resolution') }}</dt>
+            <dd>
+                <dl class="key-value">
+                    @foreach ($resolutions as $resolution)
+                        <div class="key-value__group">
+                            <dt>{{ $resolution->name }}</dt>
+                            <dd>{{ $resolution->torrents_count }}</dd>
+                        </div>
+                    @endforeach
+                </dl>
+            </dd>
         </div>
         <div class="key-value__group">
             <dt>{{ __('stat.total-torrents') }}</dt>

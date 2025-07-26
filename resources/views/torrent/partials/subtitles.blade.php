@@ -46,7 +46,7 @@
                             </time>
                         </td>
                         <td>
-                            <x-user_tag :user="$subtitle->user" :anon="$subtitle->anon" />
+                            <x-user-tag :user="$subtitle->user" :anon="$subtitle->anon" />
                         </td>
                         <td>
                             <menu class="data-table__actions">

@@ -39,10 +39,10 @@
                             </a>
                         </td>
                         <td>
-                            <x-user_tag :anon="false" :user="$report->reported" />
+                            <x-user-tag :anon="false" :user="$report->reported" />
                         </td>
                         <td>
-                            <x-user_tag :anon="false" :user="$report->reporter" />
+                            <x-user-tag :anon="false" :user="$report->reporter" />
                         </td>
                         <td>
                             <time
@@ -54,7 +54,7 @@
                         </td>
                         <td>
                             @if ($report->staff_id !== null)
-                                <x-user_tag :anon="false" :user="$report->staff" />
+                                <x-user-tag :anon="false" :user="$report->staff" />
                             @else
                                 Unassigned
                             @endif

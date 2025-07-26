@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Http\Livewire;
 
 use App\Models\Playlist;
+use App\Models\PlaylistCategory;
 use App\Traits\LivewireSort;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
@@ -43,6 +44,9 @@ class PlaylistSearch extends Component
     public string $username = '';
 
     #[Url(history: true)]
+    public string $playlistCategoryId = "__any";
+
+    #[Url(history: true)]
     public string $sortDirection = 'asc';
 
     final public function updatingName(): void
@@ -51,7 +55,7 @@ class PlaylistSearch extends Component
     }
 
     /**
-     * @return \Illuminate\Pagination\LengthAwarePaginator<Playlist>
+     * @return \Illuminate\Pagination\LengthAwarePaginator<int, Playlist>
      */
     #[Computed]
     final public function playlists()
@@ -71,14 +75,25 @@ class PlaylistSearch extends Component
             )
             ->when($this->name !== '', fn ($query) => $query->where('name', 'LIKE', '%'.str_replace(' ', '%', $this->name).'%'))
             ->when($this->username !== '', fn ($query) => $query->whereRelation('user', 'username', 'LIKE', '%'.$this->username.'%'))
+            ->when($this->playlistCategoryId !== "__any", fn ($query) => $query->where('playlist_category_id', '=', $this->playlistCategoryId))
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(min($this->perPage, 100));
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, PlaylistCategory>
+     */
+    #[Computed(seconds: 3600, cache: true)]
+    final public function playlistCategories(): \Illuminate\Database\Eloquent\Collection
+    {
+        return PlaylistCategory::query()->orderBy('position')->get();
     }
 
     final public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Contracts\Foundation\Application
     {
         return view('livewire.playlist-search', [
-            'playlists' => $this->playlists,
+            'playlists'          => $this->playlists,
+            'playlistCategories' => $this->playlistCategories,
         ]);
     }
 }

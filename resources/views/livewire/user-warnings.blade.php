@@ -100,9 +100,9 @@
                         @include('livewire.includes._sort-icon', ['field' => 'warned_by'])
                     </th>
                     @if ($warningTab !== 'manual')
-                        <th wire:click="sortBy('torrent_id')" role="columnheader button">
+                        <th wire:click="sortBy('torrent')" role="columnheader button">
                             {{ __('torrent.torrent') }}
-                            @include('livewire.includes._sort-icon', ['field' => 'torrent_id'])
+                            @include('livewire.includes._sort-icon', ['field' => 'torrent'])
                         </th>
                     @endif
 
@@ -129,7 +129,7 @@
                 @forelse ($warnings as $warning)
                     <tr x-data="userWarnings" data-warning-id="{{ $warning->id }}">
                         <td>
-                            <x-user_tag :user="$warning->staffuser" :anon="false" />
+                            <x-user-tag :user="$warning->staffuser" :anon="false" />
                         </td>
                         @if ($warningTab !== 'manual')
                             <td>

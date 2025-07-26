@@ -110,16 +110,7 @@
                             document.getElementById('forum_reply_form').style.display = 'block';
                             input = document.getElementById('bbcode-content');
                             input.value += '[quote={{ \htmlspecialchars('@' . $post->user->username) }}]';
-                            input.value += (() => {
-                                var text = document.createElement('textarea');
-                                text.innerHTML = decodeURIComponent(
-                                    atob($refs.content.dataset.base64Bbcode)
-                                        .split('')
-                                        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                                        .join('')
-                                );
-                                return text.value;
-                            })();
+                            input.value += decodeURIComponent(escape(atob('{{ base64_encode($post->content) }}')));
                             input.value += '[/quote]';
                             input.dispatchEvent(new Event('input'));
                             input.focus();
@@ -168,11 +159,11 @@
         <figure class="post__figure">
             <img
                 class="post__avatar"
-                src="{{ url($post->user->image === null ? 'img/profile.png' : 'files/img/' . $post->user->image) }}"
+                src="{{ $post->user->image === null ? url('img/profile.png') : route('authenticated_images.user_avatar', ['user' => $post->user]) }}"
                 alt=""
             />
         </figure>
-        <x-user_tag class="post__author" :anon="false" :user="$post->user">
+        <x-user-tag class="post__author" :anon="false" :user="$post->user">
             <x-slot:appended-icons>
                 @if ($post->user->isOnline())
                     <i
@@ -191,7 +182,7 @@
                     <i class="{{ config('other.font-awesome') }} fa-envelope text-info"></i>
                 </a>
             </x-slot>
-        </x-user_tag>
+        </x-user-tag>
         @if (! empty($post->user->title))
             <p class="post__author-title">
                 {{ $post->user->title }}
@@ -232,12 +223,12 @@
         x-ref="content"
         data-base64-bbcode="{{ base64_encode($post->content) }}"
     >
-        @joypixels($post->getContentHtml())
+        @bbcode($post->content)
     </div>
     @if (! empty($post->user->signature))
         <footer class="post__footer" x-init>
             <p class="post__signature">
-                {!! $post->user->signature_html !!}
+                @bbcode($post->user->signature)
             </p>
         </footer>
     @endif

@@ -43,7 +43,7 @@ test('index returns an ok response', function (): void {
     $response = $this->actingAs($user)->get(route('staff.cheated_torrents.index'));
 
     $response->assertOk();
-    $response->assertViewIs('Staff.cheated_torrent.index');
+    $response->assertViewIs('Staff.cheated-torrent.index');
     $response->assertViewHas('torrents', $torrents);
 
     // TODO: perform additional assertions

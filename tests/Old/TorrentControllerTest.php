@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace Tests\Old;
 
+use App\Enums\ModerationStatus;
 use App\Models\Category;
 use App\Models\Resolution;
 use App\Models\Torrent;
@@ -95,7 +96,7 @@ final class TorrentControllerTest extends TestCase
 
         $torrent = Torrent::factory()->create([
             'user_id' => $user->id,
-            'status'  => Torrent::APPROVED,
+            'status'  => ModerationStatus::APPROVED,
         ]);
 
         $response = $this->actingAs($user, 'api')->getJson(\sprintf('api/torrents/%s', $torrent->id));
@@ -132,14 +133,13 @@ final class TorrentControllerTest extends TestCase
             'description'   => 'One song that represents the elements of being lost, abandoned, sadness and innocence.',
             'imdb'          => $torrent->imdb,
             'tvdb'          => $torrent->tvdb,
-            'tmdb'          => $torrent->tmdb,
+            'tmdb_movie_id' => $torrent->tmdb_movie_id,
+            'tmdb_tv_id'    => $torrent->tmdb_tv_id,
             'mal'           => $torrent->mal,
             'igdb'          => $torrent->igdb,
             'type_id'       => $type->id,
             'resolution_id' => $resolution->id,
             'anonymous'     => $torrent->anon,
-            'stream'        => $torrent->stream,
-            'sd'            => $torrent->sd,
             'internal'      => $torrent->internal,
             'featured'      => false,
             'doubleup'      => $torrent->doubleup,

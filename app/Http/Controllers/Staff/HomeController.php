@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Staff;
 
+use App\Enums\ModerationStatus;
 use App\Helpers\SystemInformation;
 use App\Http\Controllers\Controller;
 use App\Models\Group;
@@ -58,6 +59,7 @@ class HomeController extends Controller
                 ->selectRaw('SUM(group_id = ?) AS validating', [$validatingGroup[0]])
                 ->first()),
             'torrents' => cache()->remember('dashboard_torrents', 300, fn () => DB::table('torrents')
+                ->whereNull('deleted_at')
                 ->selectRaw('COUNT(*) AS total')
                 ->selectRaw('SUM(status = 0) AS pending')
                 ->selectRaw('SUM(status = 1) AS approved')
@@ -72,7 +74,7 @@ class HomeController extends Controller
                 ->selectRaw('SUM(seeder = TRUE AND active = TRUE) AS seeders')
                 ->first()),
             'unsolvedReportsCount'     => DB::table('reports')->whereNull('snoozed_until')->where('solved', '=', false)->count(),
-            'pendingApplicationsCount' => DB::table('applications')->where('status', '=', 0)->count(),
+            'pendingApplicationsCount' => DB::table('applications')->where('status', '=', ModerationStatus::PENDING)->count(),
             'certificate'              => $certificate,
             'uptime'                   => $systemInformation->uptime(),
             'ram'                      => $systemInformation->memory(),

@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ __('stat.stats') }} - {{ config('other.title') }}</title>
@@ -22,7 +22,7 @@
     @include('partials.statsgroupmenu')
 @endsection
 
-@section('page', 'page__stats--groups')
+@section('page', 'page__stats--group-requirements')
 
 @section('main')
     <section class="panelV2">
@@ -40,8 +40,7 @@
                     @foreach ($groups as $group)
                         <tr>
                             <td style="min-width: 20%">
-                                <a
-                                    href="{{ route('group', ['id' => $group->id]) }}"
+                                <span
                                     style="
                                         color: {{ $group->color }};
                                         background-image: {{ $group->effect }};
@@ -49,7 +48,7 @@
                                 >
                                     <i class="{{ $group->icon }}"></i>
                                     {{ $group->name }}
-                                </a>
+                                </span>
                             </td>
                             <td>
                                 @if ($group->autogroup)

@@ -10,6 +10,8 @@
     </li>
 @endsection
 
+@section('page', 'page__request--index')
+
 @section('content')
     @livewire('torrent-request-search')
 @endsection

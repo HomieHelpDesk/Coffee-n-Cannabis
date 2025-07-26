@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ __('stat.stats') }} - {{ config('other.title') }}</title>
@@ -19,7 +19,7 @@
     @include('partials.statsusermenu')
 @endsection
 
-@section('page', 'page__stats--seedtime')
+@section('page', 'page__stats--upload-snatches')
 
 @section('main')
     <section class="panelV2">
@@ -38,7 +38,7 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>
-                                <x-user_tag
+                                <x-user-tag
                                     :user="$user"
                                     :anon="$user->privacy?->private_profile"
                                 />

@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>Commands - {{ __('staff.staff-dashboard') }} - {{ config('other.title') }}</title>
@@ -17,7 +17,7 @@
     <li class="breadcrumb--active">Commands</li>
 @endsection
 
-@section('page', 'page__commands--index')
+@section('page', 'page__staff-command--index')
 
 @section('main')
     <div
@@ -34,7 +34,7 @@
                     <form
                         role="form"
                         method="POST"
-                        action="{{ url('/dashboard/commands/maintance-enable') }}"
+                        action="{{ url('/dashboard/commands/maintenance-enable') }}"
                     >
                         @csrf
                         <button
@@ -49,7 +49,7 @@
                     <form
                         role="form"
                         method="POST"
-                        action="{{ url('/dashboard/commands/maintance-disable') }}"
+                        action="{{ url('/dashboard/commands/maintenance-disable') }}"
                     >
                         @csrf
                         <button

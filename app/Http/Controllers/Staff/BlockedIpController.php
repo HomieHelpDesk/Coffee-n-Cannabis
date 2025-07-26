@@ -25,6 +25,6 @@ class BlockedIpController extends Controller
      */
     public function index(): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
-        return view('Staff.blocked_ip.index');
+        return view('Staff.blocked-ip.index');
     }
 }

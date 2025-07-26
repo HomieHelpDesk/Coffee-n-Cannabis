@@ -18,6 +18,7 @@ namespace App\Console\Commands;
 
 use App\Console\ConsoleTools;
 use Exception;
+use FilesystemIterator;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\ArgvInput;
@@ -25,6 +26,8 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use RuntimeException;
 use Throwable;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 class GitUpdater extends Command
 {
@@ -47,353 +50,601 @@ class GitUpdater extends Command
      *
      * @var string
      */
-    protected $description = 'Executes The Commands Necessary To Update Your Website Using Git';
+    protected $description = 'Update UNIT3D using Git';
 
     /**
+     * Files that should be backed up and restored.
+     *
      * @var array<string>
      */
-    private const array ADDITIONAL = [
+    private const array ADDITIONAL_FILES = [
         '.env',
         'laravel-echo-server.json',
     ];
 
     /**
+     * Directories that should be excluded from updates.
+     *
+     * @var array<string>
+     */
+    private const array EXCLUDED_DIRECTORIES = [
+        'unit3d-announce',
+        'unit3d-theme-utility',
+    ];
+
+    /**
+     * List of files that were updated.
+     *
+     * @var array<string>
+     */
+    private array $updatedFiles = [];
+
+    /**
+     * Path to the log file.
+     *
+     * @var string
+     */
+    private string $logFile;
+
+    /**
      * Execute the console command.
      *
-     * @throws Exception|Throwable If there is an error during the execution of the command.
+     * @throws Exception|Throwable If there is an error during execution.
      */
     final public function handle(): void
     {
         $this->input = new ArgvInput();
         $this->output = new ConsoleOutput();
-
         $this->io = new SymfonyStyle($this->input, $this->output);
 
-        $this->info('
-        ***************************
-        * Git Updater v3.0   *
-        ***************************
+        $this->logFile = storage_path('logs/git-updater-'.now()->format('Y-m-d').'.log');
+        $this->log('Starting GitUpdater');
+
+        $this->displayBanner();
+
+        if (!$this->confirmUpdate()) {
+            return;
+        }
+
+        try {
+            $this->performUpdate();
+        } catch (Throwable $e) {
+            $this->log('Error during update: '.$e->getMessage());
+            $this->alert('error', 'Update Failed');
+            $this->error('Error: '.$e->getMessage());
+
+            if ($this->io->confirm('Would you like to restore from backup?', true)) {
+                $this->restoreFromBackup();
+            }
+
+            throw $e;
+        }
+
+        $this->log('Update completed successfully');
+        $this->info('Please report any errors or issues.');
+        $this->taskCompleted('Update process completed');
+    }
+
+    /**
+     * Display the updater banner.
+     */
+    private function displayBanner(): void
+    {
+        $this->io->newLine();
+        $this->io->writeln('
+<fg=cyan>┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓</>
+<fg=cyan>┃</><fg=green>      🚀 UNIT3D Git Updater       </><fg=cyan>┃</>
+<fg=cyan>┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛</>
         ');
 
-        $this->line('<fg=cyan>
-        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-        
-        IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-        SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE 
-        GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) EVEN IF ADVISED OF THE POSSIBILITY 
-        OF SUCH DAMAGE.
-        
-        WITH THAT SAID YOU CAN BE GUARANTEED THAT YOUR DATABASE WILL NOT BE ALTERED.
-        
-        <fg=red>BY PROCEEDING YOU AGREE TO THE ABOVE DISCLAIMER! USE AT YOUR OWN RISK!</>
-        </>');
+        $this->io->writeln('
+<fg=yellow>DISCLAIMER:</> This software is provided "AS IS" without warranty of any kind.
+The authors are not liable for any damages arising from the use of this software.
+<fg=red>USE AT YOUR OWN RISK - MAKE SURE YOU HAVE BACKUPS!</>
+        ');
+        $this->io->newLine();
+    }
 
-        if (!$this->io->confirm('Would you like to proceed', true)) {
-            $this->line('<fg=red>Aborted ...</>');
+    /**
+     * Ask for confirmation to proceed with the update.
+     */
+    private function confirmUpdate(): bool
+    {
+        if (!$this->io->confirm('Would you like to proceed with the update?', true)) {
+            $this->warning('Update aborted by user');
+            $this->log('Update aborted by user');
 
-            exit();
+            return false;
         }
 
         $this->io->writeln('
-        Press CTRL + C ANYTIME to abort! Aborting can lead to unexpected results!
+Press CTRL + C ANYTIME to abort!
+<fg=red>Note: Aborting may leave your application in an inconsistent state.</>
         ');
 
         sleep(1);
 
-        $this->update();
-
-        $this->white('Please report any errors or issues.');
-
-        $this->done();
+        return true;
     }
 
-    private function update(): void
+    /**
+     * Perform the update process.
+     */
+    private function performUpdate(): void
     {
-        $updating = $this->checkForUpdates();
+        $currentVersion = $this->getCurrentVersion();
 
-        if ((is_countable($updating) ? \count($updating) : 0) > 0) {
-            $this->alertDanger('Found Updates');
+        $updatingFiles = $this->checkForUpdates();
 
-            $this->cyan('Files that need updated:');
-            $this->io->listing($updating);
+        if (\count($updatingFiles) > 0) {
+            $this->alert('info', \sprintf('Found %d Files Needing Updates', \count($updatingFiles)));
 
-            if ($this->io->confirm('Start the update process', true)) {
+            $this->note('Files that need to be updated:');
+            $this->io->listing($updatingFiles);
+
+            if ($this->io->confirm('Start the update process?', true)) {
+                $this->log('Starting update process with '.\count($updatingFiles).' files');
+
                 $this->call('down');
 
-                $this->process('git add .');
+                $this->execCommand('git add .');
 
-                $paths = $this->paths();
+                $pathsToBackup = $this->getPathsToBackup();
 
-                $this->backup($paths);
+                $this->backupFiles($pathsToBackup);
 
-                $this->header('Reseting Repository');
-
-                $this->commands([
+                $this->header('Resetting Repository');
+                $this->execCommands([
                     'git fetch origin',
                     'git reset --hard origin/master',
                 ]);
 
-                $this->restore($paths);
+                $this->restoreBackupFiles($pathsToBackup);
 
-                $conflicts = array_intersect($updating, $paths);
+                $conflicts = array_intersect($updatingFiles, $pathsToBackup);
 
                 if ($conflicts !== []) {
-                    $this->red('There are some files that was not updated because because of conflicts.');
-                    $this->red('We will walk you through updating these files now.');
-
-                    $this->manualUpdate($conflicts);
+                    $this->warning('There are some files that were not updated because of conflicts.');
+                    $this->warning('We will walk you through updating these files now.');
+                    $this->manualUpdateFiles($conflicts);
                 }
 
-                if ($this->io->confirm('Run new migrations (php artisan migrate)', true)) {
-                    $this->migrations();
+                $this->header('Database Migrations');
+
+                if ($this->io->confirm('Run new database migrations?', true)) {
+                    $this->runMigrations();
                 }
 
-                $this->clearCache();
+                $this->clearApplicationCache();
 
-                if ($this->io->confirm('Install new packages (composer install)', true)) {
-                    $this->composer();
+                $this->header('Composer Packages');
+
+                if ($this->io->confirm('Install/update Composer packages?', true)) {
+                    $this->installComposerPackages();
                 }
 
-                $this->clearComposerCache();
+                $this->updateConfigurationFile();
 
-                $this->updateUNIT3DConfig();
+                $this->setApplicationCache();
 
-                $this->setCache();
+                $this->header('Frontend Assets');
 
-                if ($this->io->confirm('Compile assets (bun run build)', true)) {
-                    $this->compile();
+                if ($this->io->confirm('Compile frontend assets?', true)) {
+                    $this->compileAssets();
                 }
 
-                $this->permissions();
+                $this->setFilePermissions();
 
-                $this->supervisor();
+                $this->restartServices();
 
-                $this->php();
+                $this->updatedFiles = $updatingFiles;
 
-                $this->header('Bringing Site Live');
+                $newVersion = $this->getCurrentVersion();
+                $this->displayVersionInformation($currentVersion, $newVersion);
+                $this->generateUpdateReport();
+
+                $this->header('Bringing Site Back Online');
                 $this->call('up');
-            } else {
-                $this->alertDanger('Aborted Update');
+                $this->success('Site is now online');
 
-                exit();
+                if ($this->io->confirm('Remove update backups?', true)) {
+                    $this->header('Cleaning Up');
+                    $this->execCommand('rm -rf '.storage_path('gitupdate'));
+                    $this->success('Backups deleted successfully');
+                }
+            } else {
+                $this->alert('warning', 'Update Aborted');
+                $this->log('Update aborted by user after displaying files to update');
             }
         } else {
-            $this->alertSuccess('No Available Updates Found');
+            $this->alert('success', 'No Available Updates Found');
+            $this->log('No updates available');
         }
     }
 
     /**
-     * Check for updates.
+     * Check for available updates.
      *
-     * @return array<string>
+     * @return array<string> List of files to be updated
      */
     private function checkForUpdates(): array
     {
         $this->header('Checking For Updates');
+        $this->log('Checking for updates');
 
-        $this->process('git fetch origin');
-        $process = $this->process('git diff ..origin/master --name-only');
-        $updating = array_filter(explode("\n", $process->getOutput()), 'strlen');
+        $this->execCommand('git fetch origin');
+        $process = $this->execCommand('git diff ..origin/master --name-only');
+        $updatingFiles = array_filter(explode("\n", $process->getOutput()), 'strlen');
 
-        $this->done();
+        $updatingFiles = array_filter($updatingFiles, fn ($file) => array_all(self::EXCLUDED_DIRECTORIES, fn ($excludedDir) => !str_starts_with($file, $excludedDir.'/')));
 
-        return $updating;
-    }
+        $this->log('Found '.\count($updatingFiles).' files needing update');
 
-    /*
-     * Manually update files that have conflicts.
-     *
-     * @param array<string> $updating
-     */
-    private function manualUpdate(array $updating): void
-    {
-        $this->alertInfo('Manual Update');
-        $this->red('Updating will cause you to LOSE any changes you might have made to the file!');
-
-        foreach ($updating as $file) {
-            if ($this->io->confirm(\sprintf('Update %s', $file), true)) {
-                $this->updateFile($file);
-            }
-        }
-
-        $this->done();
+        return $updatingFiles;
     }
 
     /**
-     * Update a file.
+     * Get the paths that need to be backed up.
+     *
+     * @return array<string> List of paths to backup
      */
-    private function updateFile(string $file): void
+    private function getPathsToBackup(): array
     {
-        $this->process(\sprintf('git checkout origin/master -- %s', $file));
+        $process = $this->execCommand('git diff master --name-only');
+        $paths = array_filter(explode("\n", $process->getOutput()), 'strlen');
+
+        $paths = array_filter($paths, fn ($file) => array_all(self::EXCLUDED_DIRECTORIES, fn ($excludedDir) => !str_starts_with($file, $excludedDir.'/')));
+
+        return [...$paths, ...self::ADDITIONAL_FILES];
     }
 
     /**
-     * Backup the files that will be updated.
+     * Backup files before updating.
      *
-     * @param array<string> $paths
+     * @param array<string> $paths Files to backup
      */
-    private function backup(array $paths): void
+    private function backupFiles(array $paths): void
     {
-        $this->header('Backing Up Files');
+        $this->header('Creating Backups');
+        $this->log('Starting backup of '.\count($paths).' files/directories');
 
-        $this->commands([
+        $this->execCommands([
             'rm -rf '.storage_path('gitupdate'),
-            'mkdir '.storage_path('gitupdate'),
+            'mkdir -p '.storage_path('gitupdate'),
         ], true);
 
+        $this->info('Backing up '.\count($paths).' files/directories...');
+
+        $progress = $this->io->createProgressBar(\count($paths));
+        $progress->setFormat(' %current%/%max% [%bar%] %percent:3s%% %elapsed:6s% ⇒ %message%');
+        $progress->setMessage('Starting backup...');
+        $progress->start();
+
         foreach ($paths as $path) {
-            $this->validatePath($path);
-            $this->createBackupPath($path);
-            $this->process($this->copyCommand.' '.base_path($path).' '.storage_path('gitupdate').'/'.$path);
+            $progress->setMessage($path);
+
+            if (!file_exists(base_path($path)) && !is_dir(base_path($path))) {
+                $this->log('Invalid path: '.$path);
+                $progress->advance();
+
+                continue;
+            }
+
+            $backupPath = \dirname(storage_path('gitupdate/'.$path));
+
+            if (!is_dir($backupPath) && !mkdir($backupPath, 0775, true) && !is_dir($backupPath)) {
+                $this->log('Failed to create directory: '.$backupPath);
+
+                throw new RuntimeException(\sprintf('Directory "%s" could not be created', $backupPath));
+            }
+
+            $this->execCommand($this->copyCommand.' '.base_path($path).' '.storage_path('gitupdate/'.$path), true);
+
+            $progress->advance();
         }
 
-        $this->done();
+        $progress->finish();
+        $this->io->newLine(2);
+
+        $this->log('Backup completed');
+        $this->taskCompleted('Backup completed');
     }
 
     /**
-     * Restore the files that were backed up.
+     * Restore files from backup.
      *
-     * @param array<string> $paths
+     * @param array<string> $paths Files to restore
      */
-    private function restore(array $paths): void
+    private function restoreBackupFiles(array $paths): void
     {
-        $this->header('Restoring Backups');
+        $this->header('Restoring Files');
+        $this->log('Restoring '.\count($paths).' backup files');
+
+        $progress = $this->io->createProgressBar(\count($paths));
+        $progress->setFormat(' %current%/%max% [%bar%] %percent:3s%% %elapsed:6s% ⇒ %message%');
+        $progress->setMessage('Starting restore...');
+        $progress->start();
 
         foreach ($paths as $path) {
-            $to = Str::replaceLast('/.', '', base_path(\dirname((string) $path)));
-            $from = storage_path('gitupdate').'/'.$path;
+            $progress->setMessage($path);
+
+            $to = Str::replaceLast('/.', '', base_path(\dirname($path)));
+            $from = storage_path('gitupdate/'.$path);
+
+            if (!file_exists($from)) {
+                $progress->advance();
+
+                continue;
+            }
 
             if (is_dir($from)) {
                 $to .= '/'.basename($from).'/';
                 $from .= '/*';
             }
 
-            $this->process(\sprintf('%s %s %s', $this->copyCommand, $from, $to));
+            $this->execCommand(\sprintf('%s %s %s', $this->copyCommand, $from, $to), true);
+            $progress->advance();
         }
 
-        $this->commands([
+        $progress->finish();
+        $this->io->newLine(2);
+
+        $this->execCommands([
             'git add .',
             'git checkout origin/master -- bun.lockb',
             'git checkout origin/master -- composer.lock',
         ]);
+
+        $this->log('Restore completed');
+        $this->taskCompleted('Files restored successfully');
     }
 
-    private function composer(): void
+    /**
+     * Manually update files that have conflicts.
+     *
+     * @param array<string> $conflicts Conflicted files
+     */
+    private function manualUpdateFiles(array $conflicts): void
     {
-        $this->header('Installing Composer Packages');
+        $this->header('Resolving File Conflicts');
+        $this->log('Starting manual update for '.\count($conflicts).' conflicting files');
 
-        $this->commands([
+        $this->warning('Updating will cause you to LOSE any changes you might have made to these files!');
+
+        foreach ($conflicts as $file) {
+            if ($this->io->confirm(\sprintf('Update %s', $file), true)) {
+                $this->execCommand(\sprintf('git checkout origin/master -- %s', $file));
+                $this->success('Updated: '.$file);
+                $this->log('Manually updated file: '.$file);
+            } else {
+                $this->note('Skipped: '.$file);
+                $this->log('Skipped manual update for: '.$file);
+            }
+        }
+
+        $this->taskCompleted('Conflict resolution completed');
+    }
+
+    /**
+     * Run database migrations.
+     */
+    private function runMigrations(): void
+    {
+        $this->log('Running database migrations');
+        $this->call('migrate');
+        $this->taskCompleted('Migrations completed');
+    }
+
+    /**
+     * Clear application cache.
+     */
+    private function clearApplicationCache(): void
+    {
+        $this->header('Clearing Application Cache');
+        $this->log('Clearing application cache');
+        $this->call('clear:all_cache');
+        $this->taskCompleted('Cache cleared');
+    }
+
+    /**
+     * Set application cache.
+     */
+    private function setApplicationCache(): void
+    {
+        $this->header('Setting Application Cache');
+        $this->log('Setting application cache');
+        $this->call('set:all_cache');
+        $this->taskCompleted('Cache set');
+    }
+
+    /**
+     * Install/update Composer packages.
+     */
+    private function installComposerPackages(): void
+    {
+        $this->log('Running composer commands');
+
+        $this->execCommands([
             'composer self-update',
             'composer install --prefer-dist --no-dev -o',
         ]);
 
-        $this->done();
+        $this->taskCompleted('Composer packages installed');
     }
 
-    private function compile(): void
+    /**
+     * Update the UNIT3D configuration file.
+     */
+    private function updateConfigurationFile(): void
     {
-        $this->header('Compiling Assets ...');
+        $this->header('Updating Configuration');
+        $this->log('Updating UNIT3D config file');
+        $this->execCommand('git fetch origin && git checkout origin/master -- config/unit3d.php');
+        $this->taskCompleted('Configuration updated');
+    }
 
-        $this->commands([
+    /**
+     * Compile frontend assets.
+     */
+    private function compileAssets(): void
+    {
+        $this->log('Running asset compilation');
+
+        $this->execCommands([
             'bun install',
             'bun run build',
         ]);
 
-        $this->done();
+        $this->taskCompleted('Assets compiled');
     }
 
-    private function updateUNIT3DConfig(): void
+    /**
+     * Set proper file permissions.
+     */
+    private function setFilePermissions(): void
     {
-        $this->header('Updating UNIT3D Configuration File');
-        $this->process('git fetch origin && git checkout origin/master -- config/unit3d.php');
-        $this->done();
+        $this->header('Setting File Permissions');
+        $this->log('Refreshing file permissions');
+        $this->execCommand('chown -R www-data: storage bootstrap public config');
+        $this->taskCompleted('Permissions set');
     }
 
-    private function clearComposerCache(): void
+    /**
+     * Restart supervisor and PHP services.
+     */
+    private function restartServices(): void
     {
-        $this->header('Clearing Composer Cache');
-        $this->process('composer clear-cache --no-interaction --ansi --verbose');
-        $this->done();
-    }
+        $this->header('Restarting Services');
+        $this->log('Restarting supervisor and PHP services');
 
-    private function clearCache(): void
-    {
-        $this->header('Clearing Application Cache');
-        $this->call('clear:all_cache');
-        $this->done();
-    }
-
-    private function setCache(): void
-    {
-        $this->header('Setting Cache');
-        $this->call('set:all_cache');
-        $this->done();
-    }
-
-    private function migrations(): void
-    {
-        $this->header('Running New Migrations');
-        $this->call('migrate');
-        $this->done();
-    }
-
-    private function permissions(): void
-    {
-        $this->header('Refreshing Permissions');
-        $this->process('chown -R www-data: storage bootstrap public config');
-        $this->done();
-    }
-
-    private function supervisor(): void
-    {
-        $this->header('Restarting Supervisor');
         $this->call('queue:restart');
-        $this->process('supervisorctl reread && supervisorctl update && supervisorctl reload');
-        $this->done();
+        $this->success('Queue workers restarted');
+
+        $this->execCommand('supervisorctl reread && supervisorctl update && supervisorctl reload');
+        $this->success('Supervisor services restarted');
+
+        $this->execCommand('systemctl restart php8.4-fpm');
+        $this->success('PHP-FPM service restarted');
+
+        $this->taskCompleted('Services restarted');
     }
 
-    private function php(): void
+    /**
+     * Get the current git version.
+     */
+    private function getCurrentVersion(): string
     {
-        $this->header('Restarting PHP');
-        $this->process('systemctl restart php8.3-fpm');
-        $this->done();
+        $process = $this->execCommand('git describe --tags --always');
+        $version = trim($process->getOutput());
+
+        return $version ?: 'unknown';
     }
 
-    private function validatePath(string $path): void
+    /**
+     * Display version information before and after update.
+     */
+    private function displayVersionInformation(string $oldVersion, string $newVersion): void
     {
-        if (!is_file(base_path($path)) && !is_dir(base_path($path))) {
-            $this->red(\sprintf("The path '%s' is invalid", $path));
-        }
-    }
+        $this->header('Version Information');
 
-    private function createBackupPath(string $path): void
-    {
-        if (!is_dir(storage_path(\sprintf('gitupdate/%s', $path))) && !is_file(base_path($path))) {
-            if (!mkdir($concurrentDirectory = storage_path(\sprintf('gitupdate/%s', $path)), 0775, true) && !is_dir($concurrentDirectory)) {
-                throw new RuntimeException(\sprintf('Directory "%s" was not created', $concurrentDirectory));
-            }
-        } elseif (is_file(base_path($path)) && \dirname($path) !== '.') {
-            $path = \dirname((string) $path);
+        $this->io->definitionList(
+            ['Previous version' => "<fg=yellow>{$oldVersion}</>"],
+            ['Current version' => "<fg=green>{$newVersion}</>"]
+        );
 
-            if (!is_dir(storage_path(\sprintf('gitupdate/%s', $path))) && !mkdir($concurrentDirectory = storage_path(\sprintf(
-                'gitupdate/%s',
-                $path
-            )), 0775, true) && !is_dir($concurrentDirectory)) {
-                throw new RuntimeException(\sprintf('Directory "%s" was not created', $concurrentDirectory));
-            }
+        $this->log("Updated from version {$oldVersion} to {$newVersion}");
+
+        if ($oldVersion === $newVersion) {
+            $this->warning('No version change detected');
+        } else {
+            $this->success('Successfully upgraded!');
         }
     }
 
     /**
-     * Get the paths that need to be updated.
-     *
-     * @return array<string>
+     * Generate an update report of what was changed.
      */
-    private function paths(): array
+    private function generateUpdateReport(): void
     {
-        $p = $this->process('git diff master --name-only');
-        $paths = array_filter(explode("\n", $p->getOutput()), 'strlen');
+        $this->header('Update Report');
 
-        return [...$paths, ...self::ADDITIONAL];
+        $filesByType = [];
+
+        foreach ($this->updatedFiles as $file) {
+            $extension = pathinfo($file, PATHINFO_EXTENSION) ?: 'other';
+            $filesByType[$extension][] = $file;
+        }
+
+        ksort($filesByType);
+
+        $this->note('Files updated by type:');
+
+        foreach ($filesByType as $type => $files) {
+            $icon = $this->getFileTypeIcon($type);
+            $this->io->section("{$icon} {$type} files (".\count($files).")");
+            $this->io->listing($files);
+        }
+
+        $this->success('Update completed at: '.now()->toDateTimeString());
+        $this->log('Generated update report with '.\count($this->updatedFiles).' files');
+    }
+
+    /**
+     * Get an appropriate icon for file types.
+     */
+    private function getFileTypeIcon(string $extension): string
+    {
+        return match(strtolower($extension)) {
+            'php' => '🐘',
+            'js'  => '🟨',
+            'vue' => '🟩',
+            'css', 'scss', 'sass' => '🎨',
+            'json' => '📝',
+            'md'   => '📄',
+            'jpg', 'jpeg', 'png', 'gif', 'svg' => '🖼️',
+            'lock' => '🔒',
+            'env', 'yml', 'yaml' => '⚙️',
+            'sql'       => '🗄️',
+            'gitignore' => '👁️',
+            default     => '📁',
+        };
+    }
+
+    /**
+     * Restore from backup in case of failure.
+     */
+    private function restoreFromBackup(): void
+    {
+        $this->header('Recovery Process');
+        $this->log('Attempting to restore from backup after failure');
+
+        if (!is_dir(storage_path('gitupdate'))) {
+            $this->error('No backup found to restore from!');
+            $this->log('Recovery failed - no backup directory found');
+
+            return;
+        }
+
+        $paths = [];
+        $backupDir = storage_path('gitupdate');
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($backupDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST
+        );
+
+        foreach ($iterator as $item) {
+            if (!$item->isDir()) {
+                $path = substr($item->getPathname(), \strlen($backupDir) + 1);
+                $paths[] = $path;
+            }
+        }
+
+        $this->info('Found '.\count($paths).' files to restore');
+        $this->restoreBackupFiles($paths);
+        $this->log('Recovery completed - restored '.\count($paths).' files from backup');
+
+        $this->call('up');
+        $this->alert('success', 'Site has been restored from backup and is back online');
     }
 }

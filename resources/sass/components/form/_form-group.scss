@@ -21,3 +21,10 @@
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     align-items: center;
 }
+
+.form__group--vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background-color: inherit;
+}

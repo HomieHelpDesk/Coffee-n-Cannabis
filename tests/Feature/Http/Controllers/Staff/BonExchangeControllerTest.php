@@ -28,7 +28,7 @@ test('create returns an ok response', function (): void {
     $response = $this->actingAs($user)->get(route('staff.bon_exchanges.create'));
 
     $response->assertOk();
-    $response->assertViewIs('Staff.bon_exchange.create');
+    $response->assertViewIs('Staff.bon-exchange.create');
 
     // TODO: perform additional assertions
 });
@@ -56,7 +56,7 @@ test('edit returns an ok response', function (): void {
     $response = $this->actingAs($user)->get(route('staff.bon_exchanges.edit', [$bonExchange]));
 
     $response->assertOk();
-    $response->assertViewIs('Staff.bon_exchange.edit');
+    $response->assertViewIs('Staff.bon-exchange.edit');
     $response->assertViewHas('bonExchange', $bonExchange);
 
     // TODO: perform additional assertions
@@ -71,7 +71,7 @@ test('index returns an ok response', function (): void {
     $response = $this->actingAs($user)->get(route('staff.bon_exchanges.index'));
 
     $response->assertOk();
-    $response->assertViewIs('Staff.bon_exchange.index');
+    $response->assertViewIs('Staff.bon-exchange.index');
     $response->assertViewHas('bonExchanges', $bonExchanges);
 
     // TODO: perform additional assertions

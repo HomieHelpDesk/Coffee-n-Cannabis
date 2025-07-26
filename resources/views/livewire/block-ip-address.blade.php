@@ -114,7 +114,7 @@
                     <tr x-data="blockedIp" data-blocked-ip-id="{{ $ipAddress->id }}">
                         <td>{{ $ipAddress->id }}</td>
                         <td>
-                            <x-user_tag :anon="false" :user="$ipAddress->user" />
+                            <x-user-tag :anon="false" :user="$ipAddress->user" />
                         </td>
                         <td>{{ $ipAddress->ip_address }}</td>
                         <td>{{ $ipAddress->reason }}</td>

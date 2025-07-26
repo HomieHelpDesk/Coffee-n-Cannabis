@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>
@@ -25,7 +25,7 @@
     </li>
 @endsection
 
-@section('page', 'page__apikey-log--index')
+@section('page', 'page__staff-apikey--index')
 
 @section('main')
     @livewire('apikey-search')

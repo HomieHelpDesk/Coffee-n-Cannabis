@@ -19,6 +19,8 @@
     </li>
 @endsection
 
+@section('page', 'page__person--index')
+
 @section('content')
-    @livewire('person-search')
+    @livewire('tmdb-person-search')
 @endsection

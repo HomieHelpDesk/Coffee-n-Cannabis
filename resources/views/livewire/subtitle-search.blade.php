@@ -1,4 +1,4 @@
-<div class="sidebar2 sidebar--inverse">
+<article class="sidebar2 sidebar--inverse">
     <div>
         <section class="panelV2">
             <h2 class="panel__heading">{{ __('common.subtitles') }}</h2>
@@ -49,7 +49,7 @@
                                         ></i>
                                     @else
                                         <img
-                                            src="{{ url('files/img/' . $subtitle->torrent->category->image) }}"
+                                            src="{{ route('authenticated_images.category_image', ['category' => $subtitle->torrent->category]) }}"
                                             title="{{ $subtitle->torrent->category->name }} {{ strtolower(__('torrent.torrent')) }}"
                                             alt="{{ $subtitle->torrent->category->name }}"
                                         />
@@ -81,7 +81,7 @@
                                     </time>
                                 </td>
                                 <td>
-                                    <x-user_tag :user="$subtitle->user" :anon="$subtitle->anon" />
+                                    <x-user-tag :user="$subtitle->user" :anon="$subtitle->anon" />
                                 </td>
                                 <td>
                                     <menu class="data-table__actions">
@@ -193,4 +193,4 @@
             </div>
         </section>
     </aside>
-</div>
+</article>

@@ -121,7 +121,7 @@ class StatsController extends Controller
     {
         return view('stats.users.uploaders', [
             'uploaders' => Torrent::with('user')
-                ->where('anon', '=', 0)
+                ->where('anon', '=', false)
                 ->select(DB::raw('user_id, count(*) as value'))
                 ->groupBy('user_id')
                 ->orderByDesc('value')
@@ -262,17 +262,6 @@ class StatsController extends Controller
     }
 
     /**
-     * Show Extra-Stats Groups.
-     */
-    public function group(int $id): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
-    {
-        return view('stats.groups.group', [
-            'group' => Group::findOrFail($id),
-            'users' => User::with(['group'])->withTrashed()->where('group_id', '=', $id)->latest()->paginate(100),
-        ]);
-    }
-
-    /**
      * Show Group Requirements.
      */
     public function groupsRequirements(): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
@@ -283,7 +272,7 @@ class StatsController extends Controller
             'current'           => Carbon::now(),
             'user'              => $user,
             'user_avg_seedtime' => DB::table('history')->where('user_id', '=', $user->id)->avg('seedtime'),
-            'user_account_age'  => Carbon::now()->diffInSeconds($user->created_at),
+            'user_account_age'  => (int) Carbon::now()->diffInSeconds($user->created_at, true),
             'user_seed_size'    => $user->seedingTorrents()->sum('size'),
             'user_uploads'      => $user->torrents()->count(),
             'groups'            => Group::orderBy('position')->where('is_modo', '=', 0)->get(),
@@ -305,7 +294,22 @@ class StatsController extends Controller
      */
     public function clients(): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
-        $clients = cache()->get('stats:clients') ?? [];
+        $clients = cache()->remember(
+            'stats:clients',
+            3600,
+            fn () => Peer::selectRaw('agent, COUNT(*) as user_count, SUM(peer_count) as peer_count')
+                ->fromSub(
+                    Peer::query()
+                        ->select(['agent', 'user_id', DB::raw('COUNT(*) as peer_count')])
+                        ->groupBy('agent', 'user_id')
+                        ->where('active', '=', true),
+                    'distinct_agent_user'
+                )
+                ->groupBy('agent')
+                ->orderBy('agent')
+                ->get()
+                ->toArray()
+        );
 
         $groupedClients = [];
 
@@ -348,6 +352,28 @@ class StatsController extends Controller
                 ->groupBy('standalone_css')
                 ->orderByDesc('value')
                 ->get(),
+        ]);
+    }
+
+    /**
+     * Show Extra-Stats User Messages.
+     */
+    public function messages(): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+    {
+        $users = User::withCount(['messages' => function ($query): void {
+            $query->where('chatroom_id', '!=', 0);  // Exclude private chatbox messages;
+        }])
+            ->withSum(['messages as characters_typed' => function ($query): void {
+                $query->where('chatroom_id', '!=', 0);  // Exclude private chatbox messages;
+            }], DB::raw('CHAR_LENGTH(message)'))
+            ->orderByDesc('messages_count')
+            ->where('id', '!=', User::SYSTEM_USER_ID)
+            ->whereDoesntHave('group', fn ($query) => $query->whereIn('slug', ['banned', 'validating', 'disabled', 'pruned', 'bot']))
+            ->take(100)
+            ->get();
+
+        return view('stats.users.messages', [
+            'users' => $users,
         ]);
     }
 }

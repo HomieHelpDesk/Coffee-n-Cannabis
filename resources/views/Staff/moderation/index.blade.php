@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>Moderation - {{ __('staff.staff-dashboard') }} - {{ config('other.title') }}</title>
@@ -15,7 +15,7 @@
     </li>
 @endsection
 
-@section('page', 'page__moderation')
+@section('page', 'page__staff-moderation--index')
 
 @section('main')
     <section class="panelV2">
@@ -60,7 +60,7 @@
                             <td>{{ $torrent->resolution->name ?? 'No Res' }}</td>
                             <td>{{ $torrent->getSize() }}</td>
                             <td>
-                                <x-user_tag :anon="false" :user="$torrent->user" />
+                                <x-user-tag :anon="false" :user="$torrent->user" />
                             </td>
                             <td>
                                 <menu class="data-table__actions">
@@ -78,7 +78,7 @@
                                             <input
                                                 type="hidden"
                                                 name="status"
-                                                value="{{ \App\Models\Torrent::APPROVED }}"
+                                                value="{{ \App\Enums\ModerationStatus::APPROVED }}"
                                             />
                                             <button class="form__button form__button--filled">
                                                 <i
@@ -88,8 +88,8 @@
                                             </button>
                                         </form>
                                     </li>
-                                    @include('Staff.moderation.partials._postpone_dialog', ['torrent' => $torrent])
-                                    @include('Staff.moderation.partials._reject_dialog', ['torrent' => $torrent])
+                                    @include('Staff.moderation.partials._postpone-dialog', ['torrent' => $torrent])
+                                    @include('Staff.moderation.partials._reject-dialog', ['torrent' => $torrent])
                                 </menu>
                             </td>
                         </tr>
@@ -145,10 +145,10 @@
                             <td>{{ $torrent->resolution->name ?? 'No Res' }}</td>
                             <td>{{ $torrent->getSize() }}</td>
                             <td>
-                                <x-user_tag :anon="false" :user="$torrent->user" />
+                                <x-user-tag :anon="false" :user="$torrent->user" />
                             </td>
                             <td>
-                                <x-user_tag :anon="false" :user="$torrent->moderated" />
+                                <x-user-tag :anon="false" :user="$torrent->moderated" />
                             </td>
                             <td>
                                 <menu class="data-table__actions">
@@ -166,7 +166,7 @@
                                             <input
                                                 type="hidden"
                                                 name="status"
-                                                value="{{ \App\Models\Torrent::APPROVED }}"
+                                                value="{{ \App\Enums\ModerationStatus::APPROVED }}"
                                             />
                                             <button class="form__button form__button--filled">
                                                 <i
@@ -187,7 +187,7 @@
                                             {{ __('common.edit') }}
                                         </a>
                                     </li>
-                                    @include('Staff.moderation.partials._delete_dialog', ['torrent' => $torrent])
+                                    @include('Staff.moderation.partials._delete-dialog', ['torrent' => $torrent])
                                 </menu>
                             </td>
                         </tr>
@@ -243,10 +243,10 @@
                             <td>{{ $torrent->resolution->name ?? 'No Res' }}</td>
                             <td>{{ $torrent->getSize() }}</td>
                             <td>
-                                <x-user_tag :anon="false" :user="$torrent->user" />
+                                <x-user-tag :anon="false" :user="$torrent->user" />
                             </td>
                             <td>
-                                <x-user_tag :anon="false" :user="$torrent->moderated" />
+                                <x-user-tag :anon="false" :user="$torrent->moderated" />
                             </td>
                             <td>
                                 <menu class="data-table__actions">
@@ -264,7 +264,7 @@
                                             <input
                                                 type="hidden"
                                                 name="status"
-                                                value="{{ \App\Models\Torrent::APPROVED }}"
+                                                value="{{ \App\Enums\ModerationStatus::APPROVED }}"
                                             />
                                             <button class="form__button form__button--filled">
                                                 <i
@@ -274,7 +274,7 @@
                                             </button>
                                         </form>
                                     </li>
-                                    @include('Staff.moderation.partials._postpone_dialog', ['torrent' => $torrent])
+                                    @include('Staff.moderation.partials._postpone-dialog', ['torrent' => $torrent])
                                     <li class="data-table__action">
                                         <a
                                             href="{{ route('torrents.edit', ['id' => $torrent->id]) }}"
@@ -286,7 +286,7 @@
                                             {{ __('common.edit') }}
                                         </a>
                                     </li>
-                                    @include('Staff.moderation.partials._delete_dialog', ['torrent' => $torrent])
+                                    @include('Staff.moderation.partials._delete-dialog', ['torrent' => $torrent])
                                 </menu>
                             </td>
                         </tr>

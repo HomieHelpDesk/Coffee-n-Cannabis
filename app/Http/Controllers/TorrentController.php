@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\ModerationStatus;
 use App\Helpers\Bencode;
 use App\Helpers\MediaInfo;
 use App\Helpers\TorrentHelper;
@@ -25,27 +26,29 @@ use App\Http\Requests\UpdateTorrentRequest;
 use App\Models\Audit;
 use App\Models\Category;
 use App\Models\Distributor;
-use App\Models\FeaturedTorrent;
 use App\Models\History;
+use App\Models\IgdbGame;
 use App\Models\Keyword;
-use App\Models\Movie;
+use App\Models\TmdbMovie;
 use App\Models\Region;
 use App\Models\Resolution;
 use App\Models\Scopes\ApprovedScope;
 use App\Models\Torrent;
 use App\Models\TorrentFile;
-use App\Models\Tv;
+use App\Models\TmdbTv;
 use App\Models\Type;
 use App\Models\User;
+use App\Notifications\TorrentDeleted;
 use App\Repositories\ChatRepository;
+use App\Services\Igdb\IgdbScraper;
 use App\Services\Tmdb\TMDBScraper;
 use App\Services\Unit3dAnnounce;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Intervention\Image\Facades\Image;
-use MarcReichel\IGDBLaravel\Models\Game;
-use MarcReichel\IGDBLaravel\Models\PlatformLogo;
 use Exception;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use ReflectionException;
 use JsonException;
 
@@ -70,7 +73,7 @@ class TorrentController extends Controller
     }
 
     /**
-     * Display The Torrent reasource.
+     * Display The Torrent resource.
      *
      * @throws JsonException
      * @throws \MarcReichel\IGDBLaravel\Exceptions\MissingEndpointException
@@ -82,13 +85,14 @@ class TorrentController extends Controller
         $user = $request->user();
 
         $torrent = Torrent::withoutGlobalScope(ApprovedScope::class)
-            ->with(['user', 'comments', 'category', 'type', 'resolution', 'subtitles', 'playlists', 'reports'])
+            ->with(['user', 'comments', 'category', 'type', 'resolution', 'subtitles', 'playlists', 'reports', 'featured'])
             ->withCount([
                 'bookmarks',
                 'seeds'   => fn ($query) => $query->where('active', '=', true)->where('visible', '=', true),
                 'leeches' => fn ($query) => $query->where('active', '=', true)->where('visible', '=', true),
             ])
             ->withExists([
+                'featured as featured',
                 'bookmarks'       => fn ($query) => $query->where('user_id', '=', $user->id),
                 'freeleechTokens' => fn ($query) => $query->where('user_id', '=', $user->id),
                 'trump'
@@ -96,47 +100,44 @@ class TorrentController extends Controller
             ->findOrFail($id);
 
         $meta = null;
-        $platforms = null;
 
-        if ($torrent->category->tv_meta && $torrent->tmdb) {
-            $meta = Tv::with([
+        if ($torrent->category->tv_meta && $torrent->tmdb_tv_id) {
+            $meta = TmdbTv::with([
                 'genres',
                 'credits' => ['person', 'occupation'],
                 'companies',
                 'networks',
                 'recommendedTv' => fn ($query) => $query
-                    ->select('tv.id', 'tv.name', 'tv.poster', 'tv.first_air_date')
+                    ->select('tmdb_tv.id', 'tmdb_tv.name', 'tmdb_tv.poster', 'tmdb_tv.first_air_date')
                     ->withMin('torrents', 'category_id')
                     ->has('torrents'),
-            ])->find($torrent->tmdb);
+            ])->find($torrent->tmdb_tv_id);
         }
 
-        if ($torrent->category->movie_meta && $torrent->tmdb) {
-            $meta = Movie::with([
+        if ($torrent->category->movie_meta && $torrent->tmdb_movie_id) {
+            $meta = TmdbMovie::with([
                 'genres',
                 'credits' => ['person', 'occupation'],
                 'companies',
-                'collection',
+                'collections.movies' => fn ($query) => $query
+                    ->select('tmdb_movies.id', 'tmdb_movies.title', 'tmdb_movies.poster', 'tmdb_movies.release_date')
+                    ->withMin('torrents', 'category_id')
+                    ->has('torrents'),
                 'recommendedMovies' => fn ($query) => $query
-                    ->select('movies.id', 'movies.title', 'movies.poster', 'movies.release_date')
+                    ->select('tmdb_movies.id', 'tmdb_movies.title', 'tmdb_movies.poster', 'tmdb_movies.release_date')
                     ->withMin('torrents', 'category_id')
                     ->has('torrents'),
             ])
-                ->find($torrent->tmdb);
+                ->find($torrent->tmdb_movie_id);
         }
 
         if ($torrent->category->game_meta && $torrent->igdb) {
-            $meta = Game::with([
-                'cover'    => ['url', 'image_id'],
-                'artworks' => ['url', 'image_id'],
-                'genres'   => ['name'],
-                'videos'   => ['video_id', 'name'],
-                'involved_companies.company',
-                'involved_companies.company.logo',
-                'platforms', ])
+            $meta = IgdbGame::with([
+                'genres',
+                'companies',
+                'platforms',
+            ])
                 ->find($torrent->igdb);
-            $link = collect($meta->videos)->take(1)->pluck('video_id');
-            $platforms = PlatformLogo::whereIn('id', collect($meta->platforms)->pluck('platform_logo')->toArray())->get();
         }
 
         return view('torrent.show', [
@@ -147,16 +148,14 @@ class TorrentController extends Controller
                 || (
                     $user->id === $torrent->user_id
                     && (
-                        $torrent->status !== Torrent::APPROVED
+                        $torrent->status !== ModerationStatus::APPROVED
                         || now()->isBefore($torrent->created_at->addDay())
                     )
                 ),
             'personal_freeleech' => cache()->get('personal_freeleech:'.$user->id),
             'meta'               => $meta,
-            'platforms'          => $platforms,
             'total_tips'         => $torrent->tips()->sum('bon'),
             'user_tips'          => $torrent->tips()->where('sender_id', '=', $user->id)->sum('bon'),
-            'featured'           => $torrent->featured === true ? FeaturedTorrent::where('torrent_id', '=', $id)->first() : null,
             'mediaInfo'          => $torrent->mediainfo !== null ? (new MediaInfo())->parse($torrent->mediainfo) : null,
             'last_seed_activity' => History::where('torrent_id', '=', $torrent->id)->where('seeder', '=', 1)->latest('updated_at')->first(),
             'playlists'          => $user->playlists,
@@ -215,7 +214,7 @@ class TorrentController extends Controller
             || (
                 $user->id === $torrent->user_id
                 && (
-                    $torrent->status !== Torrent::APPROVED
+                    $torrent->status !== ModerationStatus::APPROVED
                     || now()->isBefore($torrent->created_at->addDay())
                 )
             ),
@@ -231,7 +230,7 @@ class TorrentController extends Controller
             abort_if(\is_array($image_cover), 400);
 
             $filename_cover = 'torrent-cover_'.$torrent->id.'.jpg';
-            $path_cover = public_path('/files/img/'.$filename_cover);
+            $path_cover = Storage::disk('torrent-covers')->path($filename_cover);
             Image::make($image_cover->getRealPath())->fit(400, 600)->encode('jpg', 90)->save($path_cover);
         }
 
@@ -242,7 +241,7 @@ class TorrentController extends Controller
             abort_if(\is_array($image_cover), 400);
 
             $filename_cover = 'torrent-banner_'.$torrent->id.'.jpg';
-            $path_cover = public_path('/files/img/'.$filename_cover);
+            $path_cover = Storage::disk('torrent-banners')->path($filename_cover);
             Image::make($image_cover->getRealPath())->fit(960, 540)->encode('jpg', 90)->save($path_cover);
         }
 
@@ -261,22 +260,17 @@ class TorrentController extends Controller
 
         $category = $torrent->category;
 
-        // TMDB Meta
-        if ($torrent->tmdb != 0) {
-            switch (true) {
-                case $category->tv_meta:
-                    (new TMDBScraper())->tv($torrent->tmdb);
+        // Meta
 
-                    break;
-                case $category->movie_meta:
-                    (new TMDBScraper())->movie($torrent->tmdb);
-
-                    break;
-            }
-        }
+        match (true) {
+            $torrent->tmdb_tv_id !== null    => new TMDBScraper()->tv($torrent->tmdb_tv_id),
+            $torrent->tmdb_movie_id !== null => new TMDBScraper()->movie($torrent->tmdb_movie_id),
+            $torrent->igdb !== null          => new IgdbScraper()->game($torrent->igdb),
+            default                          => null,
+        };
 
         return to_route('torrents.show', ['id' => $id])
-            ->withSuccess('Successfully Edited!');
+            ->with('success', 'Successfully Edited!');
     }
 
     /**
@@ -298,13 +292,10 @@ class TorrentController extends Controller
 
         abort_unless($user->group->is_modo || ($user->id === $torrent->user_id && Carbon::now()->lt($torrent->created_at->addDay())), 403);
 
-        foreach (History::where('torrent_id', '=', $torrent->id)->pluck('user_id') as $user_id) {
-            User::sendSystemNotificationTo(
-                userId: $user_id,
-                subject: 'Torrent Deleted! - '.$torrent->name,
-                message: '[b]Attention:[/b] Torrent '.$torrent->name." has been removed from our site. Our system shows that you were either the uploader, a seeder or a leecher on said torrent. We just wanted to let you know you can safely remove it from your client.\n\n[b]Removal Reason:[/b] ".$request->message,
-            );
-        }
+        Notification::send(
+            User::query()->whereHas('history', fn ($query) => $query->where('torrent_id', '=', $torrent->id))->get(),
+            new TorrentDeleted($torrent, $request->message),
+        );
 
         // Reset Requests
         $torrent->requests()->update([
@@ -339,7 +330,7 @@ class TorrentController extends Controller
         $torrent->delete();
 
         return to_route('torrents.index')
-            ->withSuccess('Torrent Has Been Deleted!');
+            ->with('success', 'Torrent Has Been Deleted!');
     }
 
     /**
@@ -373,7 +364,8 @@ class TorrentController extends Controller
             'category_id'  => $request->category_id ?? Category::query()->first()->id,
             'title'        => urldecode((string) $request->title),
             'imdb'         => $request->imdb,
-            'tmdb'         => $request->tmdb,
+            'movieId'      => $request->tmdb_movie_id,
+            'tvId'         => $request->tmdb_tv_id,
             'mal'          => $request->mal,
             'tvdb'         => $request->tvdb,
             'igdb'         => $request->igdb,
@@ -397,7 +389,7 @@ class TorrentController extends Controller
         $meta = Bencode::get_meta($decodedTorrent);
 
         $fileName = uniqid('', true).'.torrent'; // Generate a unique name
-        file_put_contents(getcwd().'/files/torrents/'.$fileName, Bencode::bencode($decodedTorrent));
+        Storage::disk('torrent-files')->put($fileName, Bencode::bencode($decodedTorrent));
 
         $torrent = Torrent::create([
             'mediainfo'    => TorrentTools::anonymizeMediainfo($request->filled('mediainfo') ? $request->string('mediainfo') : null),
@@ -437,7 +429,7 @@ class TorrentController extends Controller
             abort_if(\is_array($image_cover), 400);
 
             $filename_cover = 'torrent-cover_'.$torrent->id.'.jpg';
-            $path_cover = public_path('/files/img/'.$filename_cover);
+            $path_cover = Storage::disk('torrent-covers')->path($filename_cover);
             Image::make($image_cover->getRealPath())->fit(400, 600)->encode('jpg', 90)->save($path_cover);
         }
 
@@ -448,7 +440,7 @@ class TorrentController extends Controller
             abort_if(\is_array($image_cover), 400);
 
             $filename_cover = 'torrent-banner_'.$torrent->id.'.jpg';
-            $path_cover = public_path('/files/img/'.$filename_cover);
+            $path_cover = Storage::disk('torrent-banners')->path($filename_cover);
             Image::make($image_cover->getRealPath())->fit(960, 540)->encode('jpg', 90)->save($path_cover);
         }
 
@@ -456,25 +448,15 @@ class TorrentController extends Controller
 
         Unit3dAnnounce::addTorrent($torrent);
 
-        if ($torrent->getAttribute('featured')) {
-            Unit3dAnnounce::addFeaturedTorrent($torrent->id);
-        }
+        // Metadata updates come after tracker updates in case TMDB or IGDB is offline
 
-        // TMDB updates come after tracker updates in case TMDB's offline
-
-        // TMDB Meta
-        if ($torrent->tmdb != 0) {
-            switch (true) {
-                case $category->tv_meta:
-                    (new TMDBScraper())->tv($torrent->tmdb);
-
-                    break;
-                case $category->movie_meta:
-                    (new TMDBScraper())->movie($torrent->tmdb);
-
-                    break;
-            }
-        }
+        // Meta
+        match (true) {
+            $torrent->tmdb_tv_id !== null    => new TMDBScraper()->tv($torrent->tmdb_tv_id),
+            $torrent->tmdb_movie_id !== null => new TMDBScraper()->movie($torrent->tmdb_movie_id),
+            $torrent->igdb !== null          => new IgdbScraper()->game($torrent->igdb),
+            default                          => null,
+        };
 
         // Torrent Keywords System
         $keywords = [];
@@ -495,7 +477,7 @@ class TorrentController extends Controller
             $anon = $torrent->anon;
 
             // Announce To Shoutbox
-            if ($anon == 0) {
+            if (!$anon) {
                 $this->chatRepository->systemMessage(
                     \sprintf('User [url=%s/users/', $appurl).$username.']'.$username.\sprintf('[/url] has uploaded a new '.$torrent->category->name.'. [url=%s/torrents/', $appurl).$torrent->id.']'.$torrent->name.'[/url], grab it now!'
                 );
@@ -515,6 +497,6 @@ class TorrentController extends Controller
         }
 
         return to_route('download_check', ['id' => $torrent->id])
-            ->withSuccess('Your torrent file is ready to be downloaded and seeded!');
+            ->with('success', 'Your torrent file is ready to be downloaded and seeded!');
     }
 }

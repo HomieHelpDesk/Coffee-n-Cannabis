@@ -20,137 +20,260 @@ use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
+use RuntimeException;
 
 trait ConsoleTools
 {
     protected SymfonyStyle $io;
 
-    private function cyan(string $line): void
+    /**
+     * Log a message to a file.
+     */
+    protected function log(string $message, ?string $logFile = null): void
     {
-        $this->io->writeln(\sprintf('<fg=cyan>%s</>', $line));
+        $logFile ??= $this->logFile ?? storage_path('logs/console-'.now()->format('Y-m-d').'.log');
+        $timestamp = now()->toDateTimeString();
+        $logMessage = "[{$timestamp}] {$message}".PHP_EOL;
+
+        if (!file_exists(\dirname($logFile)) && !mkdir(
+            $concurrentDirectory = \dirname($logFile),
+            0755,
+            true
+        ) && !is_dir($concurrentDirectory)) {
+            throw new RuntimeException(\sprintf('Directory "%s" was not created', $concurrentDirectory));
+        }
+
+        file_put_contents($logFile, $logMessage, FILE_APPEND);
     }
 
-    private function white(string $line): void
+    /**
+     * Display a section header in a quote-like format.
+     */
+    public function header(string $text): void
     {
-        $this->io->writeln(PHP_EOL.$line);
+        $length = mb_strlen($text) + 4; // Add padding
+        $border = str_repeat('━', $length);
+
+        $this->io->newLine();
+        $this->io->writeln("<fg=blue>┏{$border}┓</>");
+        $this->io->writeln("<fg=blue>┃</><fg=white>  {$text}  </><fg=blue>┃</>");
+        $this->io->writeln("<fg=blue>┗{$border}┛</>");
+        $this->io->newLine();
+
+        $this->log($text);
     }
 
-    private function magenta(string $line): void
+    /**
+     * Display a success message.
+     */
+    public function success(string $message): void
     {
-        $this->io->writeln(\sprintf('<fg=magenta>%s</>', $line));
+        $this->io->writeln("<fg=green>✓ {$message}</>");
     }
 
-    private function green(string $line): void
+    /**
+     * Display an error message.
+     *
+     * @param string|array<string> $string
+     * @param int|string|null      $verbosity
+     */
+    public function error($string, $verbosity = null): void
     {
-        $this->io->writeln(\sprintf('<fg=green>%s</>', $line));
-    }
-
-    private function red(string $line): void
-    {
-        $this->io->writeln(\sprintf('<fg=red>%s</>', $line));
-    }
-
-    private function blue(string $line): void
-    {
-        $this->io->writeln(\sprintf('<fg=blue>%s</>', $line));
-    }
-
-    private function done(): void
-    {
-        $this->green('<fg=white>[</>Done<fg=white>]</>');
-    }
-
-    private function header(string $line): void
-    {
-        $this->blue(str_repeat('=', 50));
-        $this->io->write($line);
-        $this->blue(str_repeat('=', 50));
-    }
-
-    private function alertSuccess(string $line): void
-    {
-        $this->io->writeln(\sprintf('<fg=white>[</><fg=green> !! %s !! </><fg=white>]</>', $line));
-    }
-
-    private function alertDanger(string $line): void
-    {
-        $this->io->writeln(\sprintf('<fg=white>[</><fg=red> !! %s !! </><fg=white>]</>', $line));
-    }
-
-    private function alertInfo(string $line): void
-    {
-        $this->io->writeln(\sprintf('<fg=white>[</><fg=cyan> !! %s !! </><fg=white>]</>', $line));
-    }
-
-    private function alertWarning(string $line): void
-    {
-        $this->io->writeln(\sprintf('<fg=white>[</><fg=yellow> !! %s !! </><fg=white>]</>', $line));
-    }
-
-    private function commands(array $commands, bool $silent = false): void
-    {
-        foreach ($commands as $command) {
-            $process = $this->process($command, $silent);
-
-            if (!$silent) {
-                echo "\n\n";
-                $this->warn($process->getOutput());
+        if (\is_array($string)) {
+            foreach ($string as $message) {
+                $this->io->writeln("<fg=red>✗ {$message}</>");
             }
+        } else {
+            $this->io->writeln("<fg=red>✗ {$string}</>");
         }
     }
 
-    private function process(string $command, bool $silent = false): Process
+    /**
+     * Display an info message.
+     *
+     * @param string|array<string> $string
+     * @param int|string|null      $verbosity
+     */
+    public function info($string, $verbosity = null): void
+    {
+        if (\is_array($string)) {
+            foreach ($string as $message) {
+                $this->io->writeln("<fg=cyan>ℹ {$message}</>");
+            }
+        } else {
+            $this->io->writeln("<fg=cyan>ℹ {$string}</>");
+        }
+    }
+
+    /**
+     * Display a warning message.
+     */
+    public function warning(string $message): void
+    {
+        $this->io->writeln("<fg=yellow>⚠ {$message}</>");
+    }
+
+    /**
+     * Display a note message.
+     */
+    public function note(string $message): void
+    {
+        $this->io->writeln("<fg=magenta>• {$message}</>");
+    }
+
+    /**
+     * Display a command being executed.
+     */
+    protected function command(string $command): void
+    {
+        $this->io->writeln("<fg=blue>$ <fg=yellow>{$command}</>");
+    }
+
+    /**
+     * Execute a shell command with a progress bar.
+     */
+    protected function execCommand(string $command, bool $silent = false): Process
     {
         if (!$silent) {
-            $this->cyan($command);
-            $bar = $this->progressStart();
+            $this->io->newLine();
+            $this->command($command);
+            $progressBar = $this->createProgressBar();
         }
 
         $process = Process::fromShellCommandline($command);
-        $process->setTimeout(3_600);
+        $process->setTimeout(3600);
         $process->start();
 
         while ($process->isRunning()) {
             try {
                 $process->checkTimeout();
             } catch (ProcessTimedOutException) {
-                $this->red(\sprintf("'%s' timed out.!", $command));
+                $this->error("Command timed out after 1 hour: '{$command}'");
             }
 
             if (!$silent) {
-                $bar->advance();
+                $progressBar->advance();
             }
 
-            usleep(200_000);
+            usleep(200000);
         }
 
         if (!$silent) {
-            $this->progressStop($bar);
+            $progressBar->finish();
+            $this->io->newLine();
+
+            if ($process->isSuccessful()) {
+                $this->success("Command completed successfully!");
+            } else {
+                $this->error("Command failed: ".$process->getErrorOutput());
+            }
         }
 
         $process->stop();
 
-        if (!$process->isSuccessful()) {
-            $this->red($process->getErrorOutput());
-        }
-
         return $process;
     }
 
-    protected function progressStart(): ProgressBar
+    /**
+     * Execute multiple shell commands.
+     *
+     * @param array<string> $commands
+     */
+    protected function execCommands(array $commands, bool $silent = false): void
     {
-        $bar = $this->io->createProgressBar();
-        $bar->setBarCharacter('<fg=magenta>=</>');
-        $bar->setFormat('[%bar%] (<fg=cyan>%message%</>)');
-        $bar->setMessage('Please Wait ...');
-        $bar->start();
+        foreach ($commands as $command) {
+            $process = $this->execCommand($command, $silent);
 
-        return $bar;
+            if (!$silent && $process->getOutput() && trim($process->getOutput()) !== '') {
+                $this->io->writeln("<fg=gray>".trim($process->getOutput())."</>");
+            }
+        }
     }
 
-    protected function progressStop(ProgressBar $progressBar): void
+    /**
+     * Create a stylized progress bar.
+     */
+    protected function createProgressBar(): ProgressBar
     {
-        $progressBar->setMessage('<fg=green>Done!</>');
-        $progressBar->finish();
+        $progressBar = $this->io->createProgressBar();
+        $progressBar->setBarCharacter('<fg=cyan>▶</>');
+        $progressBar->setEmptyBarCharacter('<fg=gray>▷</>');
+        $progressBar->setProgressCharacter('<fg=green>▶</>');
+        $progressBar->setFormat(' %bar% <fg=cyan>%percent:3s%%</> %elapsed:6s%/%estimated:-6s% ');
+        $progressBar->start();
+
+        return $progressBar;
+    }
+
+    /**
+     * Display a stylized alert box.
+     *
+     * @param string|array<string> $string
+     * @param int|string|null      $verbosity
+     */
+    public function alert($string, $verbosity = null): void
+    {
+        if (\is_string($string) && \in_array($string, ['success', 'error', 'warning', 'info']) && $verbosity !== null && \is_string($verbosity)) {
+            $this->renderAlert($verbosity, $string);
+
+            return;
+        }
+
+        if (\is_array($string)) {
+            foreach ($string as $message) {
+                $this->renderAlert($message);
+            }
+        } else {
+            $this->renderAlert($string);
+        }
+    }
+
+    /**
+     * Render a stylized alert box with type detection.
+     *
+     * @param string      $message The message to display
+     * @param string|null $type    Optional alert type (success, error, warning, info)
+     */
+    protected function renderAlert(string $message, ?string $type = null): void
+    {
+        if ($type === null) {
+            $detectedType = 'info';
+
+            if (preg_match('/^(success|error|warning|info):/i', $message, $matches)) {
+                $detectedType = strtolower($matches[1]);
+                $message = trim(substr($message, \strlen($matches[1]) + 1));
+            }
+
+            $type = $detectedType;
+        }
+
+        $style = match ($type) {
+            'success' => 'green',
+            'error'   => 'red',
+            'warning' => 'yellow',
+            'info'    => 'cyan',
+            default   => 'white'
+        };
+
+        $icon = match ($type) {
+            'success' => '✓',
+            'error'   => '✗',
+            'warning' => '⚠',
+            'info'    => 'ℹ',
+            default   => '•'
+        };
+
+        $this->io->newLine();
+        $this->io->writeln("<fg={$style}>{$icon} {$message}  </>");
+        $this->io->newLine();
+    }
+
+    /**
+     * Display a task completion message.
+     */
+    protected function taskCompleted(string $message = 'Done'): void
+    {
+        $this->success($message);
+        $this->io->newLine();
     }
 }

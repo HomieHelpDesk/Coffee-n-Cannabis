@@ -58,6 +58,10 @@ class UpdateGeneralSettingRequest extends FormRequest
                 'required',
                 'boolean',
             ],
+            'unbookmark_torrents_on_completion' => [
+                'required',
+                'boolean',
+            ],
         ];
     }
 }

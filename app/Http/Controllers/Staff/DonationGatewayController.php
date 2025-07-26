@@ -31,7 +31,7 @@ class DonationGatewayController extends Controller
     {
         abort_unless($request->user()->group->is_owner, 403);
 
-        return view('Staff.donation_gateway.index', ['gateways' => DonationGateway::orderBy('position')->paginate(25)]);
+        return view('Staff.donation-gateway.index', ['gateways' => DonationGateway::orderBy('position')->paginate(25)]);
     }
 
     /**
@@ -41,7 +41,7 @@ class DonationGatewayController extends Controller
     {
         abort_unless($request->user()->group->is_owner, 403);
 
-        return view('Staff.donation_gateway.create');
+        return view('Staff.donation-gateway.create');
     }
 
     /**
@@ -54,7 +54,7 @@ class DonationGatewayController extends Controller
         DonationGateway::create($request->validated());
 
         return redirect()->route('staff.gateways.index')
-            ->withSuccess('Donation Gateway Added Successfully!');
+            ->with('success', 'Donation Gateway Added Successfully!');
     }
 
     /**
@@ -64,7 +64,7 @@ class DonationGatewayController extends Controller
     {
         abort_unless($request->user()->group->is_owner, 403);
 
-        return view('Staff.donation_gateway.edit', ['gateway' => $gateway]);
+        return view('Staff.donation-gateway.edit', ['gateway' => $gateway]);
     }
 
     /**
@@ -77,7 +77,7 @@ class DonationGatewayController extends Controller
         $gateway->update($request->validated());
 
         return redirect()->route('staff.gateways.index')
-            ->withSuccess('Donation Gateway Edited Successfully!');
+            ->with('success', 'Donation Gateway Edited Successfully!');
     }
 
     /**
@@ -90,6 +90,6 @@ class DonationGatewayController extends Controller
         $gateway->delete();
 
         return redirect()->route('staff.gateways.index')
-            ->withSuccess('Donation Gateway Deleted Successfully!');
+            ->with('success', 'Donation Gateway Deleted Successfully!');
     }
 }

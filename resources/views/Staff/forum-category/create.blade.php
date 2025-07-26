@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>Add Forums - {{ __('staff.staff-dashboard') }} - {{ config('other.title') }}</title>
@@ -24,7 +24,7 @@
     </li>
 @endsection
 
-@section('page', 'page__forum-category-admin--create')
+@section('page', 'page__staff-forum-category--create')
 
 @section('main')
     <section class="panelV2">

@@ -19,6 +19,7 @@ namespace Database\Factories;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Playlist;
+use App\Models\PlaylistCategory;
 
 /** @extends Factory<Playlist> */
 class PlaylistFactory extends Factory
@@ -34,14 +35,15 @@ class PlaylistFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id'     => User::factory(),
-            'name'        => $this->faker->name(),
-            'description' => $this->faker->text(),
-            'cover_image' => $this->faker->word(),
-            'position'    => $this->faker->randomNumber(),
-            'is_private'  => $this->faker->boolean(),
-            'is_pinned'   => $this->faker->boolean(),
-            'is_featured' => $this->faker->boolean(),
+            'user_id'              => User::factory(),
+            'playlist_category_id' => PlaylistCategory::factory(),
+            'name'                 => $this->faker->name(),
+            'description'          => $this->faker->text(),
+            'cover_image'          => $this->faker->word(),
+            'position'             => $this->faker->randomNumber(),
+            'is_private'           => $this->faker->boolean(),
+            'is_pinned'            => $this->faker->boolean(),
+            'is_featured'          => $this->faker->boolean(),
         ];
     }
 }

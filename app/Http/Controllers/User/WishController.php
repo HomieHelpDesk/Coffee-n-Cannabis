@@ -58,7 +58,7 @@ class WishController extends Controller
 
         switch ($request->meta) {
             case 'movie':
-                $meta = (new Movie((int) $request->movie_id))->data;
+                $meta = (new Movie((int) $request->tmdb_movie_id))->data;
 
                 if ($meta === null) {
                     return to_route('users.wishes.index', ['user' => $user])
@@ -68,14 +68,14 @@ class WishController extends Controller
                 $title = $meta['title'].' ('.$meta['release_date'].')';
 
                 Wish::create([
-                    'user_id'  => $user->id,
-                    'title'    => $title,
-                    'movie_id' => $request->movie_id,
+                    'user_id'       => $user->id,
+                    'title'         => $title,
+                    'tmdb_movie_id' => $request->tmdb_movie_id,
                 ]);
 
                 break;
             case 'tv':
-                $meta = (new TV((int) $request->tv_id))->data;
+                $meta = (new TV((int) $request->tmdb_tv_id))->data;
 
                 if ($meta === null) {
                     return to_route('users.wishes.index', ['user' => $user])
@@ -85,16 +85,16 @@ class WishController extends Controller
                 $title = $meta['name'].' ('.$meta['first_air_date'].')';
 
                 Wish::create([
-                    'user_id' => $user->id,
-                    'title'   => $title,
-                    'tv_id'   => $request->tv_id,
+                    'user_id'    => $user->id,
+                    'title'      => $title,
+                    'tmdb_tv_id' => $request->tmdb_tv_id,
                 ]);
 
                 break;
         }
 
         return to_route('users.wishes.index', ['user' => $user])
-            ->withSuccess('Wish Successfully Added!');
+            ->with('success', 'Wish Successfully Added!');
     }
 
     /**
@@ -107,6 +107,6 @@ class WishController extends Controller
         $wish->delete();
 
         return to_route('users.wishes.index', ['user' => $user])
-            ->withSuccess('Wish Successfully Removed!');
+            ->with('success', 'Wish Successfully Removed!');
     }
 }

@@ -27,7 +27,7 @@ class StoreGroupRequest extends FormRequest
      */
     public function authorize(Request $request): bool
     {
-        return $request->user()->group->is_owner || $request->is_owner != 1;
+        return $request->user()->group->is_owner || $request->group['is_owner'] != 1;
     }
 
     /**

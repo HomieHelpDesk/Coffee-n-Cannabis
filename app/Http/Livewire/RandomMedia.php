@@ -16,8 +16,8 @@ declare(strict_types=1);
 
 namespace App\Http\Livewire;
 
-use App\Models\Tv;
-use App\Models\Movie;
+use App\Models\TmdbTv;
+use App\Models\TmdbMovie;
 use Illuminate\Support\Facades\Redis;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -25,7 +25,7 @@ use Livewire\Component;
 class RandomMedia extends Component
 {
     /**
-     * @return \Illuminate\Support\Collection<int, Movie>
+     * @return \Illuminate\Support\Collection<int, TmdbMovie>
      */
     #[Computed]
     final public function movies(): \Illuminate\Support\Collection
@@ -34,7 +34,7 @@ class RandomMedia extends Component
 
         $movieIds = Redis::connection('cache')->command('SRANDMEMBER', [$cacheKey, 3]);
 
-        return Movie::query()
+        return TmdbMovie::query()
             ->select(['id', 'backdrop', 'title', 'release_date'])
             ->withMin('torrents', 'category_id')
             ->whereIn('id', $movieIds)
@@ -42,7 +42,7 @@ class RandomMedia extends Component
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, Movie>
+     * @return \Illuminate\Support\Collection<int, TmdbMovie>
      */
     #[Computed]
     final public function movies2(): \Illuminate\Support\Collection
@@ -51,7 +51,7 @@ class RandomMedia extends Component
 
         $movieIds = Redis::connection('cache')->command('SRANDMEMBER', [$cacheKey, 3]);
 
-        return Movie::query()
+        return TmdbMovie::query()
             ->select(['id', 'backdrop', 'title', 'release_date'])
             ->withMin('torrents', 'category_id')
             ->whereIn('id', $movieIds)
@@ -59,7 +59,7 @@ class RandomMedia extends Component
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, Tv>
+     * @return \Illuminate\Support\Collection<int, TmdbTv>
      */
     #[Computed]
     final public function tvs(): \Illuminate\Support\Collection
@@ -68,7 +68,7 @@ class RandomMedia extends Component
 
         $tvIds = Redis::connection('cache')->command('SRANDMEMBER', [$cacheKey, 3]);
 
-        return Tv::query()
+        return TmdbTv::query()
             ->select(['id', 'backdrop', 'name', 'first_air_date'])
             ->withMin('torrents', 'category_id')
             ->whereIn('id', $tvIds)

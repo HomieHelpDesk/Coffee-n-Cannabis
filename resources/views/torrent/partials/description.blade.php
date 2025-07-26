@@ -17,7 +17,7 @@
         </div>
     </header>
     <div class="panel__body bbcode-rendered">
-        @joypixels($torrent->getDescriptionHtml())
+        @bbcode($torrent->description)
     </div>
     <script nonce="{{ HDVinnie\SecureHeaders\SecureHeaders::nonce('script') }}">
         document.addEventListener('alpine:init', () => {
@@ -25,10 +25,7 @@
                 copy() {
                     text = document.createElement('textarea');
                     text.innerHTML = decodeURIComponent(
-                        atob('{{ base64_encode($torrent->description) }}')
-                            .split('')
-                            .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                            .join(''),
+                        escape(atob('{{ base64_encode($torrent->description) }}')),
                     );
                     navigator.clipboard.writeText(text.value);
                     Swal.fire({

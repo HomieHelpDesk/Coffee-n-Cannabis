@@ -44,7 +44,7 @@ test('create returns an ok response', function (): void {
     $response = $this->actingAs($user)->get(route('topics.create', ['id' => $topic->id]));
 
     $response->assertOk();
-    $response->assertViewIs('forum.forum_topic.create');
+    $response->assertViewIs('forum.forum-topic.create');
     $response->assertViewHas('forum', $forum);
 
     // TODO: perform additional assertions

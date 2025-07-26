@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main-and-sidebar')
 
 @section('title')
     <title>
@@ -29,6 +29,8 @@
 @section('nav-tabs')
     @include('user.buttons.user')
 @endsection
+
+@section('page', 'page__user-rsskey--index')
 
 @section('main')
     <section class="panelV2">

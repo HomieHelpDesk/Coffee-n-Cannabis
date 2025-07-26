@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>Announces - {{ config('other.title') }}</title>
@@ -13,8 +13,8 @@
     <li class="breadcrumb--active">Announces</li>
 @endsection
 
-@section('page', 'page__history--index')
+@section('page', 'page__staff-announce--index')
 
-@section('content')
+@section('main')
     @livewire('announce-search')
 @endsection

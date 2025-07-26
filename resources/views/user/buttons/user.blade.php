@@ -270,26 +270,32 @@
                 </li>
             @endif
 
-            @if ($isProfileOwner)
+            @if ($isProfileOwner || $isModo)
                 <li class="nav-tabV2">
                     <a
                         class="nav-tab__link"
-                        href="{{ route('torrents.index', ['bookmarked' => '1']) }}"
+                        href="{{ route('users.bookmarks.index', ['user' => $user]) }}"
                     >
                         {{ __('user.bookmarks') }}
                     </a>
                 </li>
-                <form
-                    action="{{ route('users.peers.mass_destroy', ['user' => $user]) }}"
-                    method="POST"
-                    style="display: contents"
-                >
-                    @csrf()
-                    @method('DELETE')
-                    <button class="nav-tab__link" type="submit">
-                        {{ __('staff.flush-ghost-peers') }}
-                    </button>
-                </form>
+            @endif
+
+            @if ($isProfileOwner)
+                @if (! config('announce.external_tracker.is_enabled'))
+                    <form
+                        action="{{ route('users.peers.mass_destroy', ['user' => $user]) }}"
+                        method="POST"
+                        style="display: contents"
+                    >
+                        @csrf()
+                        @method('DELETE')
+                        <button class="nav-tab__link" type="submit">
+                            {{ __('staff.flush-ghost-peers') }}
+                        </button>
+                    </form>
+                @endif
+
                 <li class="nav-tabV2" x-data="dialog">
                     <a class="nav-tab__link" x-bind="showDialog">Download Torrent Files</a>
 

@@ -46,7 +46,7 @@
                 @forelse ($passwordResetHistories as $passwordResetHistory)
                     <tr>
                         <td>
-                            <x-user_tag :user="$passwordResetHistory->user" :anon="false" />
+                            <x-user-tag :user="$passwordResetHistory->user" :anon="false" />
                         </td>
                         <td>
                             <time

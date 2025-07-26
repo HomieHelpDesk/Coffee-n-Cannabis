@@ -7,13 +7,13 @@
     <header class="torrent-card__header">
         <div class="torrent-card__left-header">
             <span class="torrent-card__category">{{ $torrent->category->name }}</span>
-            <span class="torrent-card__meta-seperator">&bull;</span>
+            <span class="torrent-card__meta-separator">&bull;</span>
             <span class="torrent-card__resolution">
                 {{ $torrent->resolution->name ?? 'No Res' }}
             </span>
-            <span class="torrent-card__meta-seperator"></span>
+            <span class="torrent-card__meta-separator"></span>
             <span class="torrent-card__type">{{ $torrent->type->name }}</span>
-            <span class="torrent-card__meta-seperator">&bull;</span>
+            <span class="torrent-card__meta-separator">&bull;</span>
             <span class="torrent-card__size">{{ $torrent->getSize() }}</span>
         </div>
         <div class="torrent-card__right-header">
@@ -21,12 +21,12 @@
                 <i class="fas fa-arrow-up"></i>
                 {{ $torrent->seeders }}
             </a>
-            <span class="torrent-card__meta-seperator">&bull;</span>
+            <span class="torrent-card__meta-separator">&bull;</span>
             <a class="torrent-card__leeches" href="{{ route('peers', ['id' => $torrent->id]) }}">
                 <i class="fas fa-arrow-down"></i>
                 {{ $torrent->leechers }}
             </a>
-            <span class="torrent-card__meta-seperator">&bull;</span>
+            <span class="torrent-card__meta-separator">&bull;</span>
             <a
                 class="torrent-card__completed"
                 href="{{ route('history', ['id' => $torrent->id]) }}"
@@ -39,7 +39,13 @@
     <aside class="torrent-card__aside">
         <a
             class="torrent-card__similar-link"
-            href="{{ route('torrents.similar', ['category_id' => $torrent->category_id, 'tmdb' => $torrent->tmdb]) }}"
+            href="{{
+                match (true) {
+                    $torrent->tmdb_movie_id !== null => route('torrents.similar', ['category_id' => $torrent->category_id, 'tmdb' => $torrent->tmdb_movie_id]),
+                    $torrent->tmdb_tv_id !== null => route('torrents.similar', ['category_id' => $torrent->category_id, 'tmdb' => $torrent->tmdb_tv_id]),
+                    default => '#',
+                }
+            }}"
         >
             <figure class="torrent-card__figure">
                 <img
@@ -49,16 +55,16 @@
                             src="{{ isset($meta->poster) ? tmdb_image('poster_mid', $meta->poster) : 'https://via.placeholder.com/160x240' }}"
                     
                             @break
-                        @case($torrent->category->game_meta && isset($torrent->meta) && $meta->cover->image_id && $meta->name)
-                            src="https://images.igdb.com/igdb/image/upload/t_cover_big/{{ $torrent->meta->cover->image_id }}.jpg"
+                        @case($torrent->category->game_meta && isset($torrent->meta) && $meta->cover_image_id && $meta->name)
+                            src="https://images.igdb.com/igdb/image/upload/t_cover_big/{{ $torrent->meta->cover_image_id }}.jpg"
                     
                             @break
                         @case($torrent->category->music_meta)
                             src="https://via.placeholder.com/160x240"
                     
                             @break
-                        @case($torrent->category->no_meta && file_exists(public_path() . '/files/img/torrent-cover_' . $torrent->id . '.jpg'))
-                            src="{{ url('files/img/torrent-cover_' . $torrent->id . '.jpg') }}"
+                        @case($torrent->category->no_meta && Storage::disk('torrent-covers')->exists("torrent-cover_$torrent->id.jpg"))
+                            src="{{ route('authenticated_images.torrent_cover', ['torrent' => $torrent]) }}"
                     
                             @break
                     @endswitch
@@ -85,7 +91,7 @@
                 <i class="{{ \config('other.font-awesome') }} fa-star"></i>
                 {{ $meta?->vote_average ?? 0 }}
             </span>
-            <span class="torrent-card__meta-seperator">&bull;</span>
+            <span class="torrent-card__meta-separator">&bull;</span>
             <ul class="torrent-card__genres">
                 @foreach ($meta?->genres ?? [] as $genre)
                     <li class="torrent-card__genre-item">
@@ -106,9 +112,9 @@
     <footer class="torrent-card__footer">
         <div class="torrent-card__left-footer">
             <address class="torrent-card__uploader">
-                <x-user_tag :anon="$torrent->anon" :user="$torrent->user" />
+                <x-user-tag :anon="$torrent->anon" :user="$torrent->user" />
             </address>
-            <span class="torrent-card__meta-seperator">&bull;</span>
+            <span class="torrent-card__meta-separator">&bull;</span>
             <time title="{{ $torrent->created_at }}" datetime="{{ $torrent->created_at }}">
                 {{ $torrent->created_at->diffForHumans() }}
             </time>

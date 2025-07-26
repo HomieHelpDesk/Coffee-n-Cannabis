@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ $user->username }} {{ __('user.followers') }} - {{ config('other.title') }}</title>
@@ -19,7 +19,9 @@
     @include('user.buttons.user')
 @endsection
 
-@section('content')
+@section('page', 'page__user-follower--index')
+
+@section('main')
     @if (auth()->user()->isAllowed($user, 'follower', 'show_follower'))
         <section class="panelV2">
             <h2 class="panel__heading">{{ __('user.followers') }}</h2>
@@ -37,13 +39,13 @@
                             <tr>
                                 <td>
                                     <img
-                                        src="{{ url($follower->image === null ? 'img/profile.png' : 'files/img/' . $follower->image) }}"
+                                        src="{{ $follower->image === null ? url('img/profile.png') : route('authenticated_images.user_avatar', ['user' => $follower]) }}"
                                         alt=""
                                         class="user-search__avatar"
                                     />
                                 </td>
                                 <td>
-                                    <x-user_tag :anon="false" :user="$follower" />
+                                    <x-user-tag :anon="false" :user="$follower" />
                                 </td>
                                 <td>{{ $follower->follow->created_at }}</td>
                             </tr>

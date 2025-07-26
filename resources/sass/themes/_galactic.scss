@@ -98,9 +98,16 @@
     --chatbox-tab-delete-fg: #c22222;
     --chatbox-tab-delete-bg: #444;
 
+    --compact-search-bg: #272727;
+    --compact-search-box-shadow: none;
+    --compact-search-border-radius: 8px;
+    --compact-search-fg: var(--text-color);
+    --compact-search-padding: 5px;
+
     --comparison-divider-fg: #fff;
     --comparison-button-fg: #fff;
 
+    --data-table-border-radius: 0;
     --data-table-fg: var(--text-color);
     --data-table-th-bg: #2c2c2c;
     --data-table-thead-border: none;
@@ -156,6 +163,7 @@
     --input-text-padding-active: 11px;
     --input-text-padding-hover: 11px;
 
+    --key-value-border-radius: 0;
     --key-value-even-bg: #272727;
     --key-value-fg: var(--text-color);
     --key-value-odd-bg: #272727;
@@ -179,7 +187,7 @@
     --mediahub-card-border-radius: 0;
     --mediahub-card-box-shadow: none;
 
-    --meta-backdrop-filter: brightness(30%);
+    --meta-backdrop-filter: brightness(30%) blur(100px);
     --meta-dropdown-backdrop-filter: brightness(2) blur(10px);
     --meta-dropdown-bg: #4449;
     --meta-dropdown-backdrop-filter-hover: brightness(2) blur(10px);
@@ -213,6 +221,7 @@
     --paginate-bg: #1c1c1c;
     --paginate-bg-hover: #222;
     --paginate-bg-current: #202020;
+    --paginate-border-radius: 0;
     --paginate-fg: #888;
     --paginate-fg-disabled: #555;
     --paginate-divider: #303030;
@@ -221,10 +230,12 @@
     --panel-border: none;
     --panel-bg: #272727;
     --panel-fg: var(--text-color);
+    --panel-body-border-radius: 0;
     --panel-box-shadow: none;
     --panel-border-radius: 0;
     --panel-head-bg: #1c1c1c;
     --panel-head-fg: #fff;
+    --panel-head-border-radius: 0;
 
     --playlist-card-bg: #111;
     --playlist-card-border: none;
@@ -281,6 +292,7 @@
     --scrollbar-color: #ffffff19;
 
     --secondary-nav-bg: #292929;
+    --secondary-nav-box-shadow: 0 8px 10px 0 rgba(0, 0, 0, 0.2);
     --secondary-nav-tab-fg: #aaa;
     --secondary-nav-tab-bg: inherit;
     --secondary-nav-tab-active-text-decoration: underline #777 2px;
@@ -376,13 +388,11 @@
     --torrent-row-comments-fg: #669966;
     --torrent-row-internal-fg: #baaf92;
     --torrent-row-personal-fg: #865be9;
-    --torrent-row-stream-optimized-fg: #996666;
     --torrent-row-featured-fg: #997799;
     --torrent-row-freeleech-fg: #ffb800;
     --torrent-row-double-upload-fg: #619061;
     --torrent-row-sticky-fg: #cccccc;
     --torrent-row-highspeed-fg: #996666;
-    --torrent-row-sd-fg: #997766;
     --torrent-row-bumped-fg: #f98a1e;
 
     --torrent-tag-fg: #eee;

@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('breadcrumbs')
     <li class="breadcrumbV2">
@@ -9,7 +9,9 @@
     <li class="breadcrumb--active">Donations</li>
 @endsection
 
-@section('content')
+@section('page', 'page__staff-donation--index')
+
+@section('main')
     <section class="panelV2">
         <header class="panel__header">
             <h2 class="panel__heading">Donation Statistics</h2>
@@ -39,7 +41,7 @@
                         <th>Upload #</th>
                         <th>Invite #</th>
                         <th>Bonus #</th>
-                        <th>Lenght</th>
+                        <th>Length</th>
                         <th>Status</th>
                         <th>{{ __('common.actions') }}</th>
                     </tr>
@@ -49,9 +51,11 @@
                         <tr>
                             <td>{{ $donation->created_at }}</td>
                             <td>
-                                <x-user_tag :user="$donation->user" :anon="false" />
+                                <x-user-tag :user="$donation->user" :anon="false" />
                             </td>
-                            <td>{{ $donation->transaction }}</td>
+                            <td style="max-width: 80ch; word-wrap: break-word; white-space: normal">
+                                {{ $donation->transaction }}
+                            </td>
                             <td
                                 class="{{ $donation->package->trashed() ? 'text-danger' : '' }}"
                                 title="{{ $donation->package->trashed() ? 'Package has been deleted' : '' }}"
@@ -87,9 +91,9 @@
                                 @endif
                             </td>
                             <td>
-                                @if ($donation->status === App\Models\Donation::PENDING)
+                                @if ($donation->status === App\Enums\ModerationStatus::PENDING)
                                     <span class="text-warning">Pending</span>
-                                @elseif ($donation->status === App\Models\Donation::APPROVED)
+                                @elseif ($donation->status === App\Enums\ModerationStatus::APPROVED)
                                     <span class="text-success">Approved</span>
                                 @else
                                     <span class="text-danger">Rejected</span>
@@ -97,7 +101,7 @@
                             </td>
 
                             <td>
-                                @if ($donation->status === App\Models\Donation::PENDING)
+                                @if ($donation->status === App\Enums\ModerationStatus::PENDING)
                                     <menu class="data-table__actions">
                                         <li class="data-table__action">
                                             <form

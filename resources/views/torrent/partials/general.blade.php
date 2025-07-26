@@ -87,7 +87,7 @@
         </a>
     </li>
     <li class="torrent__uploader">
-        <x-user_tag :user="$torrent->user" :anon="$torrent->anon" />
+        <x-user-tag :user="$torrent->user" :anon="$torrent->anon" />
     </li>
     <li class="torrent__uploaded-at">
         <time datetime="{{ $torrent->created_at }}" title="{{ $torrent->created_at }}">

@@ -75,7 +75,7 @@ class UserController extends Controller
         $staff = $request->user();
         $group = Group::findOrFail($request->group_id);
 
-        abort_if(!($staff->group->is_owner || $staff->group->is_admin) && ($staff->group->level <= $user->group->level || $staff->group->level <= $group->level), 403);
+        abort_if(! $staff->group->is_owner && ($staff->group->level <= $user->group->level || $staff->group->level <= $group->level), 403);
 
         $user->update($request->validated());
 
@@ -84,7 +84,7 @@ class UserController extends Controller
         Unit3dAnnounce::addUser($user);
 
         return to_route('users.show', ['user' => $user])
-            ->withSuccess('Account Was Updated Successfully!');
+            ->with('success', 'Account Was Updated Successfully!');
     }
 
     /**
@@ -107,7 +107,7 @@ class UserController extends Controller
         Unit3dAnnounce::addUser($user);
 
         return to_route('users.show', ['user' => $user])
-            ->withSuccess('Account Permissions Successfully Edited');
+            ->with('success', 'Account Permissions Successfully Edited');
     }
 
     /**
@@ -171,7 +171,7 @@ class UserController extends Controller
             Unit3dAnnounce::removeUser($user);
 
             return to_route('staff.dashboard.index')
-                ->withSuccess('Account Has Been Removed');
+                ->with('success', 'Account Has Been Removed');
         }
 
         return to_route('staff.dashboard.index')

@@ -38,7 +38,7 @@
         </span>
     </header>
     <aside class="comment__aside">
-        <x-user_tag class="comment__author" :anon="$comment->anon" :user="$comment->user">
+        <x-user-tag class="comment__author" :anon="$comment->anon" :user="$comment->user">
             <x-slot:appended-icons>
                 @if ($comment->user->isOnline())
                     <i
@@ -57,7 +57,7 @@
                     <i class="{{ config('other.font-awesome') }} fa-envelope text-info"></i>
                 </a>
             </x-slot>
-        </x-user_tag>
+        </x-user-tag>
         @if (! empty($comment->user->title) && ! $comment->anon)
             <p class="comment__author-title">
                 {{ $comment->user->title }}
@@ -65,6 +65,6 @@
         @endif
     </aside>
     <div class="comment__content bbcode-rendered">
-        @joypixels($comment->getContentHtml())
+        @bbcode($comment->content)
     </div>
 </article>

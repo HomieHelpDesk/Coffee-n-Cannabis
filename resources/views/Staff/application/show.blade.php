@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main-and-sidebar')
 
 @section('title')
     <title>Application - {{ __('staff.staff-dashboard') }} - {{ config('other.title') }}</title>
@@ -24,7 +24,7 @@
     </li>
 @endsection
 
-@section('page', 'page__application--show')
+@section('page', 'page__staff-application--show')
 
 @section('main')
     <section class="panelV2">
@@ -90,15 +90,15 @@
                 <dt>{{ __('common.status') }}</dt>
                 <dd>
                     @switch($application->status)
-                        @case(\App\Models\Application::PENDING)
+                        @case(\App\Enums\ModerationStatus::PENDING)
                             <span class="application--pending">Pending</span>
 
                             @break
-                        @case(\App\Models\Application::APPROVED)
+                        @case(\App\Enums\ModerationStatus::APPROVED)
                             <span class="application--approved">Approved</span>
 
                             @break
-                        @case(\App\Models\Application::REJECTED)
+                        @case(\App\Enums\ModerationStatus::REJECTED)
                             <span class="application--rejected">Rejected</span>
 
                             @break
@@ -110,10 +110,10 @@
         </dl>
     </section>
     <section class="panelV2">
-        @if ($application->status !== \App\Models\Application::PENDING)
+        @if ($application->status !== \App\Enums\ModerationStatus::PENDING)
             <h2 class="panel__heading">{{ __('common.moderated-by') }}</h2>
             <div class="panel__body">
-                <x-user_tag :anon="false" :user="$application->moderated" />
+                <x-user-tag :anon="false" :user="$application->moderated" />
             </div>
         @else
             <h2 class="panel__heading">{{ __('common.action') }}</h2>

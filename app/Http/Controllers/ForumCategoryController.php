@@ -29,7 +29,7 @@ class ForumCategoryController extends Controller
      */
     public function show(Request $request, int $id): \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\RedirectResponse
     {
-        return view('forum.category_topic.index', [
+        return view('forum.category-topic.index', [
             'category' => ForumCategory::query()
                 ->whereHas('forums', fn ($query) => $query->authorized(canReadTopic: true))
                 ->findOrFail($id),

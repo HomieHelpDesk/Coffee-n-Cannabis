@@ -17,6 +17,8 @@
     <li class="breadcrumb--active">Torrent Downloads</li>
 @endsection
 
+@section('page', 'page__staff-torrent-download--index')
+
 <div style="display: flex; flex-direction: column; row-gap: 1rem">
     <section class="panelV2">
         <header class="panel__header">
@@ -166,7 +168,7 @@
                             @foreach ($torrentDownloads as $torrentDownload)
                                 <tr>
                                     <td>
-                                        <x-user_tag
+                                        <x-user-tag
                                             :user="$torrentDownload->user"
                                             :anon="false"
                                         />
@@ -230,7 +232,7 @@
                                 <tr>
                                     <td>{{ $torrentDownload->id }}</td>
                                     <td>
-                                        <x-user_tag
+                                        <x-user-tag
                                             :user="$torrentDownload->user"
                                             :anon="false"
                                         />

@@ -70,7 +70,7 @@
                 @forelse ($apikeys as $apikey)
                     <tr>
                         <td>
-                            <x-user_tag :user="$apikey->user" :anon="false" />
+                            <x-user-tag :user="$apikey->user" :anon="false" />
                         </td>
                         <td>{{ $apikey->content }}</td>
                         <td>

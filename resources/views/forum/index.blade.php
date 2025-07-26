@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main-and-sidebar')
 
 @section('title')
     <title>{{ __('forum.forums') }} - {{ config('other.title') }}</title>
@@ -18,7 +18,7 @@
     @include('forum.partials.buttons')
 @endsection
 
-@section('page', 'page__forums--index')
+@section('page', 'page__forum--index')
 
 @section('main')
     @foreach ($categories as $category)

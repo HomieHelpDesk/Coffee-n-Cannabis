@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ __('playlist.edit-playlist') }} - {{ config('other.title') }}</title>
@@ -53,6 +53,32 @@
                     />
                     <label class="form__label form__label--floating" for="name">
                         {{ __('playlist.title') }}
+                    </label>
+                </p>
+                <p class="form__group">
+                    <select
+                        id="playlist_category_id"
+                        class="form__select"
+                        name="playlist_category_id"
+                    >
+                        @foreach ($playlistCategories as $playlistCategory)
+                            @if ($playlist->playlist_category_id === $playlistCategory->id)
+                                <option
+                                    class="form__option"
+                                    value="{{ $playlistCategory->id }}"
+                                    selected
+                                >
+                                    {{ $playlistCategory->name }} ({{ __('torrent.current') }})
+                                </option>
+                            @else
+                                <option class="form__option" value="{{ $playlistCategory->id }}">
+                                    {{ $playlistCategory->name }}
+                                </option>
+                            @endif
+                        @endforeach
+                    </select>
+                    <label class="form__label form__label--floating" for="playlist_category_id">
+                        {{ __('torrent.category') }}
                     </label>
                 </p>
                 <p class="form__group">

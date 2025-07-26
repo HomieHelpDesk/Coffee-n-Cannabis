@@ -17,6 +17,8 @@
     <li class="breadcrumb--active">Torrent Trumps</li>
 @endsection
 
+@section('page', 'page__staff-torrent-trump--index')
+
 <section class="panelV2">
     <header class="panel__header">
         <h2 class="panel__heading">Torrent Trumps</h2>
@@ -89,7 +91,7 @@
                     <tr>
                         <td>{{ $torrentTrump->id }}</td>
                         <td>
-                            <x-user_tag :user="$torrentTrump->user" :anon="false" />
+                            <x-user-tag :user="$torrentTrump->user" :anon="false" />
                         </td>
                         <td>
                             @if ($torrentTrump->torrent->trashed())

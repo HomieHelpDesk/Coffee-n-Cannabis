@@ -26,8 +26,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property int                             $id
  * @property int                             $user_id
  * @property string                          $title
- * @property int                             $movie_id
- * @property int                             $tv_id
+ * @property int                             $tmdb_movie_id
+ * @property int                             $tmdb_tv_id
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  */
@@ -62,7 +62,7 @@ class Wish extends Model
      */
     public function movieTorrents(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(Torrent::class, 'tmdb', 'movie_id')
+        return $this->hasMany(Torrent::class, 'tmdb_movie_id', 'tmdb_movie_id')
             ->whereRelation('category', 'movie_meta', '=', true);
     }
 
@@ -73,7 +73,7 @@ class Wish extends Model
      */
     public function tvTorrents(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(Torrent::class, 'tmdb', 'tv_id')
+        return $this->hasMany(Torrent::class, 'tmdb_tv_id', 'tmdb_tv_id')
             ->whereRelation('category', 'tv_meta', '=', true);
     }
 }

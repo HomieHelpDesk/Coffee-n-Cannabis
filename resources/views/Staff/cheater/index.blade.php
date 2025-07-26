@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>
@@ -24,7 +24,7 @@
     </li>
 @endsection
 
-@section('page', 'page__cheaters--index')
+@section('page', 'page__staff-cheater--index')
 
 @section('main')
     <section class="panelV2">
@@ -42,7 +42,7 @@
                     @foreach ($cheaters as $cheater)
                         <tr>
                             <td>
-                                <x-user_tag :anon="false" :user="$cheater" />
+                                <x-user-tag :anon="false" :user="$cheater" />
                             </td>
                             <td>
                                 <time

@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ $user->username }} {{ __('user.active') }} - {{ config('other.title') }}</title>
@@ -20,6 +20,8 @@
 @section('nav-tabs')
     @include('user.buttons.user')
 @endsection
+
+@section('page', 'page__user-peer--index')
 
 @section('main')
     @livewire('user-active', ['userId' => $user->id])

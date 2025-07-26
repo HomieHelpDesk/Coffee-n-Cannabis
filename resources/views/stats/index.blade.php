@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ __('stat.stats') }} - {{ config('other.title') }}</title>
@@ -48,6 +48,8 @@
         <a class="nav-tab__link" href="{{ route('yearly_overviews.index') }}">Overview</a>
     </li>
 @endsection
+
+@section('page', 'page__stats--index')
 
 @section('main')
     <section class="panelV2">

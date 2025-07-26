@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main-and-sidebar')
 
 @section('title')
     <title>{{ $user->username }} {{ __('user.gifts') }} - {{ config('other.title') }}</title>
@@ -24,7 +24,7 @@
     @include('user.buttons.user')
 @endsection
 
-@section('page', 'page__bonus--gifts')
+@section('page', 'page__user-gift--index')
 
 @section('main')
     <section class="panelV2">
@@ -59,14 +59,14 @@
                                 @if ($gift->sender === null)
                                     Deleted user
                                 @else
-                                    <x-user_tag :user="$gift->sender" :anon="false" />
+                                    <x-user-tag :user="$gift->sender" :anon="false" />
                                 @endif
                             </td>
                             <td>
                                 @if ($gift->recipient === null)
                                     Deleted user
                                 @else
-                                    <x-user_tag :user="$gift->recipient" :anon="false" />
+                                    <x-user-tag :user="$gift->recipient" :anon="false" />
                                 @endif
                             </td>
                             <td>{{ $gift->bon }}</td>

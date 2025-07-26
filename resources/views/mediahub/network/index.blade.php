@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ __('mediahub.networks') }} - {{ config('other.title') }}</title>
@@ -19,6 +19,8 @@
     </li>
 @endsection
 
-@section('content')
-    @livewire('network-search')
+@section('page', 'page__network--index')
+
+@section('main')
+    @livewire('tmdb-network-search')
 @endsection

@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>Invites Log - {{ __('staff.staff-dashboard') }} - {{ config('other.title') }}</title>
@@ -23,7 +23,7 @@
     @include('Staff.partials.user-info-search')
 @endsection
 
-@section('page', 'page__invite-log--index')
+@section('page', 'page__staff-invite--index')
 
 @section('main')
     @livewire('invite-log-search')

@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ $user->username }} {{ __('user.wishlist') }} - {{ config('other.title') }}</title>
@@ -18,6 +18,8 @@
 @section('nav-tabs')
     @include('user.buttons.user')
 @endsection
+
+@section('page', 'page__user-wish--index')
 
 @section('main')
     <section class="panelV2">
@@ -48,7 +50,7 @@
                             id="tmdb"
                             class="form__text"
                             form="wishlistForm"
-                            x-bind:name="meta === 'movie' ? 'movie_id' : 'tv_id'"
+                            x-bind:name="meta === 'movie' ? 'tmdb_movie_id' : 'tmdb_tv_id'"
                             type="text"
                             required
                         />
@@ -90,17 +92,17 @@
                             </td>
                             <td>
                                 <a
-                                    href="{{ route('torrents.index', ['tmdbId' => $wish->movie_id ?? $wish->tv_id, 'view' => 'group']) }}"
+                                    href="{{ route('torrents.index', ['tmdbId' => $wish->tmdb_movie_id ?? $wish->tmdb_tv_id, 'view' => 'group']) }}"
                                 >
-                                    @if ($wish->movie_id !== null)
+                                    @if ($wish->tmdb_movie_id !== null)
                                         Torrents ({{ $wish->movie_torrents_count }})
-                                    @elseif ($wish->tv_id !== null)
+                                    @elseif ($wish->tmdb_tv_id !== null)
                                         Torrents ({{ $wish->tv_torrents_count }})
                                     @endif
                                 </a>
                             </td>
                             <td>
-                                @if ($wish->movie_id !== null)
+                                @if ($wish->tmdb_movie_id !== null)
                                     @if ($wish->movie_torrents_count === 0)
                                         <i
                                             class="{{ config('other.font-awesome') }} fa-times text-red"
@@ -112,7 +114,7 @@
                                             title="Already uploaded"
                                         ></i>
                                     @endif
-                                @elseif ($wish->tv_id !== null)
+                                @elseif ($wish->tmdb_tv_id !== null)
                                     @if ($wish->tv_torrents_count === 0)
                                         <i
                                             class="{{ config('other.font-awesome') }} fa-times text-red"

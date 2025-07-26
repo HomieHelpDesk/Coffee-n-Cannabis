@@ -18,6 +18,7 @@ use App\Http\Controllers\PlaylistController;
 use App\Http\Requests\StorePlaylistRequest;
 use App\Http\Requests\UpdatePlaylistRequest;
 use App\Models\Playlist;
+use App\Models\PlaylistCategory;
 use App\Models\User;
 use Database\Seeders\BotsTableSeeder;
 use Database\Seeders\ChatroomTableSeeder;
@@ -126,17 +127,19 @@ test('store returns an ok response', function (): void {
 
     $user = User::factory()->create();
     $playlist = Playlist::factory()->make();
+    $playlistCategory = PlaylistCategory::factory()->create();
 
     $file = UploadedFile::fake()->image('playlist-cover.png');
 
     $response = $this->actingAs($user)->post(route('playlists.store'), [
-        'name'        => $playlist->name,
-        'description' => $playlist->description,
-        'cover_image' => $file,
-        'is_private'  => false,
-        'is_pinned'   => $playlist->is_pinned,
-        'is_featured' => $playlist->is_featured,
-        'user_id'     => $user->id,
+        'name'                 => $playlist->name,
+        'playlist_category_id' => $playlistCategory->id,
+        'description'          => $playlist->description,
+        'cover_image'          => $file,
+        'is_private'           => false,
+        'is_pinned'            => $playlist->is_pinned,
+        'is_featured'          => $playlist->is_featured,
+        'user_id'              => $user->id,
     ]);
     $response->assertSessionHas('success', trans('playlist.published-success'));
 
@@ -158,14 +161,16 @@ test('update returns an ok response', function (): void {
     $playlist = Playlist::factory()->create([
         'user_id' => $user->id, // create a playlist with the same user
     ]);
+    $playlistCategory = PlaylistCategory::factory()->create();
 
     $file = UploadedFile::fake()->image('playlist-cover.png');
 
     $response = $this->actingAs($user)->patch(route('playlists.update', [$playlist]), [
-        'name'        => 'Test Playlist Name Updated',
-        'description' => 'Test Playlist Description Updated',
-        'cover_image' => $file,
-        'is_private'  => true,
+        'name'                 => 'Test Playlist Name Updated',
+        'playlist_category_id' => $playlistCategory->id,
+        'description'          => 'Test Playlist Description Updated',
+        'cover_image'          => $file,
+        'is_private'           => true,
     ]);
     $response->assertRedirect(route('playlists.show', ['playlist' => $playlist]))->assertSessionHas('success', trans('playlist.update-success'));
 
@@ -180,11 +185,13 @@ test('update aborts with a 403', function (): void {
         'user_id'    => User::factory()->create()->id, // create a playlist with a different user
         'is_private' => true, // make the playlist private
     ]);
+    $playlistCategory = PlaylistCategory::factory()->create();
 
     $response = $this->actingAs($user)->patch(route('playlists.update', [$playlist]), [
-        'name'        => 'Test Playlist Name Updated',
-        'description' => 'Test Playlist Description Updated',
-        'is_private'  => false,
+        'name'                 => 'Test Playlist Name Updated',
+        'playlist_category_id' => $playlistCategory->id,
+        'description'          => 'Test Playlist Description Updated',
+        'is_private'           => false,
     ]);
     $response->assertForbidden();
 });

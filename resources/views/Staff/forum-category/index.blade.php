@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main-and-sidebar')
 
 @section('title')
     <title>Forums - {{ __('staff.staff-dashboard') }} - {{ config('other.title') }}</title>
@@ -19,7 +19,7 @@
     </li>
 @endsection
 
-@section('page', 'page__forums-admin--index')
+@section('page', 'page__staff-forum-category--index')
 
 @section('main')
     @foreach ($categories as $category)

@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ $user->username }} {{ __('user.torrents') }} - {{ config('other.title') }}</title>
@@ -20,6 +20,8 @@
 @section('nav-tabs')
     @include('user.buttons.user')
 @endsection
+
+@section('page', 'page__user-history--index')
 
 @section('main')
     @livewire('user-torrents', ['userId' => $user->id])

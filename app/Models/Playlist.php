@@ -16,17 +16,15 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Helpers\Bbcode;
-use App\Helpers\Linkify;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use voku\helper\AntiXSS;
 
 /**
  * App\Models\Playlist.
  *
  * @property int                             $id
+ * @property int                             $playlist_category_id
  * @property int                             $user_id
  * @property string                          $name
  * @property string                          $description
@@ -63,11 +61,21 @@ class Playlist extends Model
     /**
      * Has Many Torrents.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<Torrent, $this>
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<Torrent, $this, PlaylistTorrent>
      */
     public function torrents(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Torrent::class, 'playlist_torrents')->using(PlaylistTorrent::class)->withPivot('id');
+        return $this->belongsToMany(Torrent::class, 'playlist_torrents')->using(PlaylistTorrent::class)->withPivot('id')->withTimestamps();
+    }
+
+    /**
+     * Has Many Torrents.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<PlaylistSuggestion, $this>
+     */
+    public function suggestions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PlaylistSuggestion::class);
     }
 
     /**
@@ -76,23 +84,5 @@ class Playlist extends Model
     public function comments(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable');
-    }
-
-    /**
-     * Set The Playlists Description After It's Been Purified.
-     */
-    public function setDescriptionAttribute(?string $value): void
-    {
-        $this->attributes['description'] = $value === null ? null : htmlspecialchars((new AntiXSS())->xss_clean($value), ENT_NOQUOTES);
-    }
-
-    /**
-     * Parse Description And Return Valid HTML.
-     */
-    public function getDescriptionHtml(): string
-    {
-        $bbcode = new Bbcode();
-
-        return (new Linkify())->linky($bbcode->parse($this->description));
     }
 }

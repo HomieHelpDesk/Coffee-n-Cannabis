@@ -28,7 +28,7 @@ test('create returns an ok response', function (): void {
     $response = $this->actingAs($user)->get(route('staff.media_languages.create'));
 
     $response->assertOk();
-    $response->assertViewIs('Staff.media_language.create');
+    $response->assertViewIs('Staff.media-language.create');
 
     // TODO: perform additional assertions
 });
@@ -56,7 +56,7 @@ test('edit returns an ok response', function (): void {
     $response = $this->actingAs($user)->get(route('staff.media_languages.edit', [$mediaLanguage]));
 
     $response->assertOk();
-    $response->assertViewIs('Staff.media_language.edit');
+    $response->assertViewIs('Staff.media-language.edit');
     $response->assertViewHas('media_language');
 
     // TODO: perform additional assertions
@@ -71,7 +71,7 @@ test('index returns an ok response', function (): void {
     $response = $this->actingAs($user)->get(route('staff.media_languages.index'));
 
     $response->assertOk();
-    $response->assertViewIs('Staff.media_language.index');
+    $response->assertViewIs('Staff.media-language.index');
     $response->assertViewHas('media_languages');
 
     // TODO: perform additional assertions

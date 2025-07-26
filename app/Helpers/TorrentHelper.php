@@ -29,11 +29,12 @@ use App\Achievements\UserMade800Uploads;
 use App\Achievements\UserMade900Uploads;
 use App\Achievements\UserMadeUpload;
 use App\Bots\IRCAnnounceBot;
+use App\Enums\ModerationStatus;
 use App\Models\AutomaticTorrentFreeleech;
-use App\Models\Movie;
+use App\Models\TmdbMovie;
 use App\Models\Scopes\ApprovedScope;
 use App\Models\Torrent;
-use App\Models\Tv;
+use App\Models\TmdbTv;
 use App\Models\User;
 use App\Notifications\NewUpload;
 use App\Notifications\NewWishListNotice;
@@ -45,17 +46,16 @@ class TorrentHelper
     public static function approveHelper(int $id): void
     {
         $appurl = config('app.url');
-        $appname = config('app.name');
 
         $torrent = Torrent::with('user')->withoutGlobalScope(ApprovedScope::class)->findOrFail($id);
         $torrent->created_at = Carbon::now();
         $torrent->bumped_at = Carbon::now();
-        $torrent->status = Torrent::APPROVED;
+        $torrent->status = ModerationStatus::APPROVED;
         $torrent->moderated_at = now();
         $torrent->moderated_by = (int) auth()->id();
 
         if (!$torrent->free) {
-            $autoFreeleechs = AutomaticTorrentFreeleech::query()
+            $autoFreeleeches = AutomaticTorrentFreeleech::query()
                 ->orderBy('position')
                 ->where(fn ($query) => $query->whereNull('category_id')->orWhere('category_id', '=', $torrent->category_id))
                 ->where(fn ($query) => $query->whereNull('type_id')->orWhere('type_id', '=', $torrent->type_id))
@@ -63,7 +63,7 @@ class TorrentHelper
                 ->where(fn ($query) => $query->whereNull('size')->orWhere('size', '<', $torrent->size))
                 ->get();
 
-            foreach ($autoFreeleechs as $autoFreeleech) {
+            foreach ($autoFreeleeches as $autoFreeleech) {
                 if ($autoFreeleech->name_regex === null || preg_match($autoFreeleech->name_regex, $torrent->name)) {
                     $torrent->free = $autoFreeleech->freeleech_percentage;
 
@@ -77,17 +77,17 @@ class TorrentHelper
         $uploader = $torrent->user;
 
         switch (true) {
-            case $torrent->category->movie_meta:
+            case $torrent->tmdb_movie_id !== null:
                 User::query()
-                    ->whereRelation('wishes', 'movie_id', '=', $torrent->tmdb)
+                    ->whereRelation('wishes', 'tmdb_movie_id', '=', $torrent->tmdb_movie_id)
                     ->get()
                     ->each
                     ->notify(new NewWishListNotice($torrent));
 
                 break;
-            case $torrent->category->tv_meta:
+            case $torrent->tmdb_tv_id !== null:
                 User::query()
-                    ->whereRelation('wishes', 'tv_id', '=', $torrent->tmdb)
+                    ->whereRelation('wishes', 'tmdb_tv_id', '=', $torrent->tmdb_tv_id)
                     ->get()
                     ->each
                     ->notify(new NewWishListNotice($torrent));
@@ -95,11 +95,9 @@ class TorrentHelper
                 break;
         }
 
-        if ($torrent->anon == 0 && $uploader !== null) {
+        if (!$torrent->anon && $uploader !== null) {
             foreach ($uploader->followers()->get() as $follower) {
-                if ($follower->acceptsNotification($uploader, $follower, 'following', 'show_following_upload')) {
-                    $follower->notify(new NewUpload('follower', $torrent));
-                }
+                $follower->notify(new NewUpload('follower', $torrent));
             }
         }
 
@@ -107,7 +105,7 @@ class TorrentHelper
         $username = $user->username;
         $anon = $torrent->anon;
 
-        if ($anon == 0) {
+        if (!$anon) {
             // Achievements
             $user->unlock(new UserMadeUpload());
             $user->addProgress(new UserMade25Uploads(), 1);
@@ -128,10 +126,10 @@ class TorrentHelper
             $meta = null;
             $category = $torrent->category;
 
-            if ($torrent->tmdb > 0) {
+            if ($torrent->tmdb_movie_id > 0 || $torrent->tmdb_tv_id > 0) {
                 $meta = match (true) {
-                    $category->tv_meta    => Tv::find($torrent->tmdb),
-                    $category->movie_meta => Movie::find($torrent->tmdb),
+                    $category->tv_meta    => TmdbTv::find($torrent->tmdb_tv_id),
+                    $category->movie_meta => TmdbMovie::find($torrent->tmdb_movie_id),
                     default               => null,
                 };
             }

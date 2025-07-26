@@ -18,14 +18,16 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePlaylistRequest;
 use App\Http\Requests\UpdatePlaylistRequest;
-use App\Models\Movie;
+use App\Models\TmdbMovie;
 use App\Models\Playlist;
-use App\Models\Tv;
+use App\Models\PlaylistCategory;
+use App\Models\TmdbTv;
 use App\Repositories\ChatRepository;
 use App\Traits\TorrentMeta;
 use Illuminate\Http\Request;
 use Intervention\Image\Facades\Image;
 use Exception;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @see \Tests\Todo\Feature\Http\Controllers\PlaylistControllerTest
@@ -54,7 +56,9 @@ class PlaylistController extends Controller
      */
     public function create(): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
-        return view('playlist.create');
+        return view('playlist.create', [
+            'playlistCategories' => PlaylistCategory::query()->orderBy('position')->get(),
+        ]);
     }
 
     /**
@@ -69,7 +73,7 @@ class PlaylistController extends Controller
 
             $image = $request->file('cover_image');
             $filename = 'playlist-cover_'.uniqid('', true).'.'.$image->getClientOriginalExtension();
-            $path = public_path('/files/img/'.$filename);
+            $path = Storage::disk('playlist-images')->path($filename);
             Image::make($image->getRealPath())->fit(400, 225)->encode('png', 100)->save($path);
         }
 
@@ -86,7 +90,7 @@ class PlaylistController extends Controller
         }
 
         return to_route('playlists.show', ['playlist' => $playlist])
-            ->withSuccess(trans('playlist.published-success'));
+            ->with('success', trans('playlist.published-success'));
     }
 
     /**
@@ -109,6 +113,7 @@ class PlaylistController extends Controller
                     WHEN category_id IN (SELECT id from categories where no_meta = TRUE) THEN 'no'
                 END as meta
             SQL)
+            ->when($request->has('search'), fn ($query) => $query->where('name', 'LIKE', '%'.str_replace(' ', '%', $request->search).'%'))
             ->with(['category', 'resolution', 'type', 'user.group'])
             ->orderBy('name')
             ->paginate(26);
@@ -117,13 +122,15 @@ class PlaylistController extends Controller
         $this->scopeMeta($torrents);
 
         return view('playlist.show', [
-            'playlist' => $playlist->load('user.group'),
+            'playlist' => $playlist->load(['user.group', 'suggestions' => ['user.group', 'torrent']]),
             'meta'     => match (true) {
-                $randomTorrent?->category?->tv_meta    => Tv::find($randomTorrent->tmdb),
-                $randomTorrent?->category?->movie_meta => Movie::find($randomTorrent->tmdb),
+                $randomTorrent?->category?->tv_meta    => TmdbTv::find($randomTorrent->tmdb_tv_id),
+                $randomTorrent?->category?->movie_meta => TmdbMovie::find($randomTorrent->tmdb_movie_id),
                 default                                => null,
             },
-            'torrents' => $torrents,
+            'latestPlaylistTorrent' => $playlist->torrents()->orderByPivot('created_at', 'desc')->first(),
+            'torrents'              => $torrents,
+            'search'                => $request->search,
         ]);
     }
 
@@ -134,7 +141,10 @@ class PlaylistController extends Controller
     {
         abort_unless($request->user()->id === $playlist->user_id || $request->user()->group->is_modo, 403);
 
-        return view('playlist.edit', ['playlist' => $playlist]);
+        return view('playlist.edit', [
+            'playlist'           => $playlist,
+            'playlistCategories' => PlaylistCategory::query()->orderBy('position')->get(),
+        ]);
     }
 
     /**
@@ -152,7 +162,7 @@ class PlaylistController extends Controller
             abort_unless($image->getError() === UPLOAD_ERR_OK, 500);
 
             $filename = 'playlist-cover_'.uniqid('', true).'.'.$image->getClientOriginalExtension();
-            $path = public_path('/files/img/'.$filename);
+            $path = Storage::disk('playlist-images')->path($filename);
             Image::make($image->getRealPath())->fit(400, 225)->encode('png', 100)->save($path);
 
             $playlist->update(['cover_image' => $filename] + $request->validated());
@@ -161,7 +171,7 @@ class PlaylistController extends Controller
         }
 
         return to_route('playlists.show', ['playlist' => $playlist])
-            ->withSuccess(trans('playlist.update-success'));
+            ->with('success', trans('playlist.update-success'));
     }
 
     /**
@@ -178,6 +188,6 @@ class PlaylistController extends Controller
         $playlist->delete();
 
         return to_route('playlists.index')
-            ->withSuccess(trans('playlist.deleted'));
+            ->with('success', trans('playlist.deleted'));
     }
 }

@@ -42,18 +42,18 @@ class Occupation extends Model
     public $timestamps = false;
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<Person, $this>
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<TmdbPerson, $this>
      */
     public function people(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Person::class, 'credits');
+        return $this->belongsToMany(TmdbPerson::class, 'tmdb_credits');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Credit, $this>
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<TmdbCredit, $this>
      */
     public function credits(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(Credit::class);
+        return $this->hasMany(TmdbCredit::class);
     }
 }

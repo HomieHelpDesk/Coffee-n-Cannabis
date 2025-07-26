@@ -29,6 +29,6 @@ class TwoFactorAuthController extends Controller
     {
         abort_unless($request->user()->is($user), 403);
 
-        return view('user.two_factor_auth.edit', ['user' => $user]);
+        return view('user.two-factor-auth.edit', ['user' => $user]);
     }
 }

@@ -75,7 +75,7 @@ if (!\function_exists('href_playlist')) {
 }
 
 if (!\function_exists('href_collection')) {
-    function href_collection(App\Models\Collection $collection): string
+    function href_collection(App\Models\TmdbCollection $collection): string
     {
         $appurl = appurl();
 
@@ -129,6 +129,7 @@ if (!\function_exists('rating_color')) {
 if (!\function_exists('language_flag')) {
     function language_flag(?string $language): ?string
     {
+        // cspell:words Bokmal, Limburgish, Sinhala,
         $flag = match ($language) {
             'English', 'English (US)' => 'us',
             'English (GB)' => 'gb',
@@ -145,7 +146,7 @@ if (!\function_exists('language_flag')) {
             'Bosnian', 'Bosnian (BA)' => 'ba',
             'Bulgarian', 'Bulgarian (BG)' => 'bg',
             'Burmese' => 'mm',
-            'Chinese', 'Mandarin', 'Mandarin (Hans)', 'Mandarin (Hant)', 'Cantonese', 'Cantonese (Hant)', 'Chinese (Simplied)', 'Chinese (Traditional)', 'Chinese (Simplified)', 'Chinese-yue-Hant', 'Chinese-cmn-Hans', 'Chinese-cmn-Hant' => 'cn',
+            'Chinese', 'Mandarin', 'Mandarin (Hans)', 'Mandarin (Hant)', 'Cantonese', 'Cantonese (Hant)', /* cspell:disable */ 'Chinese (Simplied)' /* cspell:enable */, 'Chinese (Traditional)', 'Chinese (Simplified)', 'Chinese-yue-Hant', 'Chinese-cmn-Hans', 'Chinese-cmn-Hant' => 'cn',
             'Chinese (HK)', 'Chinese-Hant-HK', 'Mandarin (HK)', 'Cantonese (HK)', 'Chinese-cmn-HK' => 'hk',
             'Chinese (Taiwan)' => 'tw',
             'Croatian', 'Croatian (HR)' => 'hr',
@@ -184,13 +185,29 @@ if (!\function_exists('language_flag')) {
             'Portuguese (BR)' => 'br',
             'Romanian', 'Romanian (RO)' => 'ro',
             'Russian', 'Russian (RU)' => 'ru',
-            'Serbian', 'Serbian-Latn-RS', 'Serbian (RS)' => 'rs',
+            'Serbian', 'Serbian-Latn-RS', 'Serbian (RS)', 'Serbian (Cyrl)', 'Serbian (Latn)' => 'rs',
             'Sinhala' => 'lk',
             'Slovak', 'Slovak (SK)' => 'sk',
             'Slovenian', 'Slovenian (SI)' => 'si',
             'Spanish', 'Spanish (ES)', 'Spanish (CA)', 'Spanish (EU)', 'Spanish (150)' => 'es',
             'Spanish (Latin America)', 'Spanish (LA)', 'Spanish (MX)' => 'mx',
             'Spanish (AR)' => 'ar',
+            'Spanish (CL)' => 'cl',
+            'Spanish (VE)' => 've',
+            'Spanish (BO)' => 'bo',
+            'Spanish (CO)' => 'co',
+            'Spanish (CR)' => 'cr',
+            'Spanish (DO)' => 'do',
+            'Spanish (EC)' => 'ec',
+            'Spanish (SV)' => 'sv',
+            'Spanish (GT)' => 'gt',
+            'Spanish (HN)' => 'hn',
+            'Spanish (NI)' => 'ni',
+            'Spanish (PA)' => 'pa',
+            'Spanish (PY)' => 'py',
+            'Spanish (PE)' => 'pe',
+            'Spanish (PR)' => 'pr',
+            'Spanish (UY)' => 'uy',
             'Basque', 'Basque (ES)' => 'es-pv',
             'Catalan', 'Catalan (ES)' => 'es-ct',
             'Galician', 'Galician (ES)' => 'es-ga',
@@ -205,5 +222,12 @@ if (!\function_exists('language_flag')) {
         };
 
         return $flag !== null ? '/img/flags/'.$flag.'.png' : null;
+    }
+
+    if (!\function_exists('sanitize_filename')) {
+        function sanitize_filename(string $filename): string
+        {
+            return str_replace([' ', '/', '\\'], ['.', '-', '-'], $filename);
+        }
     }
 }

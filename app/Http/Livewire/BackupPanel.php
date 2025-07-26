@@ -45,7 +45,9 @@ class BackupPanel extends Component
     #[Computed]
     final public function backupStatuses(): array
     {
-        return BackupDestinationStatusFactory::createForMonitorConfig(config('backup.monitor_backups'))
+        $monitorConfig = \Spatie\Backup\Config\MonitoredBackupsConfig::fromArray(config('backup.monitor_backups'));
+
+        return BackupDestinationStatusFactory::createForMonitorConfig($monitorConfig)
             ->map(fn (BackupDestinationStatus $backupDestinationStatus) => [
                 'name'      => $backupDestinationStatus->backupDestination()->backupName(),
                 'disk'      => $backupDestinationStatus->backupDestination()->diskName(),
@@ -95,15 +97,11 @@ class BackupPanel extends Component
 
         return $backupDestination
             ->backups()
-            ->map(function (Backup $backup) {
-                $size = method_exists($backup, 'sizeInBytes') ? $backup->sizeInBytes() : 0;
-
-                return [
-                    'path' => $backup->path(),
-                    'date' => $backup->date()->format('Y-m-d H:i:s'),
-                    'size' => Format::humanReadableSize($size),
-                ];
-            })
+            ->map(fn (Backup $backup) => [
+                'path' => $backup->path(),
+                'date' => $backup->date()->format('Y-m-d H:i:s'),
+                'size' => Format::humanReadableSize($backup->sizeInBytes()),
+            ])
             ->toArray();
     }
 
@@ -141,7 +139,7 @@ class BackupPanel extends Component
         }
 
         $fileName = pathinfo((string) $backup->path(), PATHINFO_BASENAME);
-        $size = method_exists($backup, 'sizeInBytes') ? $backup->sizeInBytes() : $backup->size();
+        $size = $backup->sizeInBytes();
 
         $downloadHeaders = [
             'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',

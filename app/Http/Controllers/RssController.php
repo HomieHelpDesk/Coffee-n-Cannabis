@@ -18,7 +18,7 @@ namespace App\Http\Controllers;
 
 use App\DTO\TorrentSearchFiltersDTO;
 use App\Models\Category;
-use App\Models\Genre;
+use App\Models\TmdbGenre;
 use App\Models\Group;
 use App\Models\Resolution;
 use App\Models\Rss;
@@ -56,7 +56,7 @@ class RssController extends Controller
             'categories'  => Category::select(['id', 'name', 'position'])->orderBy('position')->get(),
             'types'       => Type::select(['id', 'name', 'position'])->orderBy('position')->get(),
             'resolutions' => Resolution::select(['id', 'name', 'position'])->orderBy('position')->get(),
-            'genres'      => Genre::orderBy('name')->get(),
+            'genres'      => TmdbGenre::orderBy('name')->get(),
             'user'        => $request->user(),
         ]);
     }
@@ -78,7 +78,7 @@ class RssController extends Controller
             'resolutions'   => 'sometimes|array|max:999',
             'resolutions.*' => 'sometimes|exists:resolutions,id',
             'genres'        => 'sometimes|array|max:999',
-            'genres.*'      => 'sometimes|exists:genres,id',
+            'genres.*'      => 'sometimes|exists:tmdb_genres,id',
             'position'      => 'sometimes|integer|max:9999',
         ]);
 
@@ -98,9 +98,7 @@ class RssController extends Controller
             'freeleech',
             'doubleupload',
             'featured',
-            'stream',
             'highspeed',
-            'sd',
             'internal',
             'personalrelease',
             'bookmark',
@@ -119,7 +117,7 @@ class RssController extends Controller
             $rss->save();
 
             return to_route('rss.index', ['hash' => 'private'])
-                ->withSuccess(trans('rss.created'));
+                ->with('success', trans('rss.created'));
         }
 
         return to_route('rss.create')
@@ -170,8 +168,6 @@ class RssController extends Controller
                     free: $search->freeleech === null ? [] : [25, 50, 75, 100],
                     doubleup: (bool) ($search->doubleupload ?? false),
                     featured: (bool) ($search->featured ?? false),
-                    stream: (bool) ($search->stream ?? false),
-                    sd: (bool) ($search->sd ?? false),
                     highspeed: (bool) ($search->highspeed ?? false),
                     userBookmarked: (bool) ($search->bookmark ?? false),
                     internal: (bool) ($search->internal ?? false),
@@ -225,7 +221,7 @@ class RssController extends Controller
             'categories'  => Category::select(['id', 'name', 'position'])->orderBy('position')->get(),
             'types'       => Type::select(['id', 'name', 'position'])->orderBy('position')->get(),
             'resolutions' => Resolution::select(['id', 'name', 'position'])->orderBy('position')->get(),
-            'genres'      => Genre::orderBy('name')->get(),
+            'genres'      => TmdbGenre::orderBy('name')->get(),
             'user'        => $user,
             'rss'         => $rss,
         ]);
@@ -252,7 +248,7 @@ class RssController extends Controller
             'resolutions'   => 'sometimes|array|max:999',
             'resolutions.*' => 'sometimes|exists:resolutions,id',
             'genres'        => 'sometimes|array|max:999',
-            'genres.*'      => 'sometimes|exists:genres,id',
+            'genres.*'      => 'sometimes|exists:tmdb_genres,id',
             'position'      => 'sometimes|integer|max:9999',
         ]);
 
@@ -271,9 +267,7 @@ class RssController extends Controller
             'freeleech',
             'doubleupload',
             'featured',
-            'stream',
             'highspeed',
-            'sd',
             'internal',
             'personalrelease',
             'bookmark',
@@ -290,7 +284,7 @@ class RssController extends Controller
             $rss->save();
 
             return to_route('rss.index', ['hash' => 'private'])
-                ->withSuccess(trans('rss.created'));
+                ->with('success', trans('rss.created'));
         }
 
         return to_route('rss.create', ['id' => $id])
@@ -312,6 +306,6 @@ class RssController extends Controller
         $rss->delete();
 
         return to_route('rss.index', ['hash' => 'private'])
-            ->withSuccess(trans('rss.deleted'));
+            ->with('success', trans('rss.deleted'));
     }
 }

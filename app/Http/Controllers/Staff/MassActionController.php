@@ -17,8 +17,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Staff\StoreMassActionRequest;
-use App\Jobs\ProcessMassPM;
 use App\Models\Group;
 use App\Models\User;
 use App\Services\Unit3dAnnounce;
@@ -29,35 +27,6 @@ use Exception;
  */
 class MassActionController extends Controller
 {
-    /**
-     * Mass PM Form.
-     */
-    public function create(): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
-    {
-        return view('Staff.masspm.index');
-    }
-
-    /**
-     * Send The Mass PM.
-     *
-     * @throws Exception
-     */
-    public function store(StoreMassActionRequest $request): \Illuminate\Http\RedirectResponse
-    {
-        $users = User::whereNotIn(
-            'group_id',
-            Group::select('id')->whereIn('slug', ['banned', 'validating', 'disabled', 'pruned'])
-        )
-            ->pluck('id');
-
-        foreach ($users as $userId) {
-            ProcessMassPM::dispatch(User::SYSTEM_USER_ID, $userId, $request->subject, $request->message);
-        }
-
-        return to_route('staff.mass-pm.create')
-            ->withSuccess('MassPM Sent');
-    }
-
     /**
      * Mass Validate Unvalidated Users.
      *
@@ -82,6 +51,6 @@ class MassActionController extends Controller
         }
 
         return to_route('staff.dashboard.index')
-            ->withSuccess('Unvalidated Accounts Are Now Validated');
+            ->with('success', 'Unvalidated Accounts Are Now Validated');
     }
 }

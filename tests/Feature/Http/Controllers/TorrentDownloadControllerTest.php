@@ -28,7 +28,7 @@ test('show returns an ok response', function (): void {
     $response = $this->actingAs($user)->get(route('download_check', ['id' => $torrentDownload->id]));
 
     $response->assertOk();
-    $response->assertViewIs('torrent.download_check');
+    $response->assertViewIs('torrent.download-check');
     $response->assertViewHas('torrent', $torrent);
     $response->assertViewHas('user', $user);
 

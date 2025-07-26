@@ -25,7 +25,7 @@ test('edit returns an ok response', function (): void {
     $response = $this->actingAs($authUser)->get(route('users.general_settings.edit', [$user]));
 
     $response->assertOk();
-    $response->assertViewIs('user.general_setting.edit');
+    $response->assertViewIs('user.general-setting.edit');
     $response->assertViewHas('user', $user);
 
     // TODO: perform additional assertions

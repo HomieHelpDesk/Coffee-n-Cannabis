@@ -48,7 +48,7 @@ class AutoSyncTorrentsToMeilisearch extends Command
 
         $client = new Client(config('scout.meilisearch.host'), config('scout.meilisearch.key'));
 
-        $index = $client->getIndex('torrents');
+        $index = $client->getIndex(config('scout.prefix').'torrents');
 
         $index->updatePagination([
             'maxTotalHits' => max(1, Torrent::query()->count()) + 1000,
@@ -62,7 +62,7 @@ class AutoSyncTorrentsToMeilisearch extends Command
             // recently finished 15-minute period (since this cron job runs
             // every 15 minutes, but might be delayed by a few seconds/minutes
             // each time)
-            $since = now()->startOfHour()->addMinutes(15 * (intdiv(now()->diffInMinutes(now()->startOfHour()), 15) - 1));
+            $since = now()->startOfHour()->addMinutes(15 * (intdiv((int) now()->diffInMinutes(now()->startOfHour(), true), 15) - 1));
 
             Torrent::query()
                 ->selectRaw(Torrent::SEARCHABLE)
@@ -70,6 +70,6 @@ class AutoSyncTorrentsToMeilisearch extends Command
                 ->searchable();
         }
 
-        $this->comment('Synced all torrents to Meilisearch in '.(now()->diffInMilliseconds($start) / 1000).' seconds.');
+        $this->comment('Synced all torrents to Meilisearch in '.((int) now()->diffInMilliseconds($start, true) / 1000).' seconds.');
     }
 }

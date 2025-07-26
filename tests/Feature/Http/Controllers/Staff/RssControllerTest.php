@@ -18,7 +18,7 @@ use App\Http\Controllers\Staff\RssController;
 use App\Http\Requests\Staff\StoreRssRequest;
 use App\Http\Requests\Staff\UpdateRssRequest;
 use App\Models\Category;
-use App\Models\Genre;
+use App\Models\TmdbGenre;
 use App\Models\Resolution;
 use App\Models\Rss;
 use App\Models\Type;
@@ -30,7 +30,7 @@ test('create returns an ok response', function (): void {
     $categories = Category::factory()->times(3)->create();
     $types = Type::factory()->times(3)->create();
     $resolutions = Resolution::factory()->times(3)->create();
-    $genres = Genre::factory()->times(3)->create();
+    $genres = TmdbGenre::factory()->times(3)->create();
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)->get(route('staff.rss.create'));
@@ -80,7 +80,7 @@ test('edit returns an ok response', function (): void {
     $categories = Category::factory()->times(3)->create();
     $types = Type::factory()->times(3)->create();
     $resolutions = Resolution::factory()->times(3)->create();
-    $genres = Genre::factory()->times(3)->create();
+    $genres = TmdbGenre::factory()->times(3)->create();
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)->get(route('staff.rss.edit', [$rss]));
@@ -104,7 +104,7 @@ test('edit aborts with a 403', function (): void {
     $categories = Category::factory()->times(3)->create();
     $types = Type::factory()->times(3)->create();
     $resolutions = Resolution::factory()->times(3)->create();
-    $genres = Genre::factory()->times(3)->create();
+    $genres = TmdbGenre::factory()->times(3)->create();
     $user = User::factory()->create();
 
     // TODO: perform additional setup to trigger `abort_if(403)`...

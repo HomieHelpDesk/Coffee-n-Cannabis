@@ -70,9 +70,17 @@
     --chatbox-tab-delete-fg: #c22222;
     --chatbox-tab-delete-bg: #bbb;
 
+    --compact-search-bg: #fff;
+    --compact-search-box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14),
+        0 1px 8px 0 rgba(0, 0, 0, 0.12), 0 3px 3px -2px rgba(0, 0, 0, 0.4);
+    --compact-search-border-radius: 27px;
+    --compact-search-fg: var(--text-color);
+    --compact-search-padding: 5px;
+
     --comparison-divider-fg: #000;
     --comparison-button-fg: #000;
 
+    --data-table-border-radius: 22px;
     --data-table-fg: #111;
     --data-table-th-bg: #fff;
     --data-table-thead-border: 1px solid rgba(14, 21, 34, 0.25);
@@ -121,6 +129,7 @@
     --input-text-padding-active: 11px;
     --input-text-padding-hover: 11px;
 
+    --key-value-border-radius: 0;
     --key-value-even-bg: transparent;
     --key-value-fg: inherit;
     --key-value-odd-bg: transparent;
@@ -148,7 +157,7 @@
     --mediahub-card-box-shadow: 0px 3px 3px -2px rgba(0, 0, 0, 0.2),
         0px 3px 4px 0px rgba(0, 0, 0, 0.14), 0px 1px 8px 0px rgba(0, 0, 0, 0.12);
 
-    --meta-backdrop-filter: brightness(150%) contrast(30%);
+    --meta-backdrop-filter: brightness(150%) contrast(30%) blur(50px);
     --meta-dropdown-backdrop-filter: brightness(130%) blur(10px);
     --meta-dropdown-bg: #4449;
     --meta-dropdown-backdrop-filter-hover: brightness(130%) blur(10px);
@@ -182,6 +191,7 @@
     --paginate-bg: #fff;
     --paginate-bg-hover: #e8e8e8;
     --paginate-bg-current: #f5f5f5;
+    --paginate-border-radius: 22px;
     --paginate-fg: #050505;
     --paginate-fg-disabled: #080808;
     --paginate-divider: #888;
@@ -189,12 +199,14 @@
     --panel-action-fg: #050505;
     --panel-border: none;
     --panel-bg: #fff;
+    --panel-body-border-radius: 22px;
     --panel-fg: inherit;
     --panel-box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14),
         0 1px 8px 0 rgba(0, 0, 0, 0.12), 0 3px 3px -2px rgba(0, 0, 0, 0.4);
     --panel-border-radius: 22px;
     --panel-head-bg: #fff;
     --panel-head-fg: #111;
+    --panel-head-border-radius: 22px;
 
     --playlist-card-bg: #fff;
     --playlist-card-border: none;
@@ -252,6 +264,7 @@
     --scrollbar-color: #0004;
 
     --secondary-nav-bg: #f4f4f4;
+    --secondary-nav-box-shadow: 0 8px 10px 0 rgba(0, 0, 0, 0.2);
     --secondary-nav-tab-fg: #050505;
     --secondary-nav-tab-bg: inherit;
     --secondary-nav-tab-active-text-decoration: underline #0099ff 2px;
@@ -347,13 +360,11 @@
     --torrent-row-comments-fg: #3fb618;
     --torrent-row-internal-fg: #baaf94;
     --torrent-row-personal-fg: #865be9;
-    --torrent-row-stream-optimized-fg: #ff0039;
     --torrent-row-featured-fg: #f92672;
     --torrent-row-freeleech-fg: #ffb800;
     --torrent-row-double-upload-fg: #4cb828;
     --torrent-row-sticky-fg: #111111;
     --torrent-row-highspeed-fg: #ff0039;
-    --torrent-row-sd-fg: #ff7518;
     --torrent-row-bumped-fg: #f9ba13;
 
     --torrent-tag-fg: #111;
@@ -411,26 +422,39 @@
     border-bottom-right-radius: var(--panel-border-radius);
 }
 
-.data-table tr:last-of-type td:first-of-type,
-.data-table
-    > thead:not(:has(+ tbody > tr)):not(:has(tfoot))
-    > tr
-    > th:first-of-type {
+/* Bottom-left-most table header which doesn't have a following tbody, tfoot nor pagination */
+.data-table-wrapper:not(:has(+ .pagination)) >.data-table
+    > thead:not(:has(+ tbody > tr)):not(:has(~ tfoot > tr))
+    > tr:last-of-type
+    > th:first-of-type,
+/* Bottom-left-most tbody table row cell which doesn't have a following tfoot nor pagination */
+.data-table-wrapper:not(:has(+ .pagination)) >.data-table > tbody:not(:has(~ tfoot > tr)) > tr:last-of-type td:first-of-type,
+/* Bottom-left-most tfoot table row cell which doesn't have a following pagination */
+.data-table-wrapper:not(:has(+ .pagination)) >.data-table > tfoot > tr:last-of-type > td:first-of-type {
     border-bottom-left-radius: var(--panel-border-radius);
 }
 
-.data-table tr:last-of-type td:last-of-type,
-.data-table
+/* Unhidden bottom-right-most table cell on bon earning calculation page */
+.data-table-wrapper:not(:has(+ .pagination)) >.data-table
     tr:last-of-type
     td:not([style='display: none;']):has(+ td[style='display: none;']),
-.data-table
-    > thead:not(:has(+ tbody > tr)):not(:has(tfoot))
-    > tr
-    > th:last-of-type {
+/* Bottom-right-most table header which doesn't have a following tbody, tfoot nor pagination */
+.data-table-wrapper:not(:has(+ .pagination)) >.data-table
+    > thead:not(:has(+ tbody > tr)):not(:has(~ tfoot > tr))
+    > tr:last-of-type
+    > th:last-of-type,
+/* Bottom-right-most tbody table row cell which doesn't have a following tfoot nor pagination */
+.data-table-wrapper:not(:has(+ .pagination)) >.data-table > tbody:not(:has(~ tfoot > tr)) > tr:last-of-type td:last-of-type,
+/* Bottom-right-most tfoot table row cell which doesn't have a following pagination */
+.data-table-wrapper:not(:has(+ .pagination)) >.data-table > tfoot > tr:last-of-type > td:last-of-type {
     border-bottom-right-radius: var(--panel-border-radius);
 }
 
-.data-table > thead:not(:has(+ tbody > tr)):not(:has(tfoot)) > tr > th {
+/* Bottom-most table header cells which don't have a following tbody nor tfoot */
+.data-table
+    > thead:not(:has(+ tbody > tr)):not(:has(~ tfoot > tr))
+    > tr:last-of-type
+    > th {
     border-bottom: none;
 }
 
@@ -448,16 +472,16 @@
     border-radius: 22px;
 }
 
-.page__forum--topic .bbcode-input {
+.page__topic--show .bbcode-input {
     --bbcode-input-border: none;
     box-shadow: var(--post-shadow);
 }
 
-.page__forum--topic > article > div > .panelV2 {
+.page__topic--show > article > div > .panelV2 {
     box-shadow: none;
 }
 
-.page__forum--topic > article > div > .panelV2 > .panel__body {
+.page__topic--show > article > div > .panelV2 > .panel__body {
     padding: 20px 0;
 }
 

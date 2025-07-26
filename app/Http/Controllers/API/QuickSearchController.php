@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\API;
 
+use App\Enums\ModerationStatus;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Meilisearch\Client;
@@ -30,14 +31,18 @@ class QuickSearchController extends Controller
 
         $filters = [
             'deleted_at IS NULL',
-            'status = 1',
+            'status = '.ModerationStatus::APPROVED->value,
             [
                 'category.movie_meta = true',
                 'category.tv_meta = true',
             ],
             [
-                'movie.name EXISTS',
-                'tv.name EXISTS',
+                'tmdb_movie.name EXISTS',
+                'tmdb_tv.name EXISTS',
+            ],
+            [
+                'tmdb_movie_id IS NOT NULL AND tmdb_movie_id != 0',
+                'tmdb_tv_id IS NOT NULL AND tmdb_tv_id != 0',
             ]
         ];
 
@@ -45,7 +50,12 @@ class QuickSearchController extends Controller
         $searchById = false;
 
         if (preg_match('/^(\d+)$/', $query, $matches)) {
-            $filters[] = 'tmdb = '.$matches[1];
+            $filters[] = [
+                'tmdb_movie_id = '.$matches[1],
+                'tmdb_movie.name = '.$matches[1],
+                'tmdb_tv_id = '.$matches[1],
+                'tmdb_tv.name = '.$matches[1],
+            ];
             $searchById = true;
         }
 
@@ -59,44 +69,72 @@ class QuickSearchController extends Controller
         // Prepare the search queries
         $searchQueries = [
             (new SearchQuery())
-                ->setIndexUid('torrents')
+                ->setIndexUid(config('scout.prefix').'torrents')
                 ->setQuery($searchById ? '' : $query)
                 ->setFilter($filters)
+                ->setAttributesToRetrieve([
+                    'id',
+                    'name',
+                    'tmdb_movie_id',
+                    'tmdb_tv_id',
+                    'category.id',
+                    'category.name',
+                    'category.movie_meta',
+                    'category.tv_meta',
+                    'tmdb_movie.name',
+                    'tmdb_movie.year',
+                    'tmdb_movie.poster',
+                    'tmdb_tv.name',
+                    'tmdb_tv.year',
+                    'tmdb_tv.poster',
+                ])
                 ->setDistinct('imdb')
         ];
 
         // Add the people search query only if it's not an ID search
         if (!$searchById) {
             $searchQueries[] = (new SearchQuery())
-                ->setIndexUid('people')
-                ->setQuery($query);
-            //->setFederationOptions((new FederationOptions())->setWeight(0.9));
+                ->setIndexUid(config('scout.prefix').'people')
+                ->setQuery($query)
+                ->setAttributesToRetrieve([
+                    'id',
+                    'name',
+                    'birthday',
+                    'still',
+                ]);
         }
 
         // Perform multi-search with MultiSearchFederation
-        $multiSearchResults = $client->multiSearch($searchQueries, ((new MultiSearchFederation()))->setLimit(20));
+
+        $searchQuery = fn () => $client->multiSearch($searchQueries, ((new MultiSearchFederation()))->setLimit(20));
+
+        if (preg_match("/^[a-zA-Z0-9-_ .'@:\\[\\]+&\\/,!#()?\"]{1,2}$/", $query)) {
+            $multiSearchResults = cache()->remember('quick-search:'.strtolower($query), 3600 * 24, $searchQuery);
+        } else {
+            $multiSearchResults = $searchQuery();
+        }
 
         $results = [];
 
         // Process the hits from the multiSearchResults
         foreach ($multiSearchResults['hits'] as $hit) {
-            if ($hit['_federation']['indexUid'] === 'torrents') {
-                $type = $hit['category']['movie_meta'] === true ? 'movie' : 'tv';
+            if ($hit['_federation']['indexUid'] === config('scout.prefix').'torrents') {
+                $type = $hit['category']['movie_meta'] === true ? 'tmdb_movie' : 'tmdb_tv';
 
                 $results[] = [
                     'id'    => $hit['id'],
                     'name'  => $hit[$type]['name'],
                     'year'  => $hit[$type]['year'],
-                    'image' => $hit[$type]['poster'] ? tmdb_image('poster_small', $hit[$type]['poster']) : 'https://via.placeholder.com/90x135',
-                    'url'   => route('torrents.similar', ['category_id' => $hit['category']['id'], 'tmdb' => $hit['tmdb']]),
-                    'type'  => $type === 'movie' ? 'Movie' : 'TV Series',
+                    'image' => $hit[$type]['poster'] ? tmdb_image('poster_small', $hit[$type]['poster']) : mb_substr($hit['name'], 0, 2),
+                    'url'   => route('torrents.similar', ['category_id' => $hit['category']['id'], 'tmdb' => $hit["{$type}_id"]]),
+                    'type'  => $hit['category']['name'],
                 ];
-            } elseif ($hit['_federation']['indexUid'] === 'people') {
+            } elseif ($hit['_federation']['indexUid'] === config('scout.prefix').'people') {
                 $results[] = [
                     'id'    => $hit['id'],
                     'name'  => $hit['name'],
                     'year'  => $hit['birthday'],
-                    'image' => $hit['still'] ? tmdb_image('poster_small', $hit['still']) : 'https://via.placeholder.com/90x135',
+                    'image' => $hit['still'] ? tmdb_image('poster_small', $hit['still']) : mb_substr($hit['name'], 0, 1).mb_substr(str($hit['name'])->explode(' ')->last() ?? '', 0, 1),
                     'url'   => route('mediahub.persons.show', ['id' => $hit['id']]),
                     'type'  => 'Person',
                 ];

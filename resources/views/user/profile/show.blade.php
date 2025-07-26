@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main-and-sidebar')
 
 @section('title')
     <title>
@@ -22,6 +22,8 @@
 @section('nav-tabs')
     @include('user.buttons.user')
 @endsection
+
+@section('page', 'page__user-profile--show')
 
 @if (auth()->user()->isAllowed($user))
     @section('main')
@@ -113,7 +115,7 @@
             </header>
             <div class="panel__body">
                 <article class="profileV2">
-                    <x-user_tag :user="$user" :anon="false" class="profile__username">
+                    <x-user-tag :user="$user" :anon="false" class="profile__username">
                         <x-slot:appendedIcons>
                             @if ($user->isOnline())
                                 <i
@@ -141,7 +143,7 @@
                                 ></i>
                             @endif
                         </x-slot>
-                    </x-user_tag>
+                    </x-user-tag>
                     <time
                         datetime="{{ $user->created_at }}"
                         title="{{ $user->created_at }}"
@@ -151,7 +153,7 @@
                         {{ $user->created_at?->format('Y-m-d') ?? 'N/A' }}
                     </time>
                     <img
-                        src="{{ url($user->image === null ? 'img/profile.png' : 'files/img/' . $user->image) }}"
+                        src="{{ $user->image === null ? url('img/profile.png') : route('authenticated_images.user_avatar', ['user' => $user]) }}"
                         alt=""
                         class="profile__avatar"
                     />
@@ -164,7 +166,7 @@
                     @if (auth()->user()->isAllowed($user, 'profile', 'show_profile_about') && $user->about)
                         <div class="profile__about">
                             {{ __('user.about') }}:
-                            <div class="bbcode-rendered">@joypixels($user->about_html)</div>
+                            <div class="bbcode-rendered">@bbcode($user->about ?? 'N/A')</div>
                         </div>
                     @endif
                 </article>
@@ -232,7 +234,7 @@
                                 class="user-search__avatar"
                                 alt="{{ $follower->username }}"
                                 height="50px"
-                                src="{{ url($follower->image === null ? 'img/profile.png' : 'files/img/' . $follower->image) }}"
+                                src="{{ $follower->image === null ? url('img/profile.png') : route('authenticated_images.user_avatar', ['user' => $follower]) }}"
                                 title="{{ $follower->username }}"
                             />
                         </a>
@@ -322,7 +324,7 @@
                             @empty
                                 <tr>
                                     <td
-                                        colspan="{{ \config('announce.connectable_check') === true ? 7 : 6 }}"
+                                        colspan="{{ \config('announce.connectable_check') === true ? 8 : 7 }}"
                                     >
                                         No Clients
                                     </td>
@@ -331,9 +333,7 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td
-                                    colspan="{{ 5 + (int) auth()->user()->group->is_modo + (int) config('announce.connectable_check') }}"
-                                >
+                                <td colspan="{{ 7 + (int) config('announce.connectable_check') }}">
                                     If you don't recognize a torrent client or IP address in the
                                     list, please
                                     <a href="{{ route('tickets.index') }}">
@@ -376,15 +376,15 @@
                                 </td>
                                 <td>
                                     @switch($user->application->status)
-                                        @case(\App\Models\Application::PENDING)
+                                        @case(\App\Enums\ModerationStatus::PENDING)
                                             <span class="application--pending">Pending</span>
 
                                             @break
-                                        @case(\App\Models\Application::APPROVED)
+                                        @case(\App\Enums\ModerationStatus::APPROVED)
                                             <span class="application--approved">Approved</span>
 
                                             @break
-                                        @case(\App\Models\Application::REJECTED)
+                                        @case(\App\Enums\ModerationStatus::REJECTED)
                                             <span class="application--rejected">Rejected</span>
 
                                             @break
@@ -548,7 +548,7 @@
                             @else
                                 <tr>
                                     <td>
-                                        <x-user_tag :anon="false" :user="$watch->author" />
+                                        <x-user-tag :anon="false" :user="$watch->author" />
                                     </td>
                                     <td>{{ $watch->message }}</td>
                                     <td>
@@ -907,14 +907,13 @@
                             <dd>
                                 @if (null !== ($group = \App\Models\Group::find($externalUser['group_id'])))
                                     <span class="user-tag">
-                                        <a
+                                        <span
                                             class="user-tag__link {{ $group->icon }}"
-                                            href="{{ route('group', ['id' => $group->id]) }}"
                                             style="color: {{ $group->color }}"
                                             title="{{ $group->name }}"
                                         >
                                             {{ $group->name }}
-                                        </a>
+                                        </span>
                                     </span>
                                 @else
                                     Unrecognized group_id: {{ $externalUser['group_id'] }}
@@ -1014,7 +1013,7 @@
                         <dt>{{ __('user.invited-by') }}</dt>
                         <dd>
                             @if ($invitedBy)
-                                <x-user_tag :user="$invitedBy->sender" :anon="false" />
+                                <x-user-tag :user="$invitedBy->sender" :anon="false" />
                             @else
                                 <b>{{ __('user.open-registration') }}</b>
                             @endif

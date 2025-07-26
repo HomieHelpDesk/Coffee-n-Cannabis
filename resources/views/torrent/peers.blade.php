@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ __('torrent.peers') }} - {{ $torrent->name }} - {{ config('other.title') }}</title>
@@ -47,6 +47,8 @@
     @endif
 @endsection
 
+@section('page', 'page__torrent-peer--index')
+
 @section('main')
     <section class="panelV2">
         <h2 class="panel__heading">{{ __('torrent.torrent') }} {{ __('torrent.peers') }}</h2>
@@ -76,7 +78,7 @@
                     @foreach ($peers as $peer)
                         <tr>
                             <td>
-                                <x-user_tag
+                                <x-user-tag
                                     :user="$peer->user"
                                     :anon="
                                         $peer->user->privacy?->hidden

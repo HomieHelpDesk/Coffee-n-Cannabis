@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>Bans - {{ __('staff.staff-dashboard') }} - {{ config('other.title') }}</title>
@@ -23,7 +23,7 @@
     @include('Staff.partials.user-info-search')
 @endsection
 
-@section('page', 'page__bans-log--index')
+@section('page', 'page__staff-ban--index')
 
 @section('main')
     <section class="panelV2">
@@ -46,10 +46,10 @@
                         <tr>
                             <td>{{ $ban->id }}</td>
                             <td>
-                                <x-user_tag :anon="false" :user="$ban->banneduser" />
+                                <x-user-tag :anon="false" :user="$ban->banneduser" />
                             </td>
                             <td>
-                                <x-user_tag :anon="false" :user="$ban->staffuser" />
+                                <x-user-tag :anon="false" :user="$ban->staffuser" />
                             </td>
                             <td>{{ $ban->ban_reason }}</td>
                             <td>{{ $ban->unban_reason }}</td>

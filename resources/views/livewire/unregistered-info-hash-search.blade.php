@@ -72,7 +72,7 @@
                         @foreach ($unregisteredInfoHashes as $unregisteredInfoHash)
                             <tr>
                                 <td>
-                                    <x-user_tag
+                                    <x-user-tag
                                         :user="$unregisteredInfoHash->user"
                                         :anon="false"
                                     />

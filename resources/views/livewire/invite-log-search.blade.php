@@ -227,7 +227,7 @@
                             @forelse ($invites as $invite)
                                 <tr>
                                     <td>
-                                        <x-user_tag :anon="false" :user="$invite->sender" />
+                                        <x-user-tag :anon="false" :user="$invite->sender" />
                                     </td>
                                     <td>
                                         <time
@@ -328,7 +328,7 @@
                                 <tr>
                                     <td>{{ $invite->id }}</td>
                                     <td>
-                                        <x-user_tag :anon="false" :user="$invite->sender" />
+                                        <x-user-tag :anon="false" :user="$invite->sender" />
                                     </td>
                                     <td>{{ $invite->email }}</td>
                                     <td>{{ $invite->code }}</td>
@@ -353,7 +353,7 @@
                                         @if ($invite->accepted_by === null)
                                             N/A
                                         @else
-                                            <x-user_tag :anon="false" :user="$invite->receiver" />
+                                            <x-user-tag :anon="false" :user="$invite->receiver" />
                                         @endif
                                     </td>
                                     <td>

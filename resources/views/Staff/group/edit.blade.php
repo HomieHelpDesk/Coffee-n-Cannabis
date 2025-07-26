@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('breadcrumbs')
     <li class="breadcrumbV2">
@@ -19,10 +19,10 @@
     </li>
 @endsection
 
-@section('page', 'page__groups--edit')
+@section('page', 'page__staff-group--edit')
 
 @section('main')
-    <section class="panelV2" x-data="{ autogroup: {{ $group->autogroup }} }">
+    <section class="panelV2" x-data="{ autogroup: {{ Js::from($group->autogroup) }} }">
         <h2 class="panel__heading">Edit Group: {{ $group->name }}</h2>
         <div class="panel__body">
             <form

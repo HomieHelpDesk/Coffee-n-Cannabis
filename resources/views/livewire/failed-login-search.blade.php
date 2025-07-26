@@ -92,7 +92,7 @@
                             @if ($failedLogin->user_id === null)
                                 {{ $attempt->username }}
                             @else
-                                <x-user_tag :anon="false" :user="$failedLogin->user" />
+                                <x-user-tag :anon="false" :user="$failedLogin->user" />
                             @endif
                         </td>
                         <td>{{ $failedLogin->user_id ?? 'Not Found' }}</td>

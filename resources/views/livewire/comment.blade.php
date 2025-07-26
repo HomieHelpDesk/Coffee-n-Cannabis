@@ -20,6 +20,24 @@
                     </li>
                 @endif
 
+                <li class="comment__toolbar-item">
+                    <button
+                        class="post__quote"
+                        title="{{ __('forum.quote') }}"
+                        x-on:click="
+                            input = document.getElementById(
+                                '{{ $comment->isParent() ? 'new-comment__textarea' : 'reply-comment' }}'
+                            );
+                            input.value += '[quote={{ $comment->anon ? 'Anonymous' : '@' . $comment->user->username }}]';
+                            input.value += decodeURIComponent(escape(atob('{{ base64_encode($comment->content) }}')));
+                            input.value += '[/quote]';
+                            input.dispatchEvent(new Event('input'));
+                            input.focus();
+                        "
+                    >
+                        <i class="{{ \config('other.font-awesome') }} fa-quote-left"></i>
+                    </button>
+                </li>
                 @if ($comment->user_id === auth()->id() || auth()->user()->group->is_modo)
                     <li class="comment__toolbar-item">
                         <button wire:click="$toggle('isEditing')" class="comment__edit">
@@ -61,15 +79,15 @@
                 <img
                     class="comment__avatar"
                     style="width: 50%"
-                    src="{{ url(! $comment->anon && $comment->user->image !== null ? 'files/img/' . $comment->user->image : '/img/profile.png') }}"
+                    src="{{ ! $comment->anon && $comment->user->image !== null ? route('authenticated_images.user_avatar', ['user' => $comment->user]) : url('/img/profile.png') }}"
                     alt=""
                 />
             </figure>
-            <x-user_tag
+            <x-user-tag
                 class="comment__author"
                 :anon="$comment->anon"
                 :user="$comment->user"
-            ></x-user_tag>
+            ></x-user-tag>
             @if (! $comment->anon && ! empty($comment->user->title))
                 <p class="comment__author-title">
                     {{ $comment->user->title }}
@@ -115,7 +133,7 @@
             </form>
         @else
             <div class="comment__content bbcode-rendered">
-                @joypixels($comment->getContentHtml())
+                @bbcode($comment->content)
             </div>
         @endif
     </article>

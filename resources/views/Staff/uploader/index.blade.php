@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>
@@ -15,7 +15,7 @@
     <li class="breadcrumb--active">{{ __('torrent.uploader') }} {{ __('common.stats') }}</li>
 @endsection
 
-@section('page', 'page__uploader-index')
+@section('page', 'page__staff-uploader-index')
 
 @section('main')
     <section class="panelV2">
@@ -35,7 +35,7 @@
                     @foreach ($uploaders as $uploader)
                         <tr>
                             <td>
-                                <x-user_tag :anon="false" :user="$uploader" />
+                                <x-user-tag :anon="false" :user="$uploader" />
                             </td>
                             <td>{{ $uploader->total_uploads }}</td>
                             <td>{{ $uploader->recent_uploads }}</td>

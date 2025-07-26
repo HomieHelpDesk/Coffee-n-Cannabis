@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>Leakers - {{ config('other.title') }}</title>
@@ -13,8 +13,8 @@
     <li class="breadcrumb--active">Leakers</li>
 @endsection
 
-@section('page', 'page__leakers--index')
+@section('page', 'page__staff-leaker--index')
 
-@section('content')
+@section('main')
     @livewire('leaker-search')
 @endsection

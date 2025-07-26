@@ -65,7 +65,7 @@ class ForumController extends Controller
      */
     public function show(Request $request, int $id): \Illuminate\Contracts\View\Factory|\Illuminate\View\View|\Illuminate\Http\RedirectResponse
     {
-        return view('forum.forum_topic.index', [
+        return view('forum.forum-topic.index', [
             'forum' => Forum::query()
                 ->with('category')
                 ->authorized(canReadTopic: true)

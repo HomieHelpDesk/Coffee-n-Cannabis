@@ -37,6 +37,6 @@ class TestEmail extends Mailable
      */
     public function build(): static
     {
-        return $this->markdown('emails.test_email');
+        return $this->markdown('emails.test-email');
     }
 }

@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('breadcrumbs')
     <li class="breadcrumbV2">
@@ -19,7 +19,7 @@
     </li>
 @endsection
 
-@section('page', 'page__category--edit')
+@section('page', 'page__staff-category--edit')
 
 @section('main')
     <section class="panelV2">
