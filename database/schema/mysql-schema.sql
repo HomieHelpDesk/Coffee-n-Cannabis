@@ -127,7 +127,7 @@ DROP TABLE IF EXISTS `articles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `articles` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
   `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `content` text COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -1127,10 +1127,10 @@ CREATE TABLE `password_reset_histories` (
   CONSTRAINT `password_reset_histories_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-DROP TABLE IF EXISTS `password_resets`;
+DROP TABLE IF EXISTS `password_reset_tokens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `password_resets` (
+CREATE TABLE `password_reset_tokens` (
   `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` datetime DEFAULT NULL,
@@ -1432,8 +1432,6 @@ CREATE TABLE `requests` (
   `tmdb_movie_id` int unsigned DEFAULT NULL,
   `tmdb_tv_id` int unsigned DEFAULT NULL,
   `bounty` decimal(12,2) NOT NULL,
-  `votes` int NOT NULL DEFAULT '0',
-  `claimed` tinyint(1) DEFAULT NULL,
   `anon` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -1443,7 +1441,7 @@ CREATE TABLE `requests` (
   `filled_anon` tinyint(1) NOT NULL DEFAULT '0',
   `approved_by` int unsigned DEFAULT NULL,
   `approved_when` datetime DEFAULT NULL,
-  `type_id` smallint unsigned NOT NULL,
+  `type_id` smallint unsigned DEFAULT NULL,
   `resolution_id` smallint unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `category_id` (`category_id`),
@@ -2194,6 +2192,20 @@ CREATE TABLE `types` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `unread_articles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `unread_articles` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `article_id` int unsigned NOT NULL,
+  `user_id` int unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `unread_articles_article_id_foreign` (`article_id`),
+  KEY `unread_articles_user_id_foreign` (`user_id`),
+  CONSTRAINT `unread_articles_article_id_foreign` FOREIGN KEY (`article_id`) REFERENCES `articles` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `unread_articles_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `unregistered_info_hashes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -2415,7 +2427,28 @@ CREATE TABLE `user_settings` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int unsigned NOT NULL,
   `censor` tinyint(1) NOT NULL DEFAULT '0',
-  `chat_hidden` tinyint(1) NOT NULL DEFAULT '0',
+  `news_block_visible` tinyint(1) NOT NULL DEFAULT '1',
+  `news_block_position` tinyint unsigned NOT NULL DEFAULT '0',
+  `chat_block_visible` tinyint(1) NOT NULL DEFAULT '1',
+  `chat_block_position` tinyint unsigned NOT NULL DEFAULT '1',
+  `featured_block_visible` tinyint(1) NOT NULL DEFAULT '1',
+  `featured_block_position` tinyint unsigned NOT NULL DEFAULT '2',
+  `random_media_block_visible` tinyint(1) NOT NULL DEFAULT '1',
+  `random_media_block_position` tinyint unsigned NOT NULL DEFAULT '3',
+  `poll_block_visible` tinyint(1) NOT NULL DEFAULT '1',
+  `poll_block_position` tinyint unsigned NOT NULL DEFAULT '4',
+  `top_torrents_block_visible` tinyint(1) NOT NULL DEFAULT '1',
+  `top_torrents_block_position` tinyint unsigned NOT NULL DEFAULT '5',
+  `top_users_block_visible` tinyint(1) NOT NULL DEFAULT '1',
+  `top_users_block_position` tinyint unsigned NOT NULL DEFAULT '6',
+  `latest_topics_block_visible` tinyint(1) NOT NULL DEFAULT '1',
+  `latest_topics_block_position` tinyint unsigned NOT NULL DEFAULT '7',
+  `latest_posts_block_visible` tinyint(1) NOT NULL DEFAULT '1',
+  `latest_posts_block_position` tinyint unsigned NOT NULL DEFAULT '8',
+  `latest_comments_block_visible` tinyint(1) NOT NULL DEFAULT '1',
+  `latest_comments_block_position` tinyint unsigned NOT NULL DEFAULT '9',
+  `online_block_visible` tinyint(1) NOT NULL DEFAULT '1',
+  `online_block_position` tinyint unsigned NOT NULL DEFAULT '10',
   `locale` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'en',
   `style` tinyint unsigned NOT NULL DEFAULT '0',
   `torrent_layout` tinyint unsigned NOT NULL DEFAULT '0',
@@ -2446,7 +2479,6 @@ CREATE TABLE `users` (
   `two_factor_confirmed_at` timestamp NULL DEFAULT NULL,
   `passkey` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `group_id` int NOT NULL,
-  `active` tinyint(1) NOT NULL DEFAULT '0',
   `uploaded` bigint unsigned NOT NULL DEFAULT '0',
   `downloaded` bigint unsigned NOT NULL DEFAULT '0',
   `image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -2965,3 +2997,11 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (346,'2025_04_07_15
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (347,'2025_04_15_075631_add_description_to_playlist_categories',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (348,'2025_04_15_090705_create_playlist_suggestions',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (349,'2025_05_28_084740_update_torrent_balance',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (350,'2025_06_11_053944_alter_users_drop_active',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (351,'2025_06_11_064742_rename_password_resets_to_password_reset_tokens',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (352,'2025_06_17_084333_alter_requests_nullable_type_id',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (353,'2025_06_17_092951_create_unread_articles_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (354,'2025_06_18_000000_add_homepage_block_settings_to_user_settings_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (355,'2025_06_18_040627_alter_requests_drop_claimed',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (356,'2025_06_21_234021_alter_requests_drop_votes',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (357,'2025_07_15_061844_add_block_order_to_user_settings',1);

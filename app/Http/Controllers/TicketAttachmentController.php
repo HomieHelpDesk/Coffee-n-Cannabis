@@ -31,6 +31,8 @@ class TicketAttachmentController extends Controller
     {
         abort_unless($request->user()->group->is_modo || $request->user()->id === $ticket->user_id, 403);
 
+        abort_unless($attachment->ticket_id === $ticket->id, 404);
+
         return response()->download(Storage::disk('attachment-files')->path($attachment->file_name))->deleteFileAfterSend(false);
     }
 

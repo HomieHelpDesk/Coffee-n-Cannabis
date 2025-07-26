@@ -91,15 +91,19 @@
                                 @endif
                             </td>
                             <td>
-                                <a
-                                    href="{{ route('torrents.index', ['tmdbId' => $wish->tmdb_movie_id ?? $wish->tmdb_tv_id, 'view' => 'group']) }}"
-                                >
-                                    @if ($wish->tmdb_movie_id !== null)
+                                @if ($wish->tmdb_movie_id !== null)
+                                    <a
+                                        href="{{ route('torrents.index', ['categoryIds' => $movieCategoryIds, 'tmdbId' => $wish->tmdb_movie_id, 'view' => 'group']) }}"
+                                    >
                                         Torrents ({{ $wish->movie_torrents_count }})
-                                    @elseif ($wish->tmdb_tv_id !== null)
+                                    </a>
+                                @elseif ($wish->tmdb_tv_id !== null)
+                                    <a
+                                        href="{{ route('torrents.index', ['categoryIds' => $tvCategoryIds, 'tmdbId' => $wish->tmdb_tv_id, 'view' => 'group']) }}"
+                                    >
                                         Torrents ({{ $wish->tv_torrents_count }})
-                                    @endif
-                                </a>
+                                    </a>
+                                @endif
                             </td>
                             <td>
                                 @if ($wish->tmdb_movie_id !== null)

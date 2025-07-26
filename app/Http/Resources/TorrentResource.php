@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Enums\AuthGuard;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
@@ -76,8 +77,8 @@ class TorrentResource extends JsonResource
                 'distributor_id'   => $this->when($this->distributor_id !== null, $this->distributor_id),
                 'region_id'        => $this->when($this->region_id !== null, $this->region_id),
                 'created_at'       => $this->created_at,
-                'download_link'    => route('torrent.download.rsskey', ['id' => $this->id, 'rsskey' => auth('api')->user()->rsskey]),
-                'magnet_link'      => $this->when(config('torrent.magnet') === true, 'magnet:?dn='.$this->name.'&xt=urn:btih:'.bin2hex($this->info_hash).'&as='.route('torrent.download.rsskey', ['id' => $this->id, 'rsskey' => auth('api')->user()->rsskey]).'&tr='.route('announce', ['passkey' => auth('api')->user()->passkey]).'&xl='.$this->size),
+                'download_link'    => route('torrent.download.rsskey', ['id' => $this->id, 'rsskey' => auth(AuthGuard::API->value)->user()->rsskey]),
+                'magnet_link'      => $this->when(config('torrent.magnet') === true, 'magnet:?dn='.$this->name.'&xt=urn:btih:'.bin2hex($this->info_hash).'&as='.route('torrent.download.rsskey', ['id' => $this->id, 'rsskey' => auth(AuthGuard::API->value)->user()->rsskey]).'&tr='.route('announce', ['passkey' => auth('api')->user()->passkey]).'&xl='.$this->size),
                 'details_link'     => route('torrents.show', ['id' => $this->id]),
             ],
         ];

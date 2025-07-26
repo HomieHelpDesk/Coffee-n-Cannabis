@@ -20,7 +20,7 @@ use App\Helpers\Bencode;
 use App\Models\Playlist;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
-use ZipArchive;
+use ZipStream\ZipStream;
 
 /**
  * @see \Tests\Todo\Feature\Http\Controllers\PlaylistControllerTest
@@ -30,7 +30,7 @@ class PlaylistZipController extends Controller
     /**
      * Download All Playlist Torrents.
      */
-    public function show(Playlist $playlist): \Illuminate\Http\RedirectResponse|\Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function show(Playlist $playlist): \Illuminate\Http\RedirectResponse|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         //  Extend The Maximum Execution Time
         set_time_limit(300);
@@ -41,50 +41,40 @@ class PlaylistZipController extends Controller
         // Authorized User
         $user = auth()->user();
 
-        // Define Dir Folder
-        $path = Storage::disk('temporary-zips')->path('');
-
-        // Check Directory exists
-        if (!File::isDirectory($path)) {
-            File::makeDirectory($path, 0755, true, true);
-        }
-
         // Zip File Name
         $zipFileName = '['.$user->username.']'.$playlist->name.'.zip';
 
-        // Create ZipArchive Obj
-        $zipArchive = new ZipArchive();
+        return response()->streamDownload(
+            function () use ($zipFileName, $user, $playlist): void {
+                $zip = new ZipStream(outputName: sanitize_filename($zipFileName));
 
-        if ($zipArchive->open($path.$zipFileName, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-            $announceUrl = route('announce', ['passkey' => $user->passkey]);
+                $announceUrl = route('announce', ['passkey' => $user->passkey]);
 
-            foreach ($playlist->torrents()->get() as $torrent) {
-                $dict = Bencode::bdecode(Storage::disk('torrent-files')->get($torrent->file_name));
+                foreach ($playlist->torrents()->get() as $torrent) {
+                    if (Storage::disk('torrent-files')->exists($torrent->file_name)) {
+                        $dict = Bencode::bdecode(Storage::disk('torrent-files')->get($torrent->file_name));
 
-                // Set the announce key and add the user passkey
-                $dict['announce'] = $announceUrl;
+                        // Set the announce key and add the user passkey
+                        $dict['announce'] = $announceUrl;
 
-                // Set link to torrent as the comment
-                if (config('torrent.comment')) {
-                    $dict['comment'] = config('torrent.comment').'. '.route('torrents.show', ['id' => $torrent->id]);
-                } else {
-                    $dict['comment'] = route('torrents.show', ['id' => $torrent->id]);
+                        // Set link to torrent as the comment
+                        if (config('torrent.comment')) {
+                            $dict['comment'] = config('torrent.comment').'. '.route('torrents.show', ['id' => $torrent->id]);
+                        } else {
+                            $dict['comment'] = route('torrents.show', ['id' => $torrent->id]);
+                        }
+
+                        $fileToDownload = Bencode::bencode($dict);
+
+                        $filename = sanitize_filename('['.config('torrent.source').']'.$torrent->name.'.torrent');
+
+                        $zip->addFile($filename, $fileToDownload);
+                    }
                 }
 
-                $fileToDownload = Bencode::bencode($dict);
-
-                $filename = str_replace([' ', '/', '\\'], ['.', '-', '-'], '['.config('torrent.source').']'.$torrent->name.'.torrent');
-
-                $zipArchive->addFromString($filename, $fileToDownload);
-            }
-
-            $zipArchive->close();
-        }
-
-        if (Storage::disk('temporary-zips')->exists($zipFileName)) {
-            return response()->download(Storage::disk('temporary-zips')->path($zipFileName))->deleteFileAfterSend(true);
-        }
-
-        return redirect()->back()->withErrors(trans('common.something-went-wrong'));
+                $zip->finish();
+            },
+            sanitize_filename($zipFileName),
+        );
     }
 }

@@ -248,11 +248,11 @@ class TorrentSearch extends Component
     final public function mount(Request $request): void
     {
         if ($request->missing('sortField')) {
-            $this->sortField = auth()->user()->settings?->torrent_sort_field ?? 'bumped_at';
+            $this->sortField = auth()->user()->settings->torrent_sort_field;
         }
 
         if ($request->missing('view')) {
-            $this->view = match (auth()->user()->settings?->torrent_layout) {
+            $this->view = match (auth()->user()->settings->torrent_layout) {
                 1       => 'card',
                 2       => 'group',
                 3       => 'poster',
@@ -375,7 +375,7 @@ class TorrentSearch extends Component
                 default   => null,
             },
             tmdbId: $this->tmdbId,
-            imdbId: $this->imdbId === '' ? null : ((int) (preg_match('/tt0*(?=(\d{7,}))/', $this->imdbId, $matches) ? $matches[1] : $this->imdbId)),
+            imdbId: $this->imdbId === '' ? null : ((int) (preg_match('/tt0*(\d{7,})/', $this->imdbId, $matches) ? $matches[1] : $this->imdbId)),
             tvdbId: $this->tvdbId,
             malId: $this->malId,
             playlistId: $this->playlistId,
@@ -554,22 +554,22 @@ class TorrentSearch extends Component
                 END) AS meta
             SQL)
             ->havingNotNull('meta')
-            ->where(fn ($query) => $query->where('tmdb_movie_id', '>', 0)->orWhere('tmdb_tv_id', '>', 0))
-            ->where('imdb', '>', 0)
-            ->where($this->filters()->toSqlQueryBuilder())
+            ->where(fn ($query) => $query->whereNotNull('tmdb_movie_id')->orWhereNotNull('tmdb_tv_id'))
+            ->whereNotNull('imdb')
             ->groupBy('tmdb_movie_id', 'tmdb_tv_id')
             ->latest('sticky')
             ->orderBy($this->sortField, $this->sortDirection);
 
         if ($isSqlAllowed) {
             $groups = $groupQuery
+                ->where($this->filters()->toSqlQueryBuilder())
                 ->paginate(min($this->perPage, 100));
         } else {
             $results = (new Client(config('scout.meilisearch.host'), config('scout.meilisearch.key')))
                 ->index(config('scout.prefix').'torrents')
                 ->search($this->name, [
                     'sort'                 => ['sticky:desc', $this->sortField.':'.$this->sortDirection,],
-                    'filter'               => [...$this->filters()->toMeilisearchFilter(), 'imdb != 0', ['tmdb_movie_id > 0', 'tmdb_tv_id > 0']],
+                    'filter'               => [...$this->filters()->toMeilisearchFilter(), 'imdb IS NOT NULL', ['tmdb_movie_id IS NOT NULL', 'tmdb_tv_id IS NOT NULL']],
                     'matchingStrategy'     => 'all',
                     'page'                 => (int) $this->getPage(),
                     'hitsPerPage'          => min($this->perPage, 100),
@@ -689,7 +689,7 @@ class TorrentSearch extends Component
                             ->whereIntegerInRaw('tmdb_tv_id', $tvIds)
                     )
             )
-            ->where($this->filters()->toSqlQueryBuilder())
+            ->when($isSqlAllowed, fn ($query) => $query->where($this->filters()->toSqlQueryBuilder()))
             ->get();
 
         $groupedTorrents = [];
@@ -866,7 +866,7 @@ class TorrentSearch extends Component
                 END) AS meta
             SQL)
             ->havingNotNull('meta')
-            ->where(fn ($query) => $query->where('tmdb_movie_id', '!=', 0)->orWhere('tmdb_tv_id', '!=', 0))
+            ->where(fn ($query) => $query->whereNotNull('tmdb_movie_id')->orWhereNotNull('tmdb_tv_id'))
             ->where($this->filters()->toSqlQueryBuilder())
             ->groupBy('tmdb_movie_id', 'tmdb_tv_id')
             ->latest('sticky')

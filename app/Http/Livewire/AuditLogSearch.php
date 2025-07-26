@@ -17,11 +17,13 @@ declare(strict_types=1);
 namespace App\Http\Livewire;
 
 use App\Models\Audit;
+use App\Traits\Auditable;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 use JsonException;
+use ReflectionClass;
 
 class AuditLogSearch extends Component
 {
@@ -59,20 +61,14 @@ class AuditLogSearch extends Component
     #[Computed]
     final public function modelNames(): array
     {
-        $modelList = [];
-        $path = app_path().'/Models';
-        $results = scandir($path);
-
-        foreach ($results as $result) {
-            if ($result === '.' || $result === '..') {
-                continue;
-            }
-            $filename = $result;
-
-            $modelList[] = substr($filename, 0, -4);
-        }
-
-        return $modelList;
+        return collect(scandir(app_path('Models')) ?: [])
+            ->filter(fn ($path) => str_ends_with($path, '.php'))
+            ->map(fn ($path) => 'App\\Models\\'.basename($path, '.php'))
+            ->filter(fn ($class) => class_exists($class))
+            ->map(fn ($class) => new ReflectionClass($class))
+            ->filter(fn ($class) => \in_array(Auditable::class, array_keys($class->getTraits())))
+            ->map(fn ($class) => $class->getShortName())
+            ->toArray();
     }
 
     /**

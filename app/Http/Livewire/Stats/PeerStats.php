@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Http\Livewire\Stats;
 
+use App\Models\History;
 use App\Models\Peer;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;
@@ -37,6 +38,16 @@ class PeerStats extends Component
         return Peer::query()->where('active', '=', true)->count();
     }
 
+    #[Computed(cache: true, seconds: 10 * 60)]
+    final public function totalSeeded(): int
+    {
+        return (int) History::query()
+            ->join('torrents', 'history.torrent_id', '=', 'torrents.id')
+            ->where('history.active', '=', true)
+            ->where('history.seeder', '=', true)
+            ->sum('size');
+    }
+
     final public function placeholder(): string
     {
         return <<<'HTML'
@@ -53,6 +64,7 @@ class PeerStats extends Component
             'num_seeders'  => $this->peerCount - $this->leecherCount,
             'num_leechers' => $this->leecherCount,
             'num_peers'    => $this->peerCount,
+            'totalSeeded'  => $this->totalSeeded,
         ]);
     }
 }

@@ -342,143 +342,58 @@
                     </p>
                 </fieldset>
                 <h3>Block all notifications from the selected groups.</h3>
-                <div class="form__group--short-horizontal">
-                    <fieldset class="form__fieldset">
-                        <legend class="form__legend">{{ __('user.follow') }}</legend>
-                        @foreach ($groups as $group)
-                            <p class="form__group">
-                                <label class="form__label">
-                                    <input
-                                        class="form__checkbox"
-                                        type="checkbox"
-                                        name="json_account_groups[]"
-                                        value="{{ $group->id }}"
-                                        @checked($user->notification !== null && \in_array($group->id, $user->notification->json_account_groups, true))
-                                    />
-                                    {{ $group->name }}
-                                </label>
-                            </p>
-                        @endforeach
-                    </fieldset>
-                    <fieldset class="form__fieldset">
-                        <legend class="form__legend">{{ __('bon.bon') }}</legend>
-                        @foreach ($groups as $group)
-                            <p class="form__group">
-                                <label class="form__label">
-                                    <input
-                                        class="form__checkbox"
-                                        type="checkbox"
-                                        name="json_bon_groups[]"
-                                        value="{{ $group->id }}"
-                                        @checked($user->notification !== null && \in_array($group->id, $user->notification->json_bon_groups, true))
-                                    />
-                                    {{ $group->name }}
-                                </label>
-                            </p>
-                        @endforeach
-                    </fieldset>
-                    <fieldset class="form__fieldset">
-                        <legend class="form__legend">{{ __('user.followers') }}</legend>
-                        @foreach ($groups as $group)
-                            <p class="form__group">
-                                <label class="form__label">
-                                    <input
-                                        class="form__checkbox"
-                                        type="checkbox"
-                                        name="json_following_groups[]"
-                                        value="{{ $group->id }}"
-                                        @checked($user->notification !== null && \in_array($group->id, $user->notification->json_following_groups, true))
-                                    />
-                                    {{ $group->name }}
-                                </label>
-                            </p>
-                        @endforeach
-                    </fieldset>
-                    <fieldset class="form__fieldset">
-                        <legend class="form__legend">{{ __('forum.forums') }}</legend>
-                        @foreach ($groups as $group)
-                            <p class="form__group">
-                                <label class="form__label">
-                                    <input
-                                        class="form__checkbox"
-                                        type="checkbox"
-                                        name="json_forum_groups[]"
-                                        value="{{ $group->id }}"
-                                        @checked($user->notification !== null && \in_array($group->id, $user->notification->json_forum_groups, true))
-                                    />
-                                    {{ $group->name }}
-                                </label>
-                            </p>
-                        @endforeach
-                    </fieldset>
-                    <fieldset class="form__fieldset">
-                        <legend class="form__legend">{{ __('request.requests') }}</legend>
-                        @foreach ($groups as $group)
-                            <p class="form__group">
-                                <label class="form__label">
-                                    <input
-                                        class="form__checkbox"
-                                        type="checkbox"
-                                        name="json_request_groups[]"
-                                        value="{{ $group->id }}"
-                                        @checked($user->notification !== null && \in_array($group->id, $user->notification->json_request_groups, true))
-                                    />
-                                    {{ $group->name }}
-                                </label>
-                            </p>
-                        @endforeach
-                    </fieldset>
-                    <fieldset class="form__fieldset">
-                        <legend class="form__legend">{{ __('common.subscriptions') }}</legend>
-                        @foreach ($groups as $group)
-                            <p class="form__group">
-                                <label class="form__label">
-                                    <input
-                                        class="form__checkbox"
-                                        type="checkbox"
-                                        name="json_subscription_groups[]"
-                                        value="{{ $group->id }}"
-                                        @checked($user->notification !== null && \in_array($group->id, $user->notification->json_subscription_groups, true))
-                                    />
-                                    {{ $group->name }}
-                                </label>
-                            </p>
-                        @endforeach
-                    </fieldset>
-                    <fieldset class="form__fieldset">
-                        <legend class="form__legend">{{ __('torrent.torrents') }}</legend>
-                        @foreach ($groups as $group)
-                            <p class="form__group">
-                                <label class="form__label">
-                                    <input
-                                        class="form__checkbox"
-                                        type="checkbox"
-                                        name="json_torrent_groups[]"
-                                        value="{{ $group->id }}"
-                                        @checked($user->notification !== null && \in_array($group->id, $user->notification->json_torrent_groups, true))
-                                    />
-                                    {{ $group->name }}
-                                </label>
-                            </p>
-                        @endforeach
-                    </fieldset>
-                    <fieldset class="form__fieldset">
-                        <legend class="form__legend">Mentions</legend>
-                        @foreach ($groups as $group)
-                            <p class="form__group">
-                                <label class="form__label">
-                                    <input
-                                        class="form__checkbox"
-                                        type="checkbox"
-                                        name="json_mention_groups[]"
-                                        value="{{ $group->id }}"
-                                        @checked($user->notification !== null && \in_array($group->id, $user->notification->json_mention_groups, true))
-                                    />
-                                    {{ $group->name }}
-                                </label>
-                            </p>
-                        @endforeach
-                    </fieldset>
+                <div class="form__group">
+                    <div class="data-table-wrapper">
+                        <table
+                            class="data-table data-table--checkbox-grid"
+                            x-data="checkboxGrid"
+                        >
+                            <thead>
+                                <tr>
+                                    <th x-bind="columnHeader">{{ __('common.group') }}</th>
+                                    <th x-bind="columnHeader">{{ __('user.follow') }}</th>
+                                    <th x-bind="columnHeader">{{ __('bon.bon') }}</th>
+                                    <th x-bind="columnHeader">{{ __('user.followers') }}</th>
+                                    <th x-bind="columnHeader">{{ __('forum.forums') }}</th>
+                                    <th x-bind="columnHeader">{{ __('request.requests') }}</th>
+                                    <th x-bind="columnHeader">
+                                        {{ __('common.subscriptions') }}
+                                    </th>
+                                    <th x-bind="columnHeader">{{ __('torrent.torrents') }}</th>
+                                    <th x-bind="columnHeader">Mentions</th>
+                                </tr>
+                            </thead>
+                            <tbody x-ref="tbody">
+                                @foreach ($groups as $group)
+                                    <tr>
+                                        <th x-bind="rowHeader">
+                                            {{ $group->name }}
+                                        </th>
+                                        @foreach ([
+                                            'json_account_groups',
+                                            'json_bon_groups',
+                                            'json_following_groups',
+                                            'json_forum_groups',
+                                            'json_request_groups',
+                                            'json_subscription_groups',
+                                            'json_torrent_groups',
+                                            'json_mention_groups',
+                                        ] as $setting)
+                                            <td x-bind="cell">
+                                                <input
+                                                    class="form__checkbox"
+                                                    type="checkbox"
+                                                    name="{{ $setting }}[]"
+                                                    value="{{ $group->id }}"
+                                                    @checked($user->notification !== null && \in_array($group->id, $user->notification->$setting, true))
+                                                />
+                                            </td>
+                                        @endforeach
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <h3>Override all notifications.</h3>
                 <p class="form__group">

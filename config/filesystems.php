@@ -127,11 +127,6 @@ return [
             'root'   => storage_path('app/files/subtitles/files'),
         ],
 
-        'temporary-zips' => [
-            'driver' => 'local',
-            'root'   => storage_path('app/tmp/zips'),
-        ],
-
         'temporary-nfos' => [
             'driver' => 'local',
             'root'   => storage_path('app/tmp/nfos'),

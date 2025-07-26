@@ -16,7 +16,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Events\TicketWentStale;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -106,19 +105,5 @@ class Comment extends Model
     public function scopeParent(Builder $builder): void
     {
         $builder->whereNull('parent_id');
-    }
-
-    /**
-     * Notify Staff There Is Stale Tickets.
-     */
-    public static function checkForStale(Ticket $ticket): void
-    {
-        if (empty($ticket->reminded_at) || strtotime((string) $ticket->reminded_at) < strtotime('+ 3 days')) {
-            $last_comment = $ticket->comments()->latest('id')->first();
-
-            if ($last_comment !== null && property_exists($last_comment, 'id') && $last_comment->id !== null && !$last_comment->user->group->is_modo && strtotime((string) $last_comment->created_at) < strtotime('- 3 days')) {
-                event(new TicketWentStale($ticket));
-            }
-        }
     }
 }

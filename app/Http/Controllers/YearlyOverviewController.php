@@ -156,7 +156,7 @@ class YearlyOverviewController extends Controller
                     ->where('anon', '=', false)
                     ->select(DB::raw('user_id, COUNT(*) as value'))
                     ->groupBy('user_id')
-                    ->orderByRaw('COALESCE(value, 0) DESC')
+                    ->orderByDesc('value')
                     ->take(10)
                     ->get()
             ),
@@ -168,7 +168,7 @@ class YearlyOverviewController extends Controller
                     ->where('created_at', '<=', $year.'-12-31 23:59:59')
                     ->select(DB::raw('user_id, COUNT(*) as value'))
                     ->groupBy('user_id')
-                    ->orderByRaw('COALESCE(value, 0) DESC')
+                    ->orderByDesc('value')
                     ->take(10)
                     ->get()
             ),
@@ -182,7 +182,7 @@ class YearlyOverviewController extends Controller
                     ->where('anon', '=', false)
                     ->select(DB::raw('user_id, COUNT(*) as value'))
                     ->groupBy('user_id')
-                    ->orderByRaw('COALESCE(value, 0) DESC')
+                    ->orderByDesc('value')
                     ->take(10)
                     ->get()
             ),
@@ -196,7 +196,7 @@ class YearlyOverviewController extends Controller
                     ->where('filled_anon', '=', false)
                     ->select(DB::raw('filled_by, COUNT(*) as value'))
                     ->groupBy('filled_by')
-                    ->orderByRaw('COALESCE(value, 0) DESC')
+                    ->orderByDesc('value')
                     ->take(10)
                     ->get()
             ),
@@ -210,7 +210,7 @@ class YearlyOverviewController extends Controller
                     ->where('anon', '=', false)
                     ->select(DB::raw('user_id, COUNT(*) as value'))
                     ->groupBy('user_id')
-                    ->orderByRaw('COALESCE(value, 0) DESC')
+                    ->orderByDesc('value')
                     ->take(10)
                     ->get()
             ),
@@ -223,7 +223,7 @@ class YearlyOverviewController extends Controller
                     ->where('user_id', '!=', 1)
                     ->select(DB::raw('user_id, COUNT(*) as value'))
                     ->groupBy('user_id')
-                    ->orderByRaw('COALESCE(value, 0) DESC')
+                    ->orderByDesc('value')
                     ->take(10)
                     ->get()
             ),

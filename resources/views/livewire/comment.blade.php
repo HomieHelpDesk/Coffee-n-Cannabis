@@ -190,7 +190,7 @@
                             {{ __('common.comment') }}
                         </button>
                         <button
-                            type="button"
+                            type="reset"
                             wire:click="$toggle('isReplying')"
                             class="form__button form__button--text"
                         >

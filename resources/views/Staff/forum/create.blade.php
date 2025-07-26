@@ -103,7 +103,7 @@
                 <div class="form__group">
                     <h3>Permissions</h3>
                     <div class="data-table-wrapper" x-data="checkboxGrid">
-                        <table class="data-table">
+                        <table class="data-table data-table--checkbox-grid">
                             <thead>
                                 <tr>
                                     <th x-bind="columnHeader">Groups</th>

@@ -52,6 +52,7 @@
 @use 'components/forum/topic-listing';
 @use 'components/forum/topic-tag';
 @use 'components/key-value';
+@use 'components/loading-spinner';
 @use 'components/mediahub-card';
 @use 'components/mediainfo';
 @use 'components/meta';
@@ -80,9 +81,10 @@
 @use 'pages/notifications';
 @use 'pages/overview';
 @use 'pages/request';
+@use 'pages/requests';
 @use 'pages/staff';
 @use 'pages/stats';
-@use 'pages/top10';
+@use 'pages/trending';
 @use 'pages/torrent';
 @use 'pages/torrents';
 @use 'pages/user';

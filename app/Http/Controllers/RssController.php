@@ -24,7 +24,6 @@ use App\Models\Resolution;
 use App\Models\Rss;
 use App\Models\Torrent;
 use App\Models\Type;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Exception;
 use Meilisearch\Endpoints\Indexes;
@@ -129,14 +128,14 @@ class RssController extends Controller
      *
      * @throws Exception
      */
-    public function show(int $id, string $rsskey): \Illuminate\Http\Response
+    public function show(Request $request, int $id): \Illuminate\Http\Response
     {
-        $user = User::where('rsskey', '=', $rsskey)->sole();
+        $user = $request->user();
 
-        $bannedGroup = cache()->rememberForever('banned_group', fn () => Group::where('slug', '=', 'banned')->pluck('id'));
-        $disabledGroup = cache()->rememberForever('disabled_group', fn () => Group::where('slug', '=', 'disabled')->pluck('id'));
+        // Redis returns ints as numeric strings!
+        $disabledGroupId = (int) cache()->rememberForever('group:disabled:id', fn () => Group::where('slug', '=', 'disabled')->soleValue('id'));
 
-        abort_if($user->group_id === $bannedGroup[0] || $user->group_id === $disabledGroup[0] || !$user->active, 404);
+        abort_if($user->group_id === $disabledGroupId, 404);
 
         $rss = Rss::query()
             ->where(
@@ -151,9 +150,8 @@ class RssController extends Controller
         if (\is_object($search)) {
             $cacheKey = 'rss:'.$rss->id;
 
-            $torrents = cache()->remember($cacheKey, 300, function () use ($search, $user) {
+            $torrents = cache()->remember($cacheKey, 300, function () use ($search) {
                 $filters = new TorrentSearchFiltersDTO(
-                    user: $user,
                     name: $search->search ?? '',
                     description: $search->description ?? '',
                     uploader: $search->uploader ?? '',

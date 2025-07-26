@@ -208,7 +208,8 @@ class TorrentRequestSearch extends Component
             && @preg_match($field, 'Validate regex') !== false;
 
         return TorrentRequest::with(['user:id,username,group_id', 'user.group', 'category', 'type', 'resolution'])
-            ->withCount(['comments'])
+            ->withCount(['comments', 'bounties'])
+            ->withExists('claim')
             ->when(
                 $this->name !== '',
                 fn ($query) => $query
@@ -241,7 +242,7 @@ class TorrentRequestSearch extends Component
             ->when($this->typeIds !== [], fn ($query) => $query->whereIntegerInRaw('type_id', $this->typeIds))
             ->when($this->resolutionIds !== [], fn ($query) => $query->whereIntegerInRaw('resolution_id', $this->resolutionIds))
             ->when($this->tmdbId !== null, fn ($query) => $query->where(fn ($query) => $query->where('tmdb_movie_id', '=', $this->tmdbId)->orWhere('tmdb_tv_id', '=', $this->tmdbId)))
-            ->when($this->imdbId !== '', fn ($query) => $query->where('imdb', '=', (preg_match('/tt0*(?=(\d{7,}))/', $this->imdbId, $matches) ? $matches[1] : $this->imdbId)))
+            ->when($this->imdbId !== '', fn ($query) => $query->where('imdb', '=', (preg_match('/tt0*(\d{7,})/', $this->imdbId, $matches) ? $matches[1] : $this->imdbId)))
             ->when($this->tvdbId !== null, fn ($query) => $query->where('tvdb', '=', $this->tvdbId))
             ->when($this->malId !== null, fn ($query) => $query->where('mal', '=', $this->malId))
             ->when(
@@ -282,12 +283,12 @@ class TorrentRequestSearch extends Component
                 $query->where(function ($query): void {
                     $query->where(function ($query): void {
                         if ($this->unfilled) {
-                            $query->whereNull('torrent_id')->whereNull('claimed');
+                            $query->whereNull('torrent_id')->whereDoesntHave('claim');
                         }
                     })
                         ->orWhere(function ($query): void {
                             if ($this->claimed) {
-                                $query->whereNotNull('claimed')->whereNull('torrent_id')->whereNull('approved_when');
+                                $query->whereHas('claim')->whereNull('torrent_id')->whereNull('approved_when');
                             }
                         })
                         ->orWhere(function ($query): void {

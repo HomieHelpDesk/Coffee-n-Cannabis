@@ -59,7 +59,7 @@ class QuickSearchController extends Controller
             $searchById = true;
         }
 
-        if (preg_match('/tt0*(?=(\d{7,}))/', $query, $matches)) {
+        if (preg_match('/tt0*(\d{7,})/', $query, $matches)) {
             $filters[] = 'imdb = '.$matches[1];
             $searchById = true;
         }

@@ -18,6 +18,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreWishRequest;
+use App\Models\Category;
 use App\Models\User;
 use App\Models\Wish;
 use App\Services\Tmdb\Client\Movie;
@@ -43,7 +44,9 @@ class WishController extends Controller
                 ->withCount(['movieTorrents', 'tvTorrents'])
                 ->latest()
                 ->paginate(25),
-            'route' => 'wish',
+            'movieCategoryIds' => Category::where('movie_meta', '=', 1)->pluck('id')->toArray(),
+            'tvCategoryIds'    => Category::where('tv_meta', '=', 1)->pluck('id')->toArray(),
+            'route'            => 'wish',
         ]);
     }
 

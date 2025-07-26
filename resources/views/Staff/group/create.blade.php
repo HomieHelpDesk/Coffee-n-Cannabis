@@ -405,7 +405,10 @@
                 <div class="form__group">
                     <label class="form__label">Permissions</label>
                     <div class="data-table-wrapper">
-                        <table class="data-table" x-data="checkboxGrid">
+                        <table
+                            class="data-table data-table--checkbox-grid"
+                            x-data="checkboxGrid"
+                        >
                             <thead>
                                 <tr>
                                     <th x-bind="columnHeader">Forum Category</th>

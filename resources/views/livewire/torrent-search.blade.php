@@ -9,7 +9,7 @@
                     wire:model.live="name"
                     class="form__text"
                     placeholder=" "
-                    @if (auth()->user()->settings?->torrent_search_autofocus)
+                    @if (auth()->user()->settings->torrent_search_autofocus)
                         autofocus
                     @endif
                 />
@@ -298,7 +298,7 @@
                         wire:model.live="imdbId"
                         class="form__text"
                         inputmode="numeric"
-                        pattern="[0-9]*"
+                        pattern="[0-9]+|tt0*\d{7,}"
                         placeholder=" "
                     />
                     <label class="form__label form__label--floating" for="imdbId">IMDb ID</label>
@@ -769,11 +769,11 @@
                         <thead>
                             <tr
                                 @class([
-                                    'torrent-search--list__headers' => auth()->user()->settings?->show_poster,
-                                    'torrent-search--list__no-poster-headers' => ! auth()->user()->settings?->show_poster,
+                                    'torrent-search--list__headers' => auth()->user()->settings->show_poster,
+                                    'torrent-search--list__no-poster-headers' => ! auth()->user()->settings->show_poster,
                                 ])
                             >
-                                @if (auth()->user()->settings?->show_poster)
+                                @if (auth()->user()->settings->show_poster)
                                     <th class="torrent-search--list__poster-header">Poster</th>
                                 @endif
 

@@ -39,6 +39,7 @@ import.meta.glob(['/public/img/pipes/**', '/resources/sass/vendor/webfonts/font-
 import { Livewire, Alpine } from '../../vendor/livewire/livewire/dist/livewire.esm.js';
 
 // Custom AlpineJS Components
+import './components/alpine/chatbox';
 import './components/alpine/checkboxGrid';
 import './components/alpine/dialog';
 import './components/alpine/dislikeButton';

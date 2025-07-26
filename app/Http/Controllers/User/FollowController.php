@@ -48,6 +48,12 @@ class FollowController extends Controller
                 ->withErrors(trans('user.follow-yourself'));
         }
 
+        // verify if user is following the target user already
+        if ($user->followers()->where('user_id', $request->user()->id)->exists()) {
+            return to_route('users.show', ['user' => $user])
+                ->withErrors(\sprintf('You are already following %s', $user->username));
+        }
+
         $user->followers()->attach($request->user()->id);
 
         $user->notify(new NewFollow('user', $request->user()));
@@ -61,6 +67,12 @@ class FollowController extends Controller
      */
     public function destroy(Request $request, User $user): \Illuminate\Http\RedirectResponse
     {
+        // verify if user is following the target user already
+        if (!$user->followers()->where('user_id', $request->user()->id)->exists()) {
+            return to_route('users.show', ['user' => $user])
+                ->withErrors(\sprintf('You\'re not following %s', $user->username));
+        }
+
         $user->followers()->detach($request->user()->id);
 
         $user->notify(new NewUnfollow('user', $request->user()));

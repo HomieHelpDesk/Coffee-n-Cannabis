@@ -22,9 +22,93 @@ class UpdateGeneralSettingRequest extends FormRequest
                 'required',
                 'boolean',
             ],
-            'chat_hidden' => [
+            'news_block_visible' => [
                 'required',
                 'boolean',
+            ],
+            'news_block_position' => [
+                'required',
+                'numeric',
+            ],
+            'chat_block_visible' => [
+                'required',
+                'boolean',
+            ],
+            'chat_block_position' => [
+                'required',
+                'numeric',
+            ],
+            'featured_block_visible' => [
+                'required',
+                'boolean',
+            ],
+            'featured_block_position' => [
+                'required',
+                'numeric',
+            ],
+            'random_media_block_visible' => [
+                'required',
+                'boolean',
+            ],
+            'random_media_block_position' => [
+                'required',
+                'numeric',
+            ],
+            'poll_block_visible' => [
+                'required',
+                'boolean',
+            ],
+            'poll_block_position' => [
+                'required',
+                'numeric',
+            ],
+            'top_torrents_block_visible' => [
+                'required',
+                'boolean',
+            ],
+            'top_torrents_block_position' => [
+                'required',
+                'numeric',
+            ],
+            'top_users_block_visible' => [
+                'required',
+                'boolean',
+            ],
+            'top_users_block_position' => [
+                'required',
+                'numeric',
+            ],
+            'latest_topics_block_visible' => [
+                'required',
+                'boolean',
+            ],
+            'latest_topics_block_position' => [
+                'required',
+                'numeric',
+            ],
+            'latest_posts_block_visible' => [
+                'required',
+                'boolean',
+            ],
+            'latest_posts_block_position' => [
+                'required',
+                'numeric',
+            ],
+            'latest_comments_block_visible' => [
+                'required',
+                'boolean',
+            ],
+            'latest_comments_block_position' => [
+                'required',
+                'numeric',
+            ],
+            'online_block_visible' => [
+                'required',
+                'boolean',
+            ],
+            'online_block_position' => [
+                'required',
+                'numeric',
             ],
             'locale' => [
                 'required',

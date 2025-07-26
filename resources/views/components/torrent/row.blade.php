@@ -6,8 +6,8 @@
 
 <tr
     @class([
-        'torrent-search--list__row' => auth()->user()->settings?->show_poster,
-        'torrent-search--list__no-poster-row' => ! auth()->user()->settings?->show_poster,
+        'torrent-search--list__row' => auth()->user()->settings->show_poster,
+        'torrent-search--list__no-poster-row' => ! auth()->user()->settings->show_poster,
         'torrent-search--list__sticky-row' => $torrent->sticky,
     ])
     data-torrent-id="{{ $torrent->id }}"
@@ -21,7 +21,7 @@
     data-resolution-id="{{ $torrent->resolution_id }}"
     wire:key="torrent-search-row-{{ $torrent->id }}"
 >
-    @if (auth()->user()->settings?->show_poster)
+    @if (auth()->user()->settings->show_poster)
         <td class="torrent-search--list__poster">
             <a
                 href="{{

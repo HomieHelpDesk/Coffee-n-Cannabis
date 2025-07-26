@@ -34,7 +34,7 @@ test('fill a request creates a notification for the request creator', function (
     Notification::fake();
 
     // Required for ChatRepository()
-    $this->seed(UsersTableSeeder::class);
+    $this->seed(UserSeeder::class);
 
     $bot = Bot::factory()->create([
         'command' => 'Systembot',
@@ -67,7 +67,6 @@ test('fill a request creates a notification for the request creator', function (
         'resolution_id' => $resolution->id,
         'filled_by'     => null,
         'torrent_id'    => null,
-        'claimed'       => false,
         'filled_when'   => null,
         'approved_by'   => null,
         'approved_when' => null,
@@ -95,7 +94,7 @@ test('fill a request creates a notification for the request creator when request
     Notification::fake();
 
     // Required for ChatRepository()
-    $this->seed(UsersTableSeeder::class);
+    $this->seed(UserSeeder::class);
 
     $bot = Bot::factory()->create([
         'command' => 'Systembot',
@@ -130,7 +129,6 @@ test('fill a request creates a notification for the request creator when request
         'resolution_id' => $resolution->id,
         'filled_by'     => null,
         'torrent_id'    => null,
-        'claimed'       => false,
         'filled_when'   => null,
         'approved_by'   => null,
         'approved_when' => null,
@@ -158,7 +156,7 @@ test('fill a request does not create a notification for the request creator when
     Notification::fake();
 
     // Required for ChatRepository()
-    $this->seed(UsersTableSeeder::class);
+    $this->seed(UserSeeder::class);
 
     $bot = Bot::factory()->create([
         'command' => 'Systembot',
@@ -191,7 +189,6 @@ test('fill a request does not create a notification for the request creator when
         'resolution_id' => $resolution->id,
         'filled_by'     => null,
         'torrent_id'    => null,
-        'claimed'       => false,
         'filled_when'   => null,
         'approved_by'   => null,
         'approved_when' => null,
@@ -215,7 +212,7 @@ test('fill a request does not create a notification for the request creator when
     Notification::fake();
 
     // Required for ChatRepository()
-    $this->seed(UsersTableSeeder::class);
+    $this->seed(UserSeeder::class);
 
     $bot = Bot::factory()->create([
         'command' => 'Systembot',
@@ -248,7 +245,6 @@ test('fill a request does not create a notification for the request creator when
         'resolution_id' => $resolution->id,
         'filled_by'     => null,
         'torrent_id'    => null,
-        'claimed'       => false,
         'filled_when'   => null,
         'approved_by'   => null,
         'approved_when' => null,
@@ -272,7 +268,7 @@ test('fill a request does not create a notification for the request creator when
     Notification::fake();
 
     // Required for ChatRepository()
-    $this->seed(UsersTableSeeder::class);
+    $this->seed(UserSeeder::class);
 
     $bot = Bot::factory()->create([
         'command' => 'Systembot',
@@ -306,7 +302,6 @@ test('fill a request does not create a notification for the request creator when
         'resolution_id' => $resolution->id,
         'filled_by'     => null,
         'torrent_id'    => null,
-        'claimed'       => false,
         'filled_when'   => null,
         'approved_by'   => null,
         'approved_when' => null,

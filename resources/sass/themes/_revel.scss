@@ -1370,6 +1370,13 @@ a:hover {
     margin: 0 0 2px 0;
 }
 
+/* Requests
+---------------------------------------------------------------------------- */
+
+.request-search__component {
+    row-gap: 2px;
+}
+
 /* Stats
 ---------------------------------------------------------------------------- */
 
@@ -1536,7 +1543,8 @@ a:hover {
 .user-torrents__filters,
 .user-peers__filters,
 .user-uploads__filters,
-.user-resurrections__filters {
+.user-resurrections__filters,
+.request-search__filters {
     margin: 0 auto;
     width: 1024px;
     max-width: 1024px;

@@ -58,7 +58,7 @@ class MissingMediaSearch extends Component
         return TmdbMovie::with(['torrents:tmdb_movie_id,tmdb_tv_id,resolution_id,type_id' => ['resolution:id,position,name']])
             ->when($this->name, fn ($query) => $query->where('title', 'LIKE', '%'.$this->name.'%'))
             ->when($this->year, fn ($query) => $query->where('release_date', 'LIKE', '%'.$this->year.'%'))
-            ->withCount(['requests' => fn ($query) => $query->whereNull('torrent_id')->whereNull('claimed')])
+            ->withCount(['requests' => fn ($query) => $query->whereNull('torrent_id')->whereDoesntHave('claim')])
             ->withMin('torrents', 'category_id')
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);

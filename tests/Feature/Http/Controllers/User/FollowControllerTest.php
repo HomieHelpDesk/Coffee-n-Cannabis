@@ -15,15 +15,19 @@ declare(strict_types=1);
  */
 
 use App\Models\User;
-use Database\Seeders\GroupsTableSeeder;
-use Database\Seeders\UsersTableSeeder;
+use Database\Seeders\GroupSeeder;
+use Database\Seeders\UserSeeder;
 
 test('destroy returns an ok response', function (): void {
-    $this->seed(UsersTableSeeder::class);
-    $this->seed(GroupsTableSeeder::class);
+    $this->seed(UserSeeder::class);
+    $this->seed(GroupSeeder::class);
 
     $user = User::factory()->create();
     $userToFollow = User::factory()->create();
+
+    $followResponse = $this->actingAs($user)->post(route('users.followers.store', ['user' => $userToFollow]));
+    $followResponse->assertRedirect(route('users.show', ['user' => $userToFollow]))
+        ->assertSessionHas('success', \sprintf('You are now following %s', $userToFollow->username));
 
     $response = $this->actingAs($user)->delete(route('users.followers.destroy', ['user' => $userToFollow]));
     $response->assertRedirect(route('users.show', ['user' => $userToFollow]))
@@ -46,8 +50,8 @@ test('index returns an ok response', function (): void {
 });
 
 test('store returns an ok response', function (): void {
-    $this->seed(UsersTableSeeder::class);
-    $this->seed(GroupsTableSeeder::class);
+    $this->seed(UserSeeder::class);
+    $this->seed(GroupSeeder::class);
 
     $user = User::factory()->create();
     $userToFollow = User::factory()->create();

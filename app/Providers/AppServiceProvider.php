@@ -23,6 +23,9 @@ use App\Models\User;
 use App\Observers\UserObserver;
 use App\View\Composers\FooterComposer;
 use App\View\Composers\TopNavComposer;
+use Illuminate\Foundation\Http\Middleware\TrimStrings;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
@@ -90,5 +93,15 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('partials.footer', FooterComposer::class);
         View::composer('partials.top-nav', TopNavComposer::class);
+
+        TrimStrings::except([
+            'current_password',
+            'password',
+            'password_confirmation',
+            'info_hash',
+            'peer_id',
+        ]);
+
+        Auth::viaRequest('rsskey', fn (Request $request) => User::query()->where('rsskey', '=', $request->route('rsskey'))->first());
     }
 }

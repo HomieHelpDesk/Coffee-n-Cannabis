@@ -16,6 +16,9 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Enums\GlobalRateLimit;
+use App\Enums\MiddlewareGroup;
+use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
@@ -44,23 +47,25 @@ class RouteServiceProvider extends ServiceProvider
 
         $this->routes(function (): void {
             Route::prefix('api')
-                ->middleware(['chat'])
+                ->middleware(MiddlewareGroup::CHAT->value)
                 ->group(base_path('routes/vue.php'));
 
-            Route::middleware('web')
+            Route::middleware(MiddlewareGroup::WEB->value)
                 ->group(base_path('routes/web.php'));
 
             Route::prefix('api')
-                ->middleware('api')
+                ->middleware(MiddlewareGroup::API->value)
                 ->group(base_path('routes/api.php'));
 
             Route::prefix('announce')
-                ->middleware('announce')
+                ->middleware(MiddlewareGroup::ANNOUNCE->value)
                 ->group(base_path('routes/announce.php'));
 
-            Route::middleware('rss')
+            Route::middleware(MiddlewareGroup::RSS->value)
                 ->group(base_path('routes/rss.php'));
         });
+
+        RedirectIfAuthenticated::redirectUsing(fn () => self::HOME);
     }
 
     /**
@@ -68,7 +73,7 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function configureRateLimiting(): void
     {
-        RateLimiter::for('web', fn (Request $request): Limit => $request->user()
+        RateLimiter::for(GlobalRateLimit::WEB, fn (Request $request): Limit => $request->user()
             ? Limit::perMinute(
                 cache()->remember(
                     'group:'.$request->user()->group_id.':is_modo',
@@ -80,13 +85,14 @@ class RouteServiceProvider extends ServiceProvider
             )
                 ->by('web'.$request->user()->id)
             : Limit::perMinute(8)->by('web'.$request->ip()));
-        RateLimiter::for('api', fn (Request $request) => Limit::perMinute(30)->by('api'.$request->ip()));
-        RateLimiter::for('announce', fn (Request $request) => Limit::perMinute(500)->by('announce'.$request->ip()));
-        RateLimiter::for('chat', fn (Request $request) => Limit::perMinute(60)->by('chat'.($request->user()?->id ?? $request->ip())));
-        RateLimiter::for('rss', fn (Request $request) => Limit::perMinute(30)->by('rss'.$request->ip()));
-        RateLimiter::for('authenticated-images', fn (Request $request): Limit => Limit::perMinute(200)->by('authenticated-images:'.$request->user()->id));
-        RateLimiter::for('search', fn (Request $request): Limit => Limit::perMinute(100)->by('search:'.$request->user()->id));
-        RateLimiter::for('tmdb', fn (): Limit => Limit::perSecond(2));
+        RateLimiter::for(GlobalRateLimit::API, fn (Request $request) => Limit::perMinute(30)->by('api'.$request->ip()));
+        RateLimiter::for(GlobalRateLimit::ANNOUNCE, fn (Request $request) => Limit::perMinute(500)->by('announce'.$request->ip()));
+        RateLimiter::for(GlobalRateLimit::CHAT, fn (Request $request) => Limit::perMinute(60)->by('chat'.($request->user()?->id ?? $request->ip())));
+        RateLimiter::for(GlobalRateLimit::RSS, fn (Request $request) => Limit::perMinute(30)->by('rss'.$request->ip()));
+        RateLimiter::for(GlobalRateLimit::AUTHENTICATED_IMAGES, fn (Request $request): Limit => Limit::perMinute(200)->by('authenticated-images:'.$request->user()->id));
+        RateLimiter::for(GlobalRateLimit::SEARCH, fn (Request $request): Limit => Limit::perMinute(100)->by('search:'.$request->user()->id));
+        RateLimiter::for(GlobalRateLimit::TMDB, fn (): Limit => Limit::perSecond(2));
+        RateLimiter::for(GlobalRateLimit::IGDB, fn (): Limit => Limit::perSecond(2));
     }
 
     protected function removeIndexPhpFromUrl(): void

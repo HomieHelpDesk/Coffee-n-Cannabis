@@ -50,7 +50,6 @@ class BountyController extends Controller
 
         $torrentRequest->increment('bounty', $request->integer('seedbonus'));
 
-        $torrentRequest->votes++;
         $torrentRequest->created_at = now();
         $torrentRequest->save();
 

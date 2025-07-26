@@ -67,7 +67,7 @@ class SetLanguage
     {
         $user = auth()->user();
 
-        if ($user->settings?->locale) {
+        if ($user->settings->locale) {
             $this->setLocale($user->settings->locale);
         } else {
             $this->setDefaultLocale();

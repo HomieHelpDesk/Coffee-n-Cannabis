@@ -165,6 +165,10 @@ class PlaylistController extends Controller
             $path = Storage::disk('playlist-images')->path($filename);
             Image::make($image->getRealPath())->fit(400, 225)->encode('png', 100)->save($path);
 
+            if ($playlist->cover_image !== null) {
+                Storage::disk('playlist-images')->delete($playlist->cover_image);
+            }
+
             $playlist->update(['cover_image' => $filename] + $request->validated());
         } else {
             $playlist->update($request->validated());

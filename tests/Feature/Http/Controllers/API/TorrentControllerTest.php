@@ -14,6 +14,7 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/agpl-3.0.en.html/ GNU Affero General Public License v3.0
  */
 
+use App\Enums\AuthGuard;
 use App\Models\Category;
 use App\Models\Torrent;
 use App\Models\User;
@@ -23,7 +24,7 @@ test('filter returns an ok response', function (): void {
 
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user, 'api')->getJson('api/torrents/filter');
+    $response = $this->actingAs($user, AuthGuard::API->value)->getJson('api/torrents/filter');
     $response->assertOk();
     $response->assertJsonStructure([
     ]);

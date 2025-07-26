@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Enums\AuthGuard;
+use App\Enums\MiddlewareGroup;
 use App\Providers\RouteServiceProvider;
 use Laravel\Fortify\Features;
 
@@ -17,7 +19,7 @@ return [
     |
     */
 
-    'guard' => 'web',
+    'guard' => AuthGuard::WEB->value,
 
     /*
     |--------------------------------------------------------------------------
@@ -90,7 +92,7 @@ return [
     |
     */
 
-    'middleware' => ['web'],
+    'middleware' => [MiddlewareGroup::WEB->value],
 
     /*
     |--------------------------------------------------------------------------

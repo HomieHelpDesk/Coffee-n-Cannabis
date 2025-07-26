@@ -34,7 +34,7 @@ test('decline a request fill creates a notification for the filler', function ()
     Notification::fake();
 
     // Required for ChatRepository()
-    $this->seed(UsersTableSeeder::class);
+    $this->seed(UserSeeder::class);
 
     $bot = Bot::factory()->create([
         'command' => 'Systembot',
@@ -69,7 +69,6 @@ test('decline a request fill creates a notification for the filler', function ()
         'type_id'       => $type->id,
         'resolution_id' => $resolution->id,
         'torrent_id'    => $torrent->id,
-        'claimed'       => true,
         'filled_by'     => $filler->id,
         'filled_when'   => now(),
         'approved_by'   => null,
@@ -92,7 +91,7 @@ test('decline a request fill creates a notification for the filler when request 
     Notification::fake();
 
     // Required for ChatRepository()
-    $this->seed(UsersTableSeeder::class);
+    $this->seed(UserSeeder::class);
 
     $bot = Bot::factory()->create([
         'command' => 'Systembot',
@@ -130,7 +129,6 @@ test('decline a request fill creates a notification for the filler when request 
         'type_id'       => $type->id,
         'resolution_id' => $resolution->id,
         'torrent_id'    => $torrent->id,
-        'claimed'       => true,
         'filled_by'     => $filler->id,
         'filled_when'   => now(),
         'approved_by'   => null,
@@ -153,7 +151,7 @@ test('decline a request fill does not create a notification for the filler when 
     Notification::fake();
 
     // Required for ChatRepository()
-    $this->seed(UsersTableSeeder::class);
+    $this->seed(UserSeeder::class);
 
     $bot = Bot::factory()->create([
         'command' => 'Systembot',
@@ -188,7 +186,6 @@ test('decline a request fill does not create a notification for the filler when 
         'type_id'       => $type->id,
         'resolution_id' => $resolution->id,
         'torrent_id'    => $torrent->id,
-        'claimed'       => true,
         'filled_by'     => $filler->id,
         'filled_when'   => now(),
         'approved_by'   => null,
@@ -207,7 +204,7 @@ test('decline a request fill does not create a notification for the filler when 
     Notification::fake();
 
     // Required for ChatRepository()
-    $this->seed(UsersTableSeeder::class);
+    $this->seed(UserSeeder::class);
 
     $bot = Bot::factory()->create([
         'command' => 'Systembot',
@@ -242,7 +239,6 @@ test('decline a request fill does not create a notification for the filler when 
         'type_id'       => $type->id,
         'resolution_id' => $resolution->id,
         'torrent_id'    => $torrent->id,
-        'claimed'       => true,
         'filled_by'     => $filler->id,
         'filled_when'   => now(),
         'approved_by'   => null,
@@ -261,7 +257,7 @@ test('decline a request fill does not create a notification for the filler when 
     Notification::fake();
 
     // Required for ChatRepository()
-    $this->seed(UsersTableSeeder::class);
+    $this->seed(UserSeeder::class);
 
     $bot = Bot::factory()->create([
         'command' => 'Systembot',
@@ -301,7 +297,6 @@ test('decline a request fill does not create a notification for the filler when 
         'type_id'       => $type->id,
         'resolution_id' => $resolution->id,
         'torrent_id'    => $torrent->id,
-        'claimed'       => true,
         'filled_by'     => $filler->id,
         'filled_when'   => now(),
         'approved_by'   => null,

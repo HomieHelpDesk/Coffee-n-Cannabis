@@ -35,8 +35,6 @@ use Illuminate\Database\Eloquent\Model;
  * @property string                          $description
  * @property int                             $user_id
  * @property string                          $bounty
- * @property int                             $votes
- * @property int|null                        $claimed
  * @property bool                            $anon
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
@@ -46,7 +44,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int                             $filled_anon
  * @property int|null                        $approved_by
  * @property \Illuminate\Support\Carbon|null $approved_when
- * @property int                             $type_id
+ * @property int|null                        $type_id
  * @property int|null                        $resolution_id
  */
 class TorrentRequest extends Model

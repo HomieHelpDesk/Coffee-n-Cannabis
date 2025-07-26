@@ -137,7 +137,7 @@ class StoreTorrentRequestRequest extends FormRequest
                 'exists:categories,id',
             ],
             'type_id' => [
-                'required',
+                'nullable',
                 'exists:types,id',
             ],
             'resolution_id' => [

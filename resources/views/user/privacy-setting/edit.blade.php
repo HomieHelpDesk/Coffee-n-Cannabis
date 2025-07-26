@@ -365,126 +365,54 @@
                     </p>
                 </fieldset>
                 <h3>Hide your profile options from the selected groups.</h3>
-                <div class="form__group--short-horizontal">
-                    <fieldset class="form__fieldset">
-                        <legend class="form__legend">Profile</legend>
-                        @foreach ($groups as $group)
-                            <p class="form__group">
-                                <label class="form__label">
-                                    <input
-                                        class="form__checkbox"
-                                        type="checkbox"
-                                        name="json_profile_groups[]"
-                                        value="{{ $group->id }}"
-                                        @checked($user->privacy !== null && \in_array($group->id, $user->privacy->json_profile_groups, true))
-                                    />
-                                    {{ $group->name }}
-                                </label>
-                            </p>
-                        @endforeach
-                    </fieldset>
-                    <fieldset class="form__fieldset">
-                        <legend class="form__legend">Achievements</legend>
-                        @foreach ($groups as $group)
-                            <p class="form__group">
-                                <label class="form__label">
-                                    <input
-                                        class="form__checkbox"
-                                        type="checkbox"
-                                        name="json_achievement_groups[]"
-                                        value="{{ $group->id }}"
-                                        @checked($user->privacy !== null && \in_array($group->id, $user->privacy->json_achievement_groups, true))
-                                    />
-                                    {{ $group->name }}
-                                </label>
-                            </p>
-                        @endforeach
-                    </fieldset>
-                    <fieldset class="form__fieldset">
-                        <legend class="form__legend">Followers</legend>
-                        @foreach ($groups as $group)
-                            <p class="form__group">
-                                <label class="form__label">
-                                    <input
-                                        class="form__checkbox"
-                                        type="checkbox"
-                                        name="json_follower_groups[]"
-                                        value="{{ $group->id }}"
-                                        @checked($user->privacy !== null && \in_array($group->id, $user->privacy->json_follower_groups, true))
-                                    />
-                                    {{ $group->name }}
-                                </label>
-                            </p>
-                        @endforeach
-                    </fieldset>
-                    <fieldset class="form__fieldset">
-                        <legend class="form__legend">Forums</legend>
-                        @foreach ($groups as $group)
-                            <p class="form__group">
-                                <label class="form__label">
-                                    <input
-                                        class="form__checkbox"
-                                        type="checkbox"
-                                        name="json_forum_groups[]"
-                                        value="{{ $group->id }}"
-                                        @checked($user->privacy !== null && \in_array($group->id, $user->privacy->json_forum_groups, true))
-                                    />
-                                    {{ $group->name }}
-                                </label>
-                            </p>
-                        @endforeach
-                    </fieldset>
-                    <fieldset class="form__fieldset">
-                        <legend class="form__legend">Requests</legend>
-                        @foreach ($groups as $group)
-                            <p class="form__group">
-                                <label class="form__label">
-                                    <input
-                                        class="form__checkbox"
-                                        type="checkbox"
-                                        name="json_request_groups[]"
-                                        value="{{ $group->id }}"
-                                        @checked($user->privacy !== null && \in_array($group->id, $user->privacy->json_request_groups, true))
-                                    />
-                                    {{ $group->name }}
-                                </label>
-                            </p>
-                        @endforeach
-                    </fieldset>
-                    <fieldset class="form__fieldset">
-                        <legend class="form__legend">Torrents</legend>
-                        @foreach ($groups as $group)
-                            <p class="form__group">
-                                <label class="form__label">
-                                    <input
-                                        class="form__checkbox"
-                                        type="checkbox"
-                                        name="json_torrent_groups[]"
-                                        value="{{ $group->id }}"
-                                        @checked($user->privacy !== null && \in_array($group->id, $user->privacy->json_torrent_groups, true))
-                                    />
-                                    {{ $group->name }}
-                                </label>
-                            </p>
-                        @endforeach
-                    </fieldset>
-                    <fieldset class="form__fieldset">
-                        <legend class="form__legend">Other</legend>
-                        @foreach ($groups as $group)
-                            <p class="form__group">
-                                <label class="form__label">
-                                    <input
-                                        class="form__checkbox"
-                                        type="checkbox"
-                                        name="json_other_groups[]"
-                                        value="{{ $group->id }}"
-                                        @checked($user->privacy !== null && \in_array($group->id, $user->privacy->json_other_groups, true))
-                                    />
-                                    {{ $group->name }}
-                                </label>
-                            </p>
-                        @endforeach
-                    </fieldset>
+                <div class="form__group">
+                    <div class="data-table-wrapper">
+                        <table
+                            class="data-table data-table--checkbox-grid"
+                            x-data="checkboxGrid"
+                        >
+                            <thead>
+                                <tr>
+                                    <th x-bind="columnHeader">{{ __('common.group') }}</th>
+                                    <th x-bind="columnHeader">Profile</th>
+                                    <th x-bind="columnHeader">Achievements</th>
+                                    <th x-bind="columnHeader">Followers</th>
+                                    <th x-bind="columnHeader">Forums</th>
+                                    <th x-bind="columnHeader">Requests</th>
+                                    <th x-bind="columnHeader">Torrents</th>
+                                    <th x-bind="columnHeader">Other</th>
+                                </tr>
+                            </thead>
+                            <tbody x-ref="tbody">
+                                @foreach ($groups as $group)
+                                    <tr>
+                                        <th x-bind="rowHeader">
+                                            {{ $group->name }}
+                                        </th>
+                                        @foreach ([
+                                            'json_profile_groups',
+                                            'json_achievement_groups',
+                                            'json_follower_groups',
+                                            'json_forum_groups',
+                                            'json_request_groups',
+                                            'json_torrent_groups',
+                                            'json_other_groups'
+                                        ] as $setting)
+                                            <td x-bind="cell">
+                                                <input
+                                                    class="form__checkbox"
+                                                    type="checkbox"
+                                                    name="{{ $setting }}[]"
+                                                    value="{{ $group->id }}"
+                                                    @checked($user->privacy !== null && \in_array($group->id, $user->privacy->$setting, true))
+                                                />
+                                            </td>
+                                        @endforeach
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <p class="form__group">
                     <label class="form__label">

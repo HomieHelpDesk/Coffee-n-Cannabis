@@ -42,6 +42,8 @@ class AuthenticatedImageController extends Controller
 
     public function categoryImage(Category $category): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
+        abort_if($category->image === null, 404);
+
         $path = Storage::disk('category-images')->path($category->image);
 
         abort_unless(file_exists($path), 404);
@@ -51,6 +53,8 @@ class AuthenticatedImageController extends Controller
 
     public function playlistImage(Playlist $playlist): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
+        abort_if($playlist->cover_image === null, 404);
+
         $path = Storage::disk('playlist-images')->path($playlist->cover_image);
 
         abort_unless(file_exists($path), 404);
@@ -78,6 +82,8 @@ class AuthenticatedImageController extends Controller
 
     public function userAvatar(User $user): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
+        abort_if($user->image === null, 404);
+
         $path = Storage::disk('user-avatars')->path($user->image);
 
         abort_unless(file_exists($path), 404);
@@ -87,6 +93,8 @@ class AuthenticatedImageController extends Controller
 
     public function userIcon(User $user): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
+        abort_if($user->icon === null, 404);
+
         $path = Storage::disk('user-icons')->path($user->icon);
 
         abort_unless(file_exists($path), 404);

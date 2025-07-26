@@ -74,8 +74,8 @@
                         </label>
                     </p>
                     <p class="form__group">
-                        <select id="type_id" class="form__select" name="type_id" required>
-                            <option hidden disabled selected value=""></option>
+                        <select id="type_id" class="form__select" name="type_id">
+                            <option selected value="">Any</option>
                             @foreach ($types as $type)
                                 <option
                                     value="{{ $type->id }}"
@@ -90,13 +90,8 @@
                         </label>
                     </p>
                     <p class="form__group">
-                        <select
-                            id="resolution_id"
-                            class="form__select"
-                            name="resolution_id"
-                            required
-                        >
-                            <option hidden disabled selected value=""></option>
+                        <select id="resolution_id" class="form__select" name="resolution_id">
+                            <option selected value="">Any</option>
                             @foreach ($resolutions as $resolution)
                                 <option
                                     value="{{ $resolution->id }}"

@@ -16,15 +16,16 @@ declare(strict_types=1);
 
 namespace Tests\Old;
 
+use App\Enums\AuthGuard;
 use App\Enums\ModerationStatus;
 use App\Models\Category;
 use App\Models\Resolution;
 use App\Models\Torrent;
 use App\Models\Type;
 use App\Models\User;
-use Database\Seeders\BotsTableSeeder;
-use Database\Seeders\ChatroomTableSeeder;
-use Database\Seeders\UsersTableSeeder;
+use Database\Seeders\BotSeeder;
+use Database\Seeders\ChatroomSeeder;
+use Database\Seeders\UserSeeder;
 use Illuminate\Http\UploadedFile;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -39,7 +40,7 @@ final class TorrentControllerTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user, 'api')->getJson('api/torrents/filter');
+        $response = $this->actingAs($user, AuthGuard::API->value)->getJson('api/torrents/filter');
 
         $response->assertOk()
             ->assertJson([
@@ -65,7 +66,7 @@ final class TorrentControllerTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user, 'api')->getJson(route('api.torrents.index'));
+        $response = $this->actingAs($user, AuthGuard::API->value)->getJson(route('api.torrents.index'));
 
         $response->assertOk()
             ->assertJson([
@@ -99,7 +100,7 @@ final class TorrentControllerTest extends TestCase
             'status'  => ModerationStatus::APPROVED,
         ]);
 
-        $response = $this->actingAs($user, 'api')->getJson(\sprintf('api/torrents/%s', $torrent->id));
+        $response = $this->actingAs($user, AuthGuard::API->value)->getJson(\sprintf('api/torrents/%s', $torrent->id));
 
         $response->assertOk()
             ->assertJson([
@@ -111,9 +112,9 @@ final class TorrentControllerTest extends TestCase
     #[Test]
     public function store_returns_an_ok_response(): void
     {
-        $this->seed(UsersTableSeeder::class);
-        $this->seed(ChatroomTableSeeder::class);
-        $this->seed(BotsTableSeeder::class);
+        $this->seed(UserSeeder::class);
+        $this->seed(ChatroomSeeder::class);
+        $this->seed(BotSeeder::class);
 
         $user = User::factory()->create();
 
@@ -123,7 +124,7 @@ final class TorrentControllerTest extends TestCase
 
         $torrent = Torrent::factory()->make();
 
-        $response = $this->actingAs($user, 'api')->postJson('api/torrents/upload', [
+        $response = $this->actingAs($user, AuthGuard::API->value)->postJson('api/torrents/upload', [
             'torrent' => new UploadedFile(
                 base_path('tests/Resources/Pony Music - Mind Fragments (2014).torrent'),
                 'Pony Music - Mind Fragments (2014).torrent'

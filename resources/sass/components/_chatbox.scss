@@ -78,7 +78,34 @@
     padding: 0;
     margin: 0;
     list-style-type: none;
-    display: flex;
+    display: none;
+}
+
+/* Modified hover behavior to work with Alpine.js permission check */
+.chatbox-message:hover .chatbox-message__menu {
+    display: block;
+}
+
+/* Ensure the delete button itself is visible on hover */
+.chatbox-message__delete-button {
+    padding: 4px 12px;
+    margin: 0;
+    background-color: transparent;
+    text-align: center;
+    border: none;
+    color: transparent;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.chatbox-message:hover .chatbox-message__delete-button {
+    color: var(--chatbox-button-fg);
+    width: auto;
+
+    &:hover {
+        color: var(--chatbox-button-hover-fg);
+        width: auto;
+    }
 }
 
 .chatbox-message__header {

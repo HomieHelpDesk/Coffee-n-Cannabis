@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Enums\AuthGuard;
+use App\Enums\GlobalRateLimit;
+use App\Enums\MiddlewareGroup;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 
@@ -34,28 +37,30 @@ if (config('unit3d.proxy_scheme')) {
 if (config('unit3d.root_url_override')) {
     URL::forceRootUrl(config('unit3d.root_url_override'));
 }
-// Torrents System
-Route::middleware(['auth:api', 'banned'])->prefix('torrents')->group(function (): void {
-    Route::get('/', [App\Http\Controllers\API\TorrentController::class, 'index'])->name('api.torrents.index');
-    Route::get('/filter', [App\Http\Controllers\API\TorrentController::class, 'filter']);
-    Route::get('/{id}', [App\Http\Controllers\API\TorrentController::class, 'show'])->where('id', '[0-9]+');
-    Route::post('/upload', [App\Http\Controllers\API\TorrentController::class, 'store']);
+Route::middleware(['auth:'.AuthGuard::API->value, 'banned'])->group(function (): void {
+    // Torrents System
+    Route::prefix('torrents')->group(function (): void {
+        Route::get('/', [App\Http\Controllers\API\TorrentController::class, 'index'])->name('api.torrents.index');
+        Route::get('/filter', [App\Http\Controllers\API\TorrentController::class, 'filter']);
+        Route::get('/{id}', [App\Http\Controllers\API\TorrentController::class, 'show'])->where('id', '[0-9]+');
+        Route::post('/upload', [App\Http\Controllers\API\TorrentController::class, 'store']);
+    });
+
+    // User
+    Route::get('/user', [App\Http\Controllers\API\UserController::class, 'show']);
 });
 
-// User
-Route::middleware(['auth:api', 'banned'])->get('/user', [App\Http\Controllers\API\UserController::class, 'show']);
-
 // Internal front-end web API routes
-Route::middleware(['web', 'auth', 'banned', 'verified'])->group(function (): void {
-    Route::prefix('bookmarks')->group(function (): void {
-        Route::post('/{torrentId}', [App\Http\Controllers\API\BookmarkController::class, 'store'])->name('api.bookmarks.store');
-        Route::delete('/{torrentId}', [App\Http\Controllers\API\BookmarkController::class, 'destroy'])->name('api.bookmarks.destroy');
+Route::name('api.')->middleware([MiddlewareGroup::WEB->value, 'auth', 'banned', 'verified'])->group(function (): void {
+    Route::prefix('bookmarks')->name('bookmarks.')->group(function (): void {
+        Route::post('/{torrentId}', [App\Http\Controllers\API\BookmarkController::class, 'store'])->name('store');
+        Route::delete('/{torrentId}', [App\Http\Controllers\API\BookmarkController::class, 'destroy'])->name('destroy');
     });
 
-    Route::prefix('posts')->group(function (): void {
-        Route::post('/{postId}/like', [App\Http\Controllers\API\LikeController::class, 'store'])->name('api.posts.like.store');
-        Route::post('/{postId}/dislike', [App\Http\Controllers\API\DislikeController::class, 'store'])->name('api.posts.dislike.store');
+    Route::prefix('posts')->name('posts.')->group(function (): void {
+        Route::post('/{postId}/like', [App\Http\Controllers\API\LikeController::class, 'store'])->name('like.store');
+        Route::post('/{postId}/dislike', [App\Http\Controllers\API\DislikeController::class, 'store'])->name('dislike.store');
     });
 
-    Route::get('/quicksearch', [App\Http\Controllers\API\QuickSearchController::class, 'index'])->name('api.quicksearch')->middleware('throttle:search')->withoutMiddleware('throttle:web');
+    Route::get('/quicksearch', [App\Http\Controllers\API\QuickSearchController::class, 'index'])->name('quicksearch')->middleware('throttle:'.GlobalRateLimit::SEARCH->value)->withoutMiddleware('throttle:'.GlobalRateLimit::WEB->value);
 });

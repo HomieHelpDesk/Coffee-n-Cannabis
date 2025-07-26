@@ -28,11 +28,9 @@ class UpdateLastAction
     {
         $user = $request->user();
 
-        if (null === $user) {
-            return $next($request);
+        if ($user !== null) {
+            Redis::command('LPUSH', [config('cache.prefix').':user-last-actions:batch', $user->id]);
         }
-
-        Redis::command('LPUSH', [config('cache.prefix').':user-last-actions:batch', $user->id]);
 
         return $next($request);
     }

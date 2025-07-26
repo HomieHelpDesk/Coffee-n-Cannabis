@@ -373,16 +373,16 @@ parameters:
 			path: app/Http/Controllers/DonationController.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\Article\:\:\$newNews\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/HomeController.php
-
-		-
 			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\TorrentRequestBounty\>\.$#'
 			identifier: return.type
 			count: 3
 			path: app/Http/Controllers/RequestController.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Group\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Staff/ArticleController.php
 
 		-
 			message: '#^Call to function is_int\(\) with string\|null will always evaluate to false\.$#'
@@ -583,12 +583,6 @@ parameters:
 			path: app/Http/Livewire/MissingMediaSearch.php
 
 		-
-			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\TmdbCredit\>\.$#'
-			identifier: return.type
-			count: 2
-			path: app/Http/Livewire/TmdbPersonSearch.php
-
-		-
 			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Group\>\.$#'
 			identifier: return.type
 			count: 1
@@ -599,6 +593,12 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: app/Http/Livewire/SubtitleSearch.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\TmdbCredit\>\.$#'
+			identifier: return.type
+			count: 2
+			path: app/Http/Livewire/TmdbPersonSearch.php
 
 		-
 			message: '#^Anonymous function should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Group\>\.$#'
@@ -631,22 +631,10 @@ parameters:
 			path: app/Http/Livewire/TorrentRequestSearch.php
 
 		-
-			message: '#^Call to function is_countable\(\) with Illuminate\\Support\\Collection\<\(int\|string\), mixed\> will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: app/Http/Middleware/CheckIfBanned.php
-
-		-
 			message: '#^Method App\\Http\\Middleware\\SetLanguage\:\:setSystemLocale\(\) has parameter \$request with no type specified\.$#'
 			identifier: missingType.parameter
 			count: 1
 			path: app/Http/Middleware/SetLanguage.php
-
-		-
-			message: '#^Method App\\Http\\Middleware\\TrustHosts\:\:hosts\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: app/Http/Middleware/TrustHosts.php
 
 		-
 			message: '#^Method App\\Http\\Requests\\Staff\\UpdateAutomaticTorrentFreeleechRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
@@ -811,13 +799,13 @@ parameters:
 			path: app/Providers/FortifyServiceProvider.php
 
 		-
-			message: '#^Method Laravel\\Fortify\\Contracts\\RegisterViewResponse@anonymous/app/Providers/FortifyServiceProvider\.php\:99\:\:toResponse\(\) never returns Illuminate\\Http\\RedirectResponse so it can be removed from the return type\.$#'
+			message: '#^Method Laravel\\Fortify\\Contracts\\RegisterViewResponse@anonymous/app/Providers/FortifyServiceProvider\.php\:96\:\:toResponse\(\) never returns Illuminate\\Http\\RedirectResponse so it can be removed from the return type\.$#'
 			identifier: return.unusedType
 			count: 1
 			path: app/Providers/FortifyServiceProvider.php
 
 		-
-			message: '#^Method Laravel\\Fortify\\Contracts\\VerifyEmailResponse@anonymous/app/Providers/FortifyServiceProvider\.php\:110\:\:toResponse\(\) never returns Illuminate\\View\\View so it can be removed from the return type\.$#'
+			message: '#^Method Laravel\\Fortify\\Contracts\\VerifyEmailResponse@anonymous/app/Providers/FortifyServiceProvider\.php\:107\:\:toResponse\(\) never returns Illuminate\\View\\View so it can be removed from the return type\.$#'
 			identifier: return.unusedType
 			count: 1
 			path: app/Providers/FortifyServiceProvider.php

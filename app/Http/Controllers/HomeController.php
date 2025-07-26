@@ -44,17 +44,26 @@ class HomeController extends Controller
         $expiresAt = now()->addMinutes(5);
 
         // Authorized User
-        $user = $request->user();
-
-        // Latest Articles/News Block
-        $articles = cache()->remember('latest_article', $expiresAt, fn () => Article::latest()->take(1)->get());
-
-        foreach ($articles as $article) {
-            $article->newNews = ($user->last_login->subDays(3)->getTimestamp() < $article->created_at->getTimestamp()) ? 1 : 0;
-        }
+        $user = $request->user()->load('settings');
 
         return view('home.index', [
-            'user'  => $user,
+            'user'   => $user,
+            'blocks' => collect(
+                [
+                    'news', 'chat', 'featured', 'random_media', 'poll',
+                    'top_torrents', 'top_users', 'latest_topics', 'latest_posts',
+                    'latest_comments', 'online'
+                ]
+            )
+                ->map(fn ($block) => [
+                    'key'      => $block,
+                    'visible'  => $user->settings->{"{$block}_block_visible"},
+                    'position' => $user->settings->{"{$block}_block_position"},
+                ])
+                ->sortBy('position')
+                ->filter(fn ($block) => $block['visible'])
+                ->pluck('key')
+                ->toArray(),
             'users' => cache()->remember(
                 'online_users:by-group:'.auth()->user()->group_id,
                 $expiresAt,
@@ -82,8 +91,12 @@ class HomeController extends Controller
                     ->oldest('position')
                     ->get()
             ),
-            'articles' => $articles,
-            'topics'   => Topic::query()
+            'articles' => Article::query()
+                ->latest()
+                ->limit(3)
+                ->withExists(['unreads' => fn ($query) => $query->whereBelongsTo($user)])
+                ->get(),
+            'topics' => Topic::query()
                 ->with(['user', 'user.group', 'latestPoster', 'reads' => fn ($query) => $query->whereBelongsTo($user)])
                 ->authorized(canReadTopic: true)
                 ->latest()

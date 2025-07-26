@@ -3,6 +3,12 @@
     border: 0;
     color: var(--data-table-fg);
     border-collapse: collapse;
+    --data-table-padding: 7px;
+}
+
+.data-table--checkbox-grid {
+    --data-table-padding: 1px 10px;
+    width: auto;
 }
 
 .data-table-wrapper {
@@ -17,7 +23,7 @@
     background-color: var(--data-table-th-bg);
     border-bottom: var(--data-table-thead-border);
     text-align: left;
-    padding: 7px;
+    padding: var(--data-table-padding);
     font-size: 12px;
     font-weight: bold;
 }
@@ -27,7 +33,7 @@
 .data-table > thead > tr > td,
 .data-table > tbody > tr > td,
 .data-table > tfoot > tr > td {
-    padding: 7px;
+    padding: var(--data-table-padding);
     font-size: 14px;
 }
 

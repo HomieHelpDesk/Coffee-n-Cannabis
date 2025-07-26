@@ -17,7 +17,6 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Traits\Auditable;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -61,48 +60,6 @@ class Ticket extends Model
             'closed_at'   => 'datetime',
             'reminded_at' => 'datetime',
         ];
-    }
-
-    /**
-     * @param  Builder<Ticket> $query
-     * @return Builder<Ticket>
-     */
-    public function scopeStatus(Builder $query, string $status): Builder
-    {
-        if ($status === 'closed') {
-            return $query->whereNotNull('closed_at');
-        }
-
-        if ($status === 'open') {
-            return $query->whereNull('closed_at');
-        }
-
-        return $query;
-    }
-
-    /**
-     * @param  Builder<Ticket> $query
-     * @return Builder<Ticket>
-     */
-    public function scopeStale(Builder $query): Builder
-    {
-        return $query->with(['comments' => function ($query): void {
-            $query->latest('id');
-        }, 'comments.user'])
-            ->has('comments')
-            ->where('reminded_at', '<', strtotime('+ 3 days'))
-            ->orWhereNull('reminded_at');
-    }
-
-    public static function checkForStaleTickets(): void
-    {
-        $open_tickets = self::status('open')
-            ->whereNotNull('staff_id')
-            ->get();
-
-        foreach ($open_tickets as $open_ticket) {
-            Comment::checkForStale($open_ticket);
-        }
     }
 
     /**

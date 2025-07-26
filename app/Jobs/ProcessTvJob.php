@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Enums\GlobalRateLimit;
 use App\Models\TmdbCompany;
 use App\Models\TmdbCredit;
 use App\Models\TmdbGenre;
@@ -49,6 +50,22 @@ class ProcessTvJob implements ShouldQueue
     }
 
     /**
+     * The number of seconds the job can run before timing out.
+     *
+     * Some shows have 2000+ credits requiring more than the default of 60 seconds.
+     *
+     * @var int
+     */
+    public $timeout = 300;
+
+    /**
+     * Indicate if the job should be marked as failed on timeout.
+     *
+     * @var bool
+     */
+    public $failOnTimeout = true;
+
+    /**
      * Get the middleware the job should pass through.
      *
      * @return array<int, object>
@@ -58,7 +75,7 @@ class ProcessTvJob implements ShouldQueue
         return [
             Skip::when(cache()->has("tmdb-tv-scraper:{$this->id}")),
             new WithoutOverlapping((string) $this->id)->dontRelease()->expireAfter(30),
-            new RateLimited('tmdb'),
+            new RateLimited(GlobalRateLimit::TMDB),
         ];
     }
 
@@ -72,10 +89,6 @@ class ProcessTvJob implements ShouldQueue
 
     public function handle(): void
     {
-        // TMDB caches their api responses for 8 hours, so don't abuse them
-
-        cache()->put("tmdb-tv-scraper:{$this->id}", now(), 8 * 3600);
-
         // Tv
 
         $tvScraper = new Client\TV($this->id);
@@ -117,6 +130,7 @@ class ProcessTvJob implements ShouldQueue
 
         $credits = $tvScraper->getCredits();
         $people = [];
+        $cache = [];
 
         foreach (array_unique(array_column($credits, 'tmdb_person_id')) as $personId) {
             // TMDB caches their api responses for 8 hours, so don't abuse them
@@ -127,12 +141,19 @@ class ProcessTvJob implements ShouldQueue
                 continue;
             }
 
-            cache()->put($cacheKey, now(), 8 * 3600);
-
             $people[] = (new Client\Person($personId))->getPerson();
+
+            $cache[$cacheKey] = now();
         }
 
-        TmdbPerson::upsert($people, 'id');
+        foreach (collect($people)->chunk(intdiv(65_000, 13)) as $people) {
+            TmdbPerson::upsert($people->toArray(), 'id');
+        }
+
+        if ($cache !== []) {
+            cache()->put($cache, 8 * 3600);
+        }
+
         TmdbCredit::where('tmdb_tv_id', '=', $this->id)->delete();
         TmdbCredit::upsert($credits, ['tmdb_person_id', 'tmdb_movie_id', 'tmdb_tv_id', 'occupation_id', 'character']);
 
@@ -144,5 +165,9 @@ class ProcessTvJob implements ShouldQueue
             ->where('tmdb_tv_id', '=', $this->id)
             ->whereRelation('category', 'tv_meta', '=', true)
             ->searchable();
+
+        // TMDB caches their api responses for 8 hours, so don't abuse them
+
+        cache()->put("tmdb-tv-scraper:{$this->id}", now(), 8 * 3600);
     }
 }

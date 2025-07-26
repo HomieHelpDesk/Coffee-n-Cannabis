@@ -132,6 +132,8 @@ return [
     ],
     'max_unused_user_invites' => 1,
 
+    'hours-until-invite-after-2fa' => 24,
+
     /*
     |--------------------------------------------------------------------------
     | Default Users Stats

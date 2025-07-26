@@ -34,16 +34,12 @@ class ClaimController extends Controller
      */
     public function store(StoreTorrentRequestClaimRequest $request, TorrentRequest $torrentRequest): \Illuminate\Http\RedirectResponse
     {
-        if ($torrentRequest->claimed !== null) {
+        if ($torrentRequest->claim()->exists()) {
             return to_route('requests.show', ['torrentRequest' => $torrentRequest])
                 ->withErrors(trans('request.already-claimed'));
         }
 
         $claim = $torrentRequest->claim()->create(['user_id' => $request->user()->id] + $request->validated());
-
-        $torrentRequest->update([
-            'claimed' => true,
-        ]);
 
         $requester = $torrentRequest->user;
 
@@ -61,10 +57,6 @@ class ClaimController extends Controller
     public function destroy(Request $request, TorrentRequest $torrentRequest, TorrentRequestClaim $claim): \Illuminate\Http\RedirectResponse
     {
         abort_unless($request->user()->group->is_modo || $request->user()->id == $claim->user_id, 403);
-
-        $torrentRequest->update([
-            'claimed' => null,
-        ]);
 
         $claimer = $claim->anon ? 'Anonymous' : $request->user()->username;
         $requester = $torrentRequest->user;

@@ -59,6 +59,16 @@ class Playlist extends Model
     }
 
     /**
+     * Belongs to a Category.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<PlaylistCategory, $this>
+     */
+    public function playlistCategory(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(PlaylistCategory::class);
+    }
+
+    /**
      * Has Many Torrents.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<Torrent, $this, PlaylistTorrent>

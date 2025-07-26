@@ -24,7 +24,7 @@
                     <tr>
                         <td>{{ $loop->iteration }}</td>
                         <td>
-                            @switch($siteTheme->style)
+                            @switch($siteTheme->total_style)
                                 @case('0')
                                     Light Theme
 

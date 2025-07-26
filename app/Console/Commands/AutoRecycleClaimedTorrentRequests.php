@@ -59,7 +59,6 @@ class AutoRecycleClaimedTorrentRequests extends Command
             ->whereHas(
                 'request',
                 fn ($query) => $query
-                    ->where('claimed', '=', true)
                     ->whereNull('filled_by')
                     ->whereNull('filled_when')
                     ->whereNull('torrent_id')
@@ -72,7 +71,6 @@ class AutoRecycleClaimedTorrentRequests extends Command
                         \sprintf('[url=%s]%s[/url] claim has been reset due to not being filled within 7 days.', $trUrl, $claim->request->name)
                     );
 
-                    $claim->request->update(['claimed' => null]);
                     $claim->delete();
                 }
             });

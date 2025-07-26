@@ -67,9 +67,11 @@ class InviteController extends Controller
                 ->withErrors(trans('user.invites-disabled-group'));
         }
 
-        if ($user->two_factor_confirmed_at === null) {
+        $minHours = config('other.hours-until-invite-after-2fa');
+
+        if ($user->two_factor_confirmed_at === null || $user->two_factor_confirmed_at->addHours($minHours)->isFuture()) {
             return to_route('home.index')
-                ->withErrors('Two-factor authentication must be enabled to send invites');
+                ->withErrors("Two-factor authentication must be enabled for {$minHours} hours to send invites");
         }
 
         return view('user.invite.create', ['user' => $user]);
@@ -94,9 +96,11 @@ class InviteController extends Controller
                 ->withErrors(trans('user.not-enough-invites'));
         }
 
-        if ($user->two_factor_confirmed_at === null) {
+        $minHours = config('other.hours-until-invite-after-2fa');
+
+        if ($user->two_factor_confirmed_at === null || $user->two_factor_confirmed_at->addHours($minHours)->isFuture()) {
             return to_route('home.index')
-                ->withErrors('Two-factor authentication must be enabled to send invites');
+                ->withErrors("Two-factor authentication must be enabled for {$minHours} hours to send invites");
         }
 
         $request->validate([

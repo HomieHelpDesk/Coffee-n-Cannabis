@@ -36,10 +36,9 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string                          $password
  * @property string|null                     $two_factor_secret
  * @property string|null                     $two_factor_recovery_codes
- * @property string|null                     $two_factor_confirmed_at
+ * @property \Illuminate\Support\Carbon|null $two_factor_confirmed_at
  * @property string                          $passkey
  * @property int                             $group_id
- * @property bool                            $active
  * @property int                             $uploaded
  * @property int                             $downloaded
  * @property string|null                     $image
@@ -112,24 +111,37 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get the attributes that should be cast.
      *
-     * @return array{last_login: 'datetime', last_action: 'datetime', disabled_at: 'datetime', can_comment: 'bool', can_download: 'bool', can_request: 'bool', can_invite: 'bool', can_upload: 'bool', can_chat: 'bool', seedbonus: 'decimal:2', active: 'bool', is_donor: 'bool', is_lifetime: 'bool'}
+     * @return array{
+     *     last_login: 'datetime',
+     *     last_action: 'datetime',
+     *     disabled_at: 'datetime',
+     *     can_comment: 'bool',
+     *     can_download: 'bool',
+     *     can_request: 'bool',
+     *     can_invite: 'bool',
+     *     can_upload: 'bool',
+     *     can_chat: 'bool',
+     *     seedbonus: 'decimal:2',
+     *     is_donor: 'bool',
+     *     is_lifetime: 'bool'
+     * }
      */
     protected function casts(): array
     {
         return [
-            'seedbonus'    => 'decimal:2',
-            'last_login'   => 'datetime',
-            'last_action'  => 'datetime',
-            'disabled_at'  => 'datetime',
-            'can_comment'  => 'bool',
-            'can_download' => 'bool',
-            'can_request'  => 'bool',
-            'can_invite'   => 'bool',
-            'can_upload'   => 'bool',
-            'can_chat'     => 'bool',
-            'active'       => 'bool',
-            'is_donor'     => 'bool',
-            'is_lifetime'  => 'bool',
+            'seedbonus'               => 'decimal:2',
+            'last_login'              => 'datetime',
+            'last_action'             => 'datetime',
+            'disabled_at'             => 'datetime',
+            'two_factor_confirmed_at' => 'datetime',
+            'can_comment'             => 'bool',
+            'can_download'            => 'bool',
+            'can_request'             => 'bool',
+            'can_invite'              => 'bool',
+            'can_upload'              => 'bool',
+            'can_chat'                => 'bool',
+            'is_donor'                => 'bool',
+            'is_lifetime'             => 'bool',
         ];
     }
 
@@ -283,7 +295,41 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function settings(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->hasOne(UserSetting::class);
+        return $this->hasOne(UserSetting::class)->withDefault([
+            'censor'                            => false,
+            'news_block_visible'                => true,
+            'news_block_position'               => 0,
+            'chat_block_visible'                => true,
+            'chat_block_position'               => 1,
+            'featured_block_visible'            => true,
+            'featured_block_position'           => 2,
+            'random_media_block_visible'        => true,
+            'random_media_block_position'       => 3,
+            'poll_block_visible'                => true,
+            'poll_block_position'               => 4,
+            'top_torrents_block_visible'        => true,
+            'top_torrents_block_position'       => 5,
+            'top_users_block_visible'           => true,
+            'top_users_block_position'          => 6,
+            'latest_topics_block_visible'       => true,
+            'latest_topics_block_position'      => 7,
+            'latest_posts_block_visible'        => true,
+            'latest_posts_block_position'       => 8,
+            'latest_comments_block_visible'     => true,
+            'latest_comments_block_position'    => 9,
+            'online_block_visible'              => true,
+            'online_block_position'             => 10,
+            'locale'                            => config('app.locale'),
+            'style'                             => config('other.default_style', 0),
+            'torrent_layout'                    => 0,
+            'torrent_filters'                   => false,
+            'custom_css'                        => null,
+            'standalone_css'                    => null,
+            'show_poster'                       => false,
+            'unbookmark_torrents_on_completion' => false,
+            'torrent_sort_field'                => 'bumped_at',
+            'torrent_search_autofocus'          => false,
+        ]);
     }
 
     /**

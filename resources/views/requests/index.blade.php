@@ -1,4 +1,4 @@
-@extends('layout.default')
+@extends('layout.with-main')
 
 @section('title')
     <title>{{ __('request.requests') }} - {{ config('other.title') }}</title>
@@ -12,6 +12,6 @@
 
 @section('page', 'page__request--index')
 
-@section('content')
+@section('main')
     @livewire('torrent-request-search')
 @endsection

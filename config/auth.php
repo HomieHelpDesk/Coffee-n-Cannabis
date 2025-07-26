@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Enums\AuthGuard;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -15,7 +17,7 @@ return [
     */
 
     'defaults' => [
-        'guard'     => 'web',
+        'guard'     => AuthGuard::WEB->value,
         'passwords' => 'users',
     ],
 
@@ -37,15 +39,19 @@ return [
     */
 
     'guards' => [
-        'web' => [
+        AuthGuard::WEB->value => [
             'driver'   => 'session',
             'provider' => 'users',
         ],
 
-        'api' => [
+        AuthGuard::API->value => [
             'driver'   => 'token',
             'provider' => 'users',
             'hash'     => false,
+        ],
+
+        'rss' => [
+            'driver' => 'rsskey',
         ],
     ],
 
@@ -100,7 +106,7 @@ return [
     'passwords' => [
         'users' => [
             'provider' => 'users',
-            'table'    => 'password_resets',
+            'table'    => 'password_reset_tokens',
             'expire'   => 60,
             'throttle' => 60,
         ],

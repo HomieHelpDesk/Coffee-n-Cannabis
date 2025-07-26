@@ -1,7 +1,6 @@
 <?php
-
-declare(strict_types=1);
-/**
+return [
+    /**
  * NOTICE OF LICENSE.
  *
  * UNIT3D Community Edition is open-sourced software licensed under the GNU Affero General Public License v3.0
@@ -12,8 +11,6 @@ declare(strict_types=1);
  * @author     Roardom <roardom@protonmail.com>
  * @license    https://www.gnu.org/licenses/agpl-3.0.en.html/ GNU Affero General Public License v3.0
  */
-
-return [
     'AFG' => 'Afganistán',
     'AIA' => 'Anguila',
     'ALA' => 'Åland',
@@ -136,7 +133,6 @@ return [
     'KOR' => 'Corea del Sur',
     'KSA' => 'Arabia Saudita',
     'KUW' => 'Kuwait',
-    'KVX' => '',
     'LAO' => 'Laos',
     'LBN' => 'Líbano',
     'LBR' => 'Liberia',
@@ -208,7 +204,6 @@ return [
     'SEY' => 'Seychelles',
     'SGS' => 'Islas Georgia del Sur y Sandwich del Sur',
     'SHN' => 'Santa Elena, Ascensión y Tristán de Acuña',
-    'SIN' => '',
     'SJM' => 'Svalbard y Jan Mayen',
     'SLE' => 'Sierra Leona',
     'SLV' => 'El Salvador',

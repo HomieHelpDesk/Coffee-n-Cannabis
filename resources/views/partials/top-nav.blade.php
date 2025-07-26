@@ -184,9 +184,9 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('top10.index') }}">
-                        <i class="{{ config('other.font-awesome') }} fa-trophy-alt"></i>
-                        {{ __('common.top-10') }}
+                    <a href="{{ route('trending.index') }}">
+                        <i class="{{ config('other.font-awesome') }} fa-arrow-trend-up"></i>
+                        {{ __('common.trending') }}
                     </a>
                 </li>
                 <li>

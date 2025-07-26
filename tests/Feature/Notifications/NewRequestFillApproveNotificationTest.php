@@ -34,7 +34,7 @@ test('accept a request fill creates a notification for the filler', function ():
     Notification::fake();
 
     // Required for ChatRepository()
-    $this->seed(UsersTableSeeder::class);
+    $this->seed(UserSeeder::class);
 
     $bot = Bot::factory()->create([
         'command' => 'Systembot',
@@ -69,7 +69,6 @@ test('accept a request fill creates a notification for the filler', function ():
         'type_id'       => $type->id,
         'resolution_id' => $resolution->id,
         'torrent_id'    => $torrent->id,
-        'claimed'       => true,
         'filled_by'     => $filler->id,
         'filled_when'   => now(),
         'approved_by'   => null,
@@ -91,7 +90,7 @@ test('accept a request fill creates a notification for the filler when request a
     Notification::fake();
 
     // Required for ChatRepository()
-    $this->seed(UsersTableSeeder::class);
+    $this->seed(UserSeeder::class);
 
     $bot = Bot::factory()->create([
         'command' => 'Systembot',
@@ -129,7 +128,6 @@ test('accept a request fill creates a notification for the filler when request a
         'type_id'       => $type->id,
         'resolution_id' => $resolution->id,
         'torrent_id'    => $torrent->id,
-        'claimed'       => true,
         'filled_by'     => $filler->id,
         'filled_when'   => now(),
         'approved_by'   => null,
@@ -151,7 +149,7 @@ test('accept a request fill creates a notification for the filler when all notif
     Notification::fake();
 
     // Required for ChatRepository()
-    $this->seed(UsersTableSeeder::class);
+    $this->seed(UserSeeder::class);
 
     $bot = Bot::factory()->create([
         'command' => 'Systembot',
@@ -188,7 +186,6 @@ test('accept a request fill creates a notification for the filler when all notif
         'type_id'       => $type->id,
         'resolution_id' => $resolution->id,
         'torrent_id'    => $torrent->id,
-        'claimed'       => true,
         'filled_by'     => $filler->id,
         'filled_when'   => now(),
         'approved_by'   => null,
@@ -206,7 +203,7 @@ test('accept a request fill creates a notification for the filler when fill appr
     Notification::fake();
 
     // Required for ChatRepository()
-    $this->seed(UsersTableSeeder::class);
+    $this->seed(UserSeeder::class);
 
     $bot = Bot::factory()->create([
         'command' => 'Systembot',
@@ -241,7 +238,6 @@ test('accept a request fill creates a notification for the filler when fill appr
         'type_id'       => $type->id,
         'resolution_id' => $resolution->id,
         'torrent_id'    => $torrent->id,
-        'claimed'       => true,
         'filled_by'     => $filler->id,
         'filled_when'   => now(),
         'approved_by'   => null,
@@ -259,7 +255,7 @@ test('accept a request fill creates a notification for the filler when request n
     Notification::fake();
 
     // Required for ChatRepository()
-    $this->seed(UsersTableSeeder::class);
+    $this->seed(UserSeeder::class);
 
     $bot = Bot::factory()->create([
         'command' => 'Systembot',
@@ -299,7 +295,6 @@ test('accept a request fill creates a notification for the filler when request n
         'type_id'       => $type->id,
         'resolution_id' => $resolution->id,
         'torrent_id'    => $torrent->id,
-        'claimed'       => true,
         'filled_by'     => $filler->id,
         'filled_when'   => now(),
         'approved_by'   => null,

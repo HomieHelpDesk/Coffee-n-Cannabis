@@ -14,10 +14,10 @@
 <link rel="shortcut icon" href="{{ url('/favicon.ico') }}" type="image/x-icon" />
 <link rel="icon" href="{{ url('/favicon.ico') }}" type="image/x-icon" />
 
-@if (auth()->user()->settings?->standalone_css === null)
+@if (auth()->user()->settings->standalone_css === null)
     @vite('resources/sass/main.scss')
 
-    @switch(auth()->user()->settings?->style ?? config('other.default_style', 0))
+    @switch(auth()->user()->settings->style)
         @case(0)
             @vite('resources/sass/themes/_light.scss')
 
@@ -92,11 +92,11 @@
             @break
     @endswitch
 
-    @if (isset(auth()->user()->settings?->custom_css))
-        <link rel="stylesheet" href="{{ auth()->user()->settings?->custom_css }}" />
+    @if (isset(auth()->user()->settings->custom_css))
+        <link rel="stylesheet" href="{{ auth()->user()->settings->custom_css }}" />
     @endif
 @else
-    <link rel="stylesheet" href="{{ auth()->user()->settings?->standalone_css }}" />
+    <link rel="stylesheet" href="{{ auth()->user()->settings->standalone_css }}" />
 @endif
 
 @livewireStyles

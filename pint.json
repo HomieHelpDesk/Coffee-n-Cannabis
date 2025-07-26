@@ -1,5 +1,6 @@
 {
   "preset": "psr12",
+  "exclude": "lang",
   "rules": {
     "align_multiline_comment": true,
     "array_indentation": true,

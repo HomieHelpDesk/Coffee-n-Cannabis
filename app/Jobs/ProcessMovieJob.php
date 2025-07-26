@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Enums\GlobalRateLimit;
 use App\Models\TmdbCollection;
 use App\Models\TmdbCompany;
 use App\Models\TmdbCredit;
@@ -58,7 +59,7 @@ class ProcessMovieJob implements ShouldQueue
         return [
             Skip::when(cache()->has("tmdb-movie-scraper:{$this->id}")),
             new WithoutOverlapping((string) $this->id)->dontRelease()->expireAfter(30),
-            new RateLimited('tmdb'),
+            new RateLimited(GlobalRateLimit::TMDB),
         ];
     }
 
@@ -72,10 +73,6 @@ class ProcessMovieJob implements ShouldQueue
 
     public function handle(): void
     {
-        // TMDB caches their api responses for 8 hours, so don't abuse them
-
-        cache()->put("tmdb-movie-scraper:{$this->id}", now(), 8 * 3600);
-
         // Movie
 
         $movieScraper = new Client\Movie($this->id);
@@ -115,6 +112,7 @@ class ProcessMovieJob implements ShouldQueue
 
         $credits = $movieScraper->getCredits();
         $people = [];
+        $cache = [];
 
         foreach (array_unique(array_column($credits, 'tmdb_person_id')) as $personId) {
             // TMDB caches their api responses for 8 hours, so don't abuse them
@@ -125,12 +123,17 @@ class ProcessMovieJob implements ShouldQueue
                 continue;
             }
 
-            cache()->put($cacheKey, now(), 8 * 3600);
-
             $people[] = (new Client\Person($personId))->getPerson();
+
+            $cache[$cacheKey] = now();
         }
 
         TmdbPerson::upsert($people, 'id');
+
+        if ($cache !== []) {
+            cache()->put($cache, 8 * 3600);
+        }
+
         TmdbCredit::where('tmdb_movie_id', '=', $this->id)->delete();
         TmdbCredit::upsert($credits, ['tmdb_person_id', 'tmdb_movie_id', 'tmdb_tv_id', 'occupation_id', 'character']);
 
@@ -142,5 +145,9 @@ class ProcessMovieJob implements ShouldQueue
             ->where('tmdb_movie_id', '=', $this->id)
             ->whereRelation('category', 'movie_meta', '=', true)
             ->searchable();
+
+        // TMDB caches their api responses for 8 hours, so don't abuse them
+
+        cache()->put("tmdb-movie-scraper:{$this->id}", now(), 8 * 3600);
     }
 }

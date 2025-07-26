@@ -1,8 +1,6 @@
-<h1 align="center">
-    <img src="https://github.com/HDInnovations/UNIT3D-Community-Edition/blob/master/public/img/hdinnovations.png?raw=true" alt="UNIT3D Logo" width="50px" />
-    <br />
-    UNIT3D
-</h1>
+<div align="center">
+    <img width="400" alt="unit3d" src="https://github.com/user-attachments/assets/2fa3678d-015c-4438-bcdb-ac6508915551" />
+</div>
 
 <p align="center">
     <a href="http://laravel.com"><img src="https://img.shields.io/badge/Laravel-12-f4645f.svg" /></a>
@@ -17,22 +15,19 @@
     </a>
 </p>
 
-<p align="center">
-    🎉 <b>A Big Thanks To All Our <a href="https://github.com/HDInnovations/UNIT3D-Community-Edition/graphs/contributors">Contributors</a> and <a href="https://square.link/u/VjB1CNfm">Donors</a></b> 🎉
-</p>
-
 ## 📝 Table of Contents
 
 1. [Introduction](#introduction)
 2. [Installation](#installation)
 3. [Updating](#updating)
-4. [Contributing](#contributing)
-5. [Translations](#translations)
-6. [License](#license)
-7. [Services](#services)
-8. [Discord](#discord)
-9. [Donations](#donations)
-10. [Shoutouts](#shoutouts)
+4. [Documentation](#docs)
+5. [Contributing](#contributing)
+6. [Translations](#translations)
+7. [License](#license)
+8. [Services](#services)
+9. [Discord](#discord)
+10. [Donations](#donations)
+11. [Shoutouts](#shoutouts)
 
 
 ## <a name="introduction"></a> 🧐 Introduction
@@ -41,7 +36,7 @@ UNIT3D (pronounced "united") is a modern Private Torrent Tracker software built 
 
 ## <a name="installation"></a> 🖥️ Installation
 
-No public script or documentation is available at this time.
+No official script or documentation is available at this time.
 
 ## <a name="updating"></a> 🖥️ Updating
 
@@ -49,9 +44,13 @@ To update your installation to the latest version, run the following command. Th
 
 `sudo php artisan git:update`
 
+## <a name="docs"></a> 📚 Documentation
+
+https://hdinnovations.github.io/UNIT3D/
+
 ## <a name="contributing"></a> 🤝 Contributing
 
-Please read [CONTRIBUTING.md](https://github.com/HDInnovations/UNIT3D-Community-Edition/blob/master/CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](https://github.com/HDInnovations/UNIT3D-Community-Edition/blob/master/CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests to us. A massive thankyou to all of our <a href="https://github.com/HDInnovations/UNIT3D-Community-Edition/graphs/contributors">contributors</a>.
 
 ## <a name="translations"></a> 🌎 Translations
 
@@ -75,13 +74,13 @@ We have a Discord server for support and general discussion. This is a private s
 
 ## <a name="donations"></a> 💰 Donations
 
-If you would like to support the development of UNIT3D, please consider donating to keep the project alive. Donors will receive a README [shoutout](#shoutouts) unless chosen to be anonymous. They will also receive a Donor role if present in Discord server via a Discord Pass. For more information, please email us at [hdinnovations@protonmail.com](mailto:hdinnovations@protonmail.com?subject=[Funding]%20UNIT3D%20)
+If you would like to support the development of UNIT3D, please consider donating to keep the project alive.
 
 *Donations are non-refundable and made voluntarily without exchange of goods or services. It is support the project as a whole.*
 
-#### You can donate via Square payment processor using the following link:
+You can donate using the following link:
 
-[Donate via Square](https://square.link/u/VjB1CNfm)
+[Donate](https://square.link/u/VjB1CNfm)
 
 #### You can also donate via BTC cryptocurrency using the following addresses:
 

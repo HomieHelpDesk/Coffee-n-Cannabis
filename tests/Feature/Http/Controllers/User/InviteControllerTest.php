@@ -161,6 +161,7 @@ test('store returns an ok response', function (): void {
     config(['other.invites_restriced' => true]);
     config(['other.invite_groups' => [$group->name]]);
     config(['other.invite_groups' => [$group->name]]);
+    config(['other.hours-until-invite-after-2fa' => 0]);
     config(['email-blacklist.enabled' => false]);
 
     Mail::fake();
@@ -193,8 +194,9 @@ test('store with internal note as staff user', function (): void {
     $inviteEmail = 'test@unit3d.dev';
 
     config(['other' => [
-        'invites_restriced' => true,
-        'invite_groups'     => [$group->name],
+        'invites_restriced'            => true,
+        'invite_groups'                => [$group->name],
+        'hours-until-invite-after-2fa' => 0,
     ],
         'email-blacklist.enabled' => false,
     ]);

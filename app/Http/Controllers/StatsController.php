@@ -338,8 +338,11 @@ class StatsController extends Controller
     public function themes(): \Illuminate\Contracts\View\Factory|\Illuminate\View\View
     {
         return view('stats.themes.index', [
-            'siteThemes' => UserSetting::select(DB::raw('style, count(*) as value'))
-                ->groupBy('style')
+            'siteThemes' => User::query()
+                ->withTrashed()
+                ->leftJoin('user_settings', 'users.id', '=', 'user_settings.user_id')
+                ->selectRaw('COALESCE(style, ?) as total_style, COUNT(*) as value', [config('other.default_style')])
+                ->groupBy('total_style')
                 ->orderByDesc('value')
                 ->get(),
             'customThemes' => UserSetting::where('custom_css', '!=', '')
